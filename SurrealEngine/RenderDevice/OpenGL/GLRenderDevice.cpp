@@ -34,185 +34,12 @@ int GLRenderDevice::GetSettingsMultisample()
 
 bool GLRenderDevice::Init(int NewX, int NewY, bool Fullscreen)
 {
-#if 0
 	ActiveHdr = Hdr;
 	BufferCount = UseVSync ? 2 : 3;
 
-	HDC screenDC = GetDC(0);
-	DesktopResolution.Width = GetDeviceCaps(screenDC, HORZRES);
-	DesktopResolution.Height = GetDeviceCaps(screenDC, VERTRES);
-	ReleaseDC(0, screenDC);
-
 	try
 	{
-		std::vector<D3D_FEATURE_LEVEL> featurelevels =
-		{
-			D3D_FEATURE_LEVEL_11_1,
-			D3D_FEATURE_LEVEL_11_0,
-			D3D_FEATURE_LEVEL_10_1,
-			D3D_FEATURE_LEVEL_10_0
-		};
-
-		UINT deviceFlags = GL_CREATE_DEVICE_SINGLETHREADED | GL_CREATE_DEVICE_BGRA_SUPPORT;
-		if (UseDebugLayer)
-			deviceFlags |= GL_CREATE_DEVICE_DEBUG;
-
-		// First try use a more recent way of creating the device and swap chain
-		HRESULT result = GLCreateDevice(
-			nullptr,
-			D3D_DRIVER_TYPE_HARDWARE,
-			0,
-			deviceFlags,
-			featurelevels.data(), (UINT)featurelevels.size(),
-			GL_SDK_VERSION,
-			Device.TypedInitPtr(),
-			&FeatureLevel,
-			Context.TypedInitPtr());
-		if (FAILED(result))
-			LogMessage("GLDrv: Could not create a modern GL device");
-
-		// Wonderful API you got here, Microsoft. Good job.
-		ComPtr<IDXGIDevice2> dxgiDevice;
-		ComPtr<IDXGIAdapter> dxgiAdapter;
-		ComPtr<IDXGIFactory2> dxgiFactory;
-
-		if (SUCCEEDED(result))
-			result = Device->QueryInterface(dxgiDevice.GetIID(), dxgiDevice.InitPtr());
-		else
-			LogMessage("GLDrv: Could not get IDXGIDevice2 interface for the GL device");
-
-		if (SUCCEEDED(result))
-			result = dxgiDevice->GetParent(dxgiAdapter.GetIID(), dxgiAdapter.InitPtr());
-		else
-			LogMessage("GLDrv: Could not get IDXGIAdapter interface for the GL device");
-
-		if (SUCCEEDED(result))
-			result = dxgiAdapter->GetParent(dxgiFactory.GetIID(), dxgiFactory.InitPtr());
-		else
-			LogMessage("GLDrv: Could not get IDXGIFactory2 interface for the GL device");
-
-		if (SUCCEEDED(result))
-		{
-			ComPtr<IDXGIFactory5> dxgiFactory5;
-			result = dxgiFactory->QueryInterface(dxgiFactory5.GetIID(), dxgiFactory5.InitPtr());
-			if (SUCCEEDED(result))
-			{
-				int support = 0;
-				result = dxgiFactory5->CheckFeatureSupport(DXGI_FEATURE_PRESENT_ALLOW_TEARING, &support, sizeof(int));
-				if (SUCCEEDED(result))
-				{
-					DxgiSwapChainAllowTearing = support != 0;
-				}
-				else
-				{
-					LogMessage("GLDrv: Device does not support DXGI_FEATURE_PRESENT_ALLOW_TEARING");
-				}
-			}
-			else
-			{
-				LogMessage("GLDrv: Could not get IDXGIFactory5 interface for the GL device");
-			}
-
-			UINT swapChainFlags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-			if (DxgiSwapChainAllowTearing)
-				swapChainFlags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-
-			DXGI_SWAP_CHAIN_DESC1 swapDesc = {};
-			swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-			swapDesc.Width = NewX;
-			swapDesc.Height = NewY;
-			swapDesc.Format = ActiveHdr ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R8G8B8A8_UNORM;
-			swapDesc.BufferCount = BufferCount;
-			swapDesc.SampleDesc.Count = 1;
-			swapDesc.Scaling = DXGI_SCALING_STRETCH;
-			swapDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-			swapDesc.Flags = swapChainFlags;
-			swapDesc.AlphaMode = DXGI_ALPHA_MODE_IGNORE;
-			result = dxgiFactory->CreateSwapChainForHwnd(Device, GetWindowHandle(), &swapDesc, nullptr, nullptr, SwapChain1.TypedInitPtr());
-			if (SUCCEEDED(result))
-			{
-				dxgiFactory->MakeWindowAssociation(GetWindowHandle(), DXGI_MWA_NO_ALT_ENTER);
-			}
-			else
-			{
-				LogMessage("GLDrv: CreateSwapChainForHwnd failed");
-				DxgiSwapChainAllowTearing = false;
-			}
-		}
-		if (SUCCEEDED(result))
-		{
-			result = SwapChain1->QueryInterface(SwapChain.GetIID(), SwapChain.InitPtr());
-			if (FAILED(result))
-				SwapChain1.reset();
-		}
-		else
-		{
-			Context.reset();
-			Device.reset();
-		}
-		dxgiFactory.reset();
-		dxgiAdapter.reset();
-		dxgiDevice.reset();
-
-		// We still don't have a swap chain. Let's try the older Windows 7 API
-		if (!SwapChain)
-		{
-			LogMessage("GLDrv: Modern GL device creation failed. Falling back to Windows 7");
-
-			DXGI_SWAP_CHAIN_DESC swapDesc = {};
-			swapDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
-			swapDesc.BufferDesc.Width = NewX;
-			swapDesc.BufferDesc.Height = NewY;
-			swapDesc.BufferDesc.Format = ActiveHdr ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R8G8B8A8_UNORM;
-			swapDesc.BufferCount = BufferCount;
-			swapDesc.SampleDesc.Count = 1;
-			swapDesc.OutputWindow = GetWindowHandle();
-			swapDesc.Windowed = GL_TRUE;
-			swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-			if (RefreshRate != 0)
-			{
-				swapDesc.BufferDesc.RefreshRate.Numerator = RefreshRate;
-				swapDesc.BufferDesc.RefreshRate.Denominator = 1;
-			}
-			else
-			{
-				DEVMODE devmode = {};
-				devmode.dmSize = sizeof(DEVMODE);
-				if (EnumDisplaySettings(nullptr, ENUM_CURRENT_SETTINGS, &devmode) && devmode.dmDisplayFrequency > 1)
-				{
-					swapDesc.BufferDesc.RefreshRate.Numerator = devmode.dmDisplayFrequency;
-					swapDesc.BufferDesc.RefreshRate.Denominator = 1;
-				}
-			}
-
-			// First try create a swap chain for Windows 8 and newer. If that fails, try the old for Windows 7
-			HRESULT result = E_FAIL;
-			for (DXGI_SWAP_EFFECT swapeffect : { DXGI_SWAP_EFFECT_FLIP_DISCARD, DXGI_SWAP_EFFECT_DISCARD })
-			{
-				swapDesc.SwapEffect = swapeffect;
-
-				result = GLCreateDeviceAndSwapChain(
-					nullptr,
-					D3D_DRIVER_TYPE_HARDWARE,
-					0,
-					deviceFlags,
-					featurelevels.data(), (UINT)featurelevels.size(),
-					GL_SDK_VERSION,
-					&swapDesc,
-					SwapChain.TypedInitPtr(),
-					Device.TypedInitPtr(),
-					&FeatureLevel,
-					Context.TypedInitPtr());
-				if (SUCCEEDED(result))
-					break;
-
-				LogMessage("GLDrv: Could not use DXGI_SWAP_EFFECT_FLIP_DISCARD. Falling back to DXGI_SWAP_EFFECT_DISCARD");
-			}
-			ThrowIfFailed(result, "GLCreateDeviceAndSwapChain failed");
-		}
-
-		SetDebugName(Device, "GLDrv.Device");
-		SetDebugName(Context, "GLDrv.Context");
+		// To do: do opengl init work here
 
 		CreateScenePass();
 		CreatePresentPass();
@@ -221,15 +48,9 @@ bool GLRenderDevice::Init(int NewX, int NewY, bool Fullscreen)
 		Textures.reset(new GLTextureManager(this));
 		Uploads.reset(new GLUploadManager(this));
 	}
-	catch (_com_error error)
-	{
-		LogMessage("Could not create d3d11 renderer: [_com_error] " + from_utf16(error.ErrorMessage()));
-		Exit();
-		return false;
-	}
 	catch (const std::exception& e)
 	{
-		LogMessage(std::string("Could not create d3d11 renderer: ") + e.what());
+		LogMessage(std::string("Could not create opengl renderer: ") + e.what());
 		Exit();
 		return false;
 	}
@@ -239,110 +60,13 @@ bool GLRenderDevice::Init(int NewX, int NewY, bool Fullscreen)
 		Exit();
 		return false;
 	}
-#endif
+
 	return true;
 }
 
 bool GLRenderDevice::SetRes(int NewX, int NewY, bool Fullscreen)
 {
-#if 0
 	ReleaseSwapChainResources();
-
-	// Resize the swap chain buffers before doing the mode switch. Shouldn't really make any difference but you never know!
-	if (Fullscreen)
-	{
-		UINT flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-		if (DxgiSwapChainAllowTearing)
-			flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-		SwapChain->ResizeBuffers(UseVSync ? 2 : 3, NewX, NewY, ActiveHdr ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R8G8B8A8_UNORM, flags);
-	}
-
-	HRESULT result;
-
-	DXGI_MODE_DESC modeDesc = {};
-	modeDesc.Width = NewX;
-	modeDesc.Height = NewY;
-	modeDesc.Format = ActiveHdr ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R8G8B8A8_UNORM;
-	if (RefreshRate != 0)
-	{
-		modeDesc.RefreshRate.Numerator = RefreshRate;
-		modeDesc.RefreshRate.Denominator = 1;
-	}
-	else
-	{
-		DEVMODE devmode = {};
-		devmode.dmSize = sizeof(DEVMODE);
-		if (EnumDisplaySettings(nullptr, ENUM_CURRENT_SETTINGS, &devmode) && devmode.dmDisplayFrequency > 1)
-		{
-			modeDesc.RefreshRate.Numerator = devmode.dmDisplayFrequency;
-			modeDesc.RefreshRate.Denominator = 1;
-		}
-	}
-
-	if (Fullscreen)
-	{
-		IDXGIOutput* output = nullptr;
-		result = SwapChain->GetContainingOutput(&output);
-		if (SUCCEEDED(result))
-		{
-			DXGI_MODE_DESC modeToMatch = modeDesc;
-			DXGI_MODE_DESC modeFound = {};
-			result = output->FindClosestMatchingMode(&modeToMatch, &modeFound, Device);
-			if (SUCCEEDED(result))
-			{
-				if (modeToMatch.Width == modeFound.Width && modeToMatch.Height == modeFound.Height)
-				{
-					modeDesc = modeFound;
-				}
-				else
-				{
-					LogMessage("FindClosestMatchingMode could not find a mode with the specified resolution");
-				}
-			}
-			else
-			{
-				LogMessage("FindClosestMatchingMode failed");
-			}
-			NewX = modeDesc.Width;
-			NewY = modeDesc.Height;
-			output->Release();
-		}
-		else
-		{
-			LogMessage("GetContainingOutput failed");
-		}
-
-		result = SwapChain->SetFullscreenState(TRUE, nullptr);
-		if (FAILED(result))
-		{
-			LogMessage("SwapChain.SetFullscreenState failed");
-			// Don't fail this as it can happen if the application isn't the foreground process
-		}
-
-		result = SwapChain->ResizeTarget(&modeDesc);
-		if (FAILED(result))
-		{
-			LogMessage("SwapChain.ResizeTarget failed");
-		}
-	}
-	else
-	{
-		if (CurrentFullscreen)
-		{
-			result = SwapChain->SetFullscreenState(GL_FALSE, nullptr);
-			if (FAILED(result))
-			{
-				LogMessage("SwapChain.SetFullscreenState failed");
-				// Don't fail this as it can happen if the application isn't the foreground process
-			}
-
-			result = SwapChain->ResizeTarget(&modeDesc);
-			if (FAILED(result))
-			{
-				LogMessage("SwapChain.ResizeTarget failed");
-			}
-		}
-	}
 
 	CurrentSizeX = NewX;
 	CurrentSizeY = NewY;
@@ -353,7 +77,6 @@ bool GLRenderDevice::SetRes(int NewX, int NewY, bool Fullscreen)
 		return false;
 
 	Flush(1);
-#endif
 	return true;
 }
 
@@ -367,60 +90,17 @@ void GLRenderDevice::ReleaseSwapChainResources()
 
 bool GLRenderDevice::UpdateSwapChain()
 {
-#if 0
-	UINT flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
-	if (DxgiSwapChainAllowTearing)
-		flags |= DXGI_SWAP_CHAIN_FLAG_ALLOW_TEARING;
-
-	LogMessage("GLDrv: Updating SwapChain size to " + std::to_string(CurrentSizeX) + " x " + std::to_string(CurrentSizeY));
-
-	HRESULT result = SwapChain->ResizeBuffers(BufferCount, CurrentSizeX, CurrentSizeY, ActiveHdr ? DXGI_FORMAT_R16G16B16A16_FLOAT : DXGI_FORMAT_R8G8B8A8_UNORM, flags);
-	if (FAILED(result))
-	{
-		return false;
-	}
-
-	if (CurrentSizeX && CurrentSizeY)
-	{
-		try
-		{
-			LogMessage("GLDrv: Resizing scene buffers to " + std::to_string(CurrentSizeX) + " x " + std::to_string(CurrentSizeY));
-
-			ResizeSceneBuffers(CurrentSizeX, CurrentSizeY, GetSettingsMultisample());
-		}
-		catch (const std::exception& e)
-		{
-			LogMessage(std::string("Could not resize scene buffers: ") + e.what());
-			return false;
-		}
-	}
-
-	result = SwapChain->GetBuffer(0, __uuidof(IGLTexture2D), (void**)&BackBuffer);
-	if (FAILED(result))
-		return false;
-	SetDebugName(BackBuffer, "BackBuffer");
-
-	result = Device->CreateRenderTargetView(BackBuffer, nullptr, BackBufferView.TypedInitPtr());
-	if (FAILED(result))
-		return false;
-	SetDebugName(BackBufferView, "BackBufferView");
-#endif
+	// To do: create BackBuffer here, or delete this?
 	return true;
 }
 
 void GLRenderDevice::Exit()
 {
-#if 0
 	LogMessage("GLDrv: exit called");
 
 	UnmapVertices();
 
 	ReleaseSwapChainResources();
-	if (CurrentFullscreen && SwapChain)
-		SwapChain->SetFullscreenState(GL_FALSE, nullptr);
-
-	if (Context)
-		Context->ClearState();
 
 	Uploads.reset();
 	Textures.reset();
@@ -428,28 +108,6 @@ void GLRenderDevice::Exit()
 	ReleaseBloomPass();
 	ReleaseScenePass();
 	ReleaseSceneBuffers();
-	BackBufferView.reset();
-	BackBuffer.reset();
-	SwapChain.reset();
-	SwapChain1.reset();
-	Context.reset();
-
-	if (DebugLayer)
-	{
-		DebugLayer->ReportLiveDeviceObjects(/*GL_RLDO_SUMMARY |*/ ((GL_RLDO_FLAGS)0x2)/*GL_RLDO_DETAIL*/ | ((GL_RLDO_FLAGS)0x4)/*GL_RLDO_IGNORE_INTERNAL*/);
-	}
-
-	InfoQueue.reset();
-	DebugLayer.reset();
-
-	if (Device)
-	{
-		Device->AddRef();
-		int count = Device->Release();
-		Device.reset();
-		LogMessage("GLDrv: GLDrv.Device refcount is now " + std::to_string(count - 1));
-	}
-#endif
 }
 
 void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
@@ -1004,7 +662,6 @@ GLRenderDevice::ScenePipelineState* GLRenderDevice::GetPipeline(uint32_t PolyFla
 
 void GLRenderDevice::RunBloomPass()
 {
-#if 0
 	GLRenderTargetView* rtvs[1] = {};
 	GLShaderResourceView* srvs[1] = {};
 
@@ -1012,18 +669,19 @@ void GLRenderDevice::RunBloomPass()
 	GLBloomPushConstants pushconstants;
 	ComputeBlurSamples(7, blurAmount, pushconstants.SampleWeights);
 
-	GLBuffer* vertexBuffers[1] = { PresentPass.PPStepVertexBuffer.get() };
 	GLBuffer* cbs[1] = { BloomPass.ConstantBuffer.get() };
+#if 0
+	GLBuffer* vertexBuffers[1] = { PresentPass.PPStepVertexBuffer.get() };
 	int stride = sizeof(vec2);
 	int offset = 0;
 	Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
 	Context->IASetInputLayout(PresentPass.PPStepLayout);
-	Context->IASetPrimitiveTopology(GL_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	Context->VSSetShader(PresentPass.PPStep, nullptr, 0);
-	Context->RSSetState(PresentPass.RasterizerState);
-	Context->PSSetConstantBuffers(0, 1, cbs);
-	Context->OMSetDepthStencilState(PresentPass.DepthStencilState, 0);
-	Context->OMSetBlendState(PresentPass.BlendState, nullptr, 0xffffffff);
+#endif
+	SetRasterizerState(PresentPass.RasterizerState.get());
+	SetUniformBuffers(0, 1, cbs);
+	SetDepthStencilState(PresentPass.DepthStencilState.get());
+	SetBlendState(PresentPass.BlendState.get());
 	SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, BloomPass.ConstantBuffer.get(), &pushconstants, sizeof(GLBloomPushConstants));
 
 	GLViewport viewport = {};
@@ -1034,11 +692,15 @@ void GLRenderDevice::RunBloomPass()
 	viewport.Height = (float)SceneBuffers.BlurLevels[0].Height;
 	rtvs[0] = SceneBuffers.BlurLevels[0].VTextureRTV.get();
 	srvs[0] = SceneBuffers.PPImageShaderView[0].get();
+#if 0
 	Context->OMSetRenderTargets(1, rtvs, nullptr);
+#endif
 	SetViewport(viewport);
+#if 0
 	Context->PSSetShader(BloomPass.Extract, nullptr, 0);
-	Context->PSSetShaderResources(0, 1, srvs);
-	Context->Draw(6, 0);
+#endif
+	SetTextures(0, 1, srvs);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 
 	// Blur and downscale:
 	for (int i = 0; i < SceneBuffers.NumBloomLevels - 1; i++)
@@ -1049,19 +711,23 @@ void GLRenderDevice::RunBloomPass()
 		viewport.Width = (float)blevel.Width;
 		viewport.Height = (float)blevel.Height;
 		SetViewport(viewport);
-		BlurStep(blevel.VTextureSRV, blevel.HTextureRTV, false);
-		BlurStep(blevel.HTextureSRV, blevel.VTextureRTV, true);
+		BlurStep(blevel.VTextureSRV.get(), blevel.HTextureRTV.get(), false);
+		BlurStep(blevel.HTextureSRV.get(), blevel.VTextureRTV.get(), true);
 
 		// Linear downscale:
 		viewport.Width = (float)next.Width;
 		viewport.Height = (float)next.Height;
 		rtvs[0] = next.VTextureRTV.get();
 		srvs[0] = blevel.VTextureSRV.get();
+#if 0
 		Context->OMSetRenderTargets(1, rtvs, nullptr);
+#endif
 		SetViewport(viewport);
+#if 0
 		Context->PSSetShader(BloomPass.Combine, nullptr, 0);
-		Context->PSSetShaderResources(0, 1, srvs);
-		Context->Draw(6, 0);
+#endif
+		SetTextures(0, 1, srvs);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
 	// Blur and upscale:
@@ -1081,11 +747,15 @@ void GLRenderDevice::RunBloomPass()
 		viewport.Height = (float)next.Height;
 		rtvs[0] = next.VTextureRTV.get();
 		srvs[0] = blevel.VTextureSRV.get();
+#if 0
 		Context->OMSetRenderTargets(1, rtvs, nullptr);
+#endif
 		SetViewport(viewport);
+#if 0
 		Context->PSSetShader(BloomPass.Combine, nullptr, 0);
-		Context->PSSetShaderResources(0, 1, srvs);
-		Context->Draw(6, 0);
+#endif
+		SetTextures(0, 1, srvs);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
 
 	viewport.Width = (float)SceneBuffers.BlurLevels[0].Width;
@@ -1099,13 +769,16 @@ void GLRenderDevice::RunBloomPass()
 	viewport.Height = (float)SceneBuffers.Height;
 	rtvs[0] = SceneBuffers.PPImageView[0].get();
 	srvs[0] = SceneBuffers.BlurLevels[0].VTextureSRV.get();
+#if 0
 	Context->OMSetRenderTargets(1, rtvs, nullptr);
-	Context->OMSetBlendState(BloomPass.AdditiveBlendState, nullptr, 0xffffffff);
-	SetViewport(viewport);
-	Context->PSSetShader(BloomPass.Combine, nullptr, 0);
-	Context->PSSetShaderResources(0, 1, srvs);
-	Context->Draw(6, 0);
 #endif
+	SetBlendState(BloomPass.AdditiveBlendState.get());
+	SetViewport(viewport);
+#if 0
+	Context->PSSetShader(BloomPass.Combine, nullptr, 0);
+#endif
+	SetTextures(0, 1, srvs);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 void GLRenderDevice::BlurStep(GLShaderResourceView* input, GLRenderTargetView* output, bool vertical)
@@ -1113,9 +786,9 @@ void GLRenderDevice::BlurStep(GLShaderResourceView* input, GLRenderTargetView* o
 #if 0
 	Context->OMSetRenderTargets(1, &output, nullptr);
 	Context->PSSetShader(vertical ? BloomPass.BlurVertical : BloomPass.BlurHorizontal, nullptr, 0);
-	Context->PSSetShaderResources(0, 1, &input);
-	Context->Draw(6, 0);
 #endif
+	SetTextures(0, 1, &input);
+	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
 float GLRenderDevice::ComputeBlurGaussian(float n, float theta) // theta = Blur Amount
@@ -1289,7 +962,6 @@ void GLRenderDevice::UnmapVertices()
 
 void GLRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, uint8_t* InHitData, int* InHitSize)
 {
-#if 0
 	if (Viewport->GetNativePixelWidth() != CurrentSizeX || Viewport->GetNativePixelHeight() != CurrentSizeY)
 	{
 		if (!SetRes(Viewport->GetNativePixelWidth(), Viewport->GetNativePixelHeight(), CurrentFullscreen))
@@ -1327,6 +999,7 @@ void GLRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, 
 	FlashScale = InFlashScale;
 	FlashFog = InFlashFog;
 
+#if 0
 	FLOAT color[4] = { ScreenClear.x, ScreenClear.y, ScreenClear.z, ScreenClear.w };
 	FLOAT zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	GLRenderTargetView* views[2] = { SceneBuffers.ColorBufferView.get(), SceneBuffers.HitBufferView.get() };
@@ -1334,22 +1007,22 @@ void GLRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, 
 	Context->ClearRenderTargetView(SceneBuffers.HitBufferView, zero);
 	Context->ClearDepthStencilView(SceneBuffers.DepthBufferView, GL_CLEAR_DEPTH, 1.0f, 0);
 	Context->OMSetRenderTargets(2, views, SceneBuffers.DepthBufferView);
+#endif
 
+#if 0
 	UINT stride = sizeof(GLSceneVertex);
 	UINT offset = 0;
 	GLBuffer* vertexBuffers[1] = { ScenePass.VertexBuffer.get() };
-	GLBuffer* cbs[1] = { ScenePass.ConstantBuffer.get() };
 	Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
 	Context->IASetIndexBuffer(ScenePass.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	Context->IASetInputLayout(ScenePass.InputLayout);
 	Context->VSSetShader(ScenePass.VertexShader, nullptr, 0);
-	Context->VSSetConstantBuffers(0, 1, cbs);
-	Context->RSSetState(ScenePass.RasterizerState[SceneBuffers.Multisample > 1]);
+#endif
+	GLBuffer* cbs[1] = { ScenePass.ConstantBuffer.get() };
+	SetUniformBuffers(0, 1, cbs);
+	SetRasterizerState(ScenePass.RasterizerState[SceneBuffers.Multisample > 1].get());
 
-	GL_RECT box = {};
-	box.right = CurrentSizeX;
-	box.bottom = CurrentSizeY;
-	Context->RSSetScissorRects(1, &box);
+	glScissor(0, 0, CurrentSizeX, CurrentSizeY);
 
 	MapVertices(true);
 
@@ -1357,7 +1030,6 @@ void GLRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, 
 	ForceHitIndex = -1;
 
 	IsLocked = true;
-#endif
 }
 
 GLPresentPushConstants GLRenderDevice::GetGLPresentPushConstants()
@@ -1418,7 +1090,6 @@ GLPresentPushConstants GLRenderDevice::GetGLPresentPushConstants()
 
 void GLRenderDevice::Unlock(bool Blit)
 {
-#if 0
 	if (!IsLocked) // Don't trust the engine.
 		return;
 
@@ -1431,6 +1102,7 @@ void GLRenderDevice::Unlock(bool Blit)
 
 	if (Blit)
 	{
+#if 0
 		if (SceneBuffers.Multisample > 1)
 		{
 			Context->ResolveSubresource(SceneBuffers.PPImage[0], 0, SceneBuffers.ColorBuffer, 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
@@ -1439,14 +1111,17 @@ void GLRenderDevice::Unlock(bool Blit)
 		{
 			Context->CopyResource(SceneBuffers.PPImage[0], SceneBuffers.ColorBuffer);
 		}
+#endif
 
 		if (Bloom)
 		{
 			RunBloomPass();
 		}
 
+#if 0
 		GLRenderTargetView* rtvs[1] = { BackBufferView.get() };
 		Context->OMSetRenderTargets(1, rtvs, nullptr);
+#endif
 
 		GLViewport viewport = {};
 		viewport.Width = (float)CurrentSizeX;
@@ -1462,24 +1137,29 @@ void GLRenderDevice::Unlock(bool Blit)
 		if (GammaMode == 1) presentShader |= 2;
 		if (pushconstants.Brightness != 0.0f || pushconstants.Contrast != 1.0f || pushconstants.Saturation != 1.0f) presentShader |= (clamp(GrayFormula, 0, 2) + 1) << 2;
 
+#if 0
 		UINT stride = sizeof(vec2);
 		UINT offset = 0;
-		GLBuffer* vertexBuffers[1] = { PresentPass.PPStepVertexBuffer.get()};
-		GLShaderResourceView* psResources[] = { SceneBuffers.PPImageShaderView[0].get(), PresentPass.DitherTextureView.get() };
-		GLBuffer* cbs[1] = { PresentPass.PresentConstantBuffer.get() };
+		GLBuffer* vertexBuffers[1] = { PresentPass.PPStepVertexBuffer.get() };
 		Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
 		Context->IASetInputLayout(PresentPass.PPStepLayout);
-		Context->IASetPrimitiveTopology(GL_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		Context->IASetPrimitiveTopology(GL_TRIANGLES);
 		Context->VSSetShader(PresentPass.PPStep, nullptr, 0);
-		Context->RSSetState(PresentPass.RasterizerState);
+#endif
+		SetRasterizerState(PresentPass.RasterizerState.get());
+#if 0
 		Context->PSSetShader(PresentPass.Present[presentShader], nullptr, 0);
-		Context->PSSetConstantBuffers(0, 1, cbs);
-		Context->PSSetShaderResources(0, 2, psResources);
-		Context->OMSetDepthStencilState(PresentPass.DepthStencilState, 0);
-		Context->OMSetBlendState(PresentPass.BlendState, nullptr, 0xffffffff);
+#endif
+		GLBuffer* cbs[1] = { PresentPass.PresentConstantBuffer.get() };
+		SetUniformBuffers(0, 1, cbs);
+		GLShaderResourceView* psResources[] = { SceneBuffers.PPImageShaderView[0].get(), PresentPass.DitherTextureView.get() };
+		SetTextures(0, 2, psResources);
+		SetDepthStencilState(PresentPass.DepthStencilState.get());
+		SetBlendState(PresentPass.BlendState.get());
 		SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
-		Context->Draw(6, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+#if 0
 		if (SwapChain1)
 		{
 			UINT flags = 0;
@@ -1493,6 +1173,7 @@ void GLRenderDevice::Unlock(bool Blit)
 		{
 			SwapChain->Present(UseVSync ? 1 : 0, 0);
 		}
+#endif
 
 		Batch.Pipeline = nullptr;
 		Batch.Tex = nullptr;
@@ -1506,6 +1187,7 @@ void GLRenderDevice::Unlock(bool Blit)
 
 	if (HitData)
 	{
+#if 0
 		GL_BOX box = {};
 		box.left = HitX;
 		box.right = HitX + HitWidth;
@@ -1534,15 +1216,15 @@ void GLRenderDevice::Unlock(bool Blit)
 			GLShaderResourceView* srvs[1] = { SceneBuffers.HitBufferShaderView.get() };
 			Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
 			Context->IASetInputLayout(PresentPass.PPStepLayout);
-			Context->IASetPrimitiveTopology(GL_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+			Context->IASetPrimitiveTopology(GL_TRIANGLES);
 			Context->VSSetShader(PresentPass.PPStep, nullptr, 0);
-			Context->RSSetState(PresentPass.RasterizerState);
+			SetRasterizerState(PresentPass.RasterizerState.get());
 			Context->PSSetShader(PresentPass.HitResolve, nullptr, 0);
-			Context->PSSetShaderResources(0, 1, srvs);
-			Context->OMSetDepthStencilState(PresentPass.DepthStencilState, 0);
-			Context->OMSetBlendState(PresentPass.BlendState, nullptr, 0xffffffff);
+			SetTextures(0, 1, srvs);
+			SetDepthStencilState(PresentPass.DepthStencilState.get());
+			SetBlendState(PresentPass.BlendState.get());
 
-			Context->Draw(6, 0);
+			glDrawArrays(GL_TRIANGLES, 0, 6);
 		}
 		else
 		{
@@ -1584,9 +1266,12 @@ void GLRenderDevice::Unlock(bool Blit)
 		{
 			*HitSize = 0;
 		}
+#endif
 	}
 
+#if 0
 	Context->OMSetRenderTargets(0, nullptr, nullptr);
+#endif
 
 	HitQueryStack.clear();
 	HitQueries.clear();
@@ -1595,7 +1280,6 @@ void GLRenderDevice::Unlock(bool Blit)
 	HitSize = nullptr;
 
 	IsLocked = false;
-#endif
 }
 
 void GLRenderDevice::PushHit(const uint8_t* Data, int Count)
@@ -2160,14 +1844,14 @@ void GLRenderDevice::ReadPixels(TextureColor* Pixels)
 		GLShaderResourceView* psResources[] = { SceneBuffers.PPImageShaderView[0].get(), PresentPass.DitherTextureView.get() };
 		Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
 		Context->IASetInputLayout(PresentPass.PPStepLayout);
-		Context->IASetPrimitiveTopology(GL_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+		Context->IASetPrimitiveTopology(GL_TRIANGLES);
 		Context->VSSetShader(PresentPass.PPStep, nullptr, 0);
-		Context->RSSetState(PresentPass.RasterizerState);
+		SetRasterizerState(PresentPass.RasterizerState.get());
 		Context->PSSetShader(PresentPass.Present[presentShader], nullptr, 0);
-		Context->PSSetConstantBuffers(0, 1, cbs);
-		Context->PSSetShaderResources(0, 2, psResources);
-		Context->OMSetDepthStencilState(PresentPass.DepthStencilState, 0);
-		Context->OMSetBlendState(PresentPass.BlendState, nullptr, 0xffffffff);
+		SetUniformBuffers(0, 1, cbs);
+		SetTextures(0, 2, psResources);
+		SetDepthStencilState(PresentPass.DepthStencilState.get());
+		SetBlendState(PresentPass.BlendState.get());
 		SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
 		Context->Draw(6, 0);
 
@@ -2300,6 +1984,49 @@ void GLRenderDevice::SetBufferData(GLenum target, GLenum usage, GLBuffer* buffer
 	glBufferData(target, size, data, usage);
 }
 
+void GLRenderDevice::SetBlendState(GLBlendState* blendState, const float* blendConstants)
+{
+	// To do: apply the entire blend state
+	if (blendConstants)
+		glBlendColor(blendConstants[0], blendConstants[1], blendConstants[2], blendConstants[3]);
+}
+
+void GLRenderDevice::SetDepthStencilState(GLDepthStencilState* depthStencilState)
+{
+	// To do: apply the depth stencil state
+}
+
+void GLRenderDevice::SetRasterizerState(GLRasterizerState* rasterizerState)
+{
+	// To do: apply the rasterizer state
+}
+
+void GLRenderDevice::SetUniformBuffers(int start, int count, GLBuffer** buffers)
+{
+	for (int i = 0; i < count; i++)
+	{
+		glBindBufferBase(GL_UNIFORM_BUFFER, start + i, buffers[i] ? buffers[i]->Handle : 0);
+	}
+}
+
+void GLRenderDevice::SetTextures(int start, int count, GLTexture** textures)
+{
+	for (int i = 0; i < count; i++)
+	{
+		glActiveTexture(GL_TEXTURE0 + start + i);
+		glBindTexture(GL_TEXTURE_2D, textures[i] ? textures[i]->Handle : 0);
+	}
+	glActiveTexture(GL_TEXTURE0);
+}
+
+void GLRenderDevice::SetSamplers(int start, int count, GLSampler** samplers)
+{
+	for (int i = 0; i < count; i++)
+	{
+		glBindSampler(start + i, samplers[i] ? samplers[i]->Handle : 0);
+	}
+}
+
 void GLRenderDevice::SetViewport(const GLViewport& viewport)
 {
 	// To do: deal with OpenGL viewports using lower left origin
@@ -2362,7 +2089,6 @@ void GLRenderDevice::DrawBatches(bool nextBuffer)
 
 void GLRenderDevice::DrawEntry(const DrawBatchEntry& entry)
 {
-#if 0
 	size_t icount = entry.SceneIndexEnd - entry.SceneIndexStart;
 
 	GLShaderResourceView* views[4] =
@@ -2388,18 +2114,17 @@ void GLRenderDevice::DrawEntry(const DrawBatchEntry& entry)
 		SetViewport(SceneViewport);
 	}
 
-	Context->PSSetSamplers(0, 4, samplers);
-	Context->PSSetShaderResources(0, 4, views);
+	SetSamplers(0, 4, samplers);
+	SetTextures(0, 4, views);
+#if 0
 	Context->PSSetShader(entry.Pipeline->PixelShader, nullptr, 0);
-
-	Context->OMSetBlendState(entry.Pipeline->BlendState, entry.BlendConstants, 0xffffffff);
-	Context->OMSetDepthStencilState(entry.Pipeline->DepthStencilState, 0);
-
-	Context->IASetPrimitiveTopology(entry.Pipeline->PrimitiveTopology);
-
-	Context->DrawIndexed((UINT)icount, (UINT)entry.SceneIndexStart, 0);
-	Stats.DrawCalls++;
 #endif
+
+	SetBlendState(entry.Pipeline->BlendState.get(), entry.BlendConstants);
+	SetDepthStencilState(entry.Pipeline->DepthStencilState.get());
+
+	glDrawElements(entry.Pipeline->PrimitiveTopology, (GLsizei)icount, GL_UNSIGNED_INT, (void*)(entry.SceneIndexStart * sizeof(uint32_t)));
+	Stats.DrawCalls++;
 }
 
 void GLRenderDevice::SetDebugName(GLenum type, GLuint handle, const char* name)

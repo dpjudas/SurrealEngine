@@ -330,6 +330,12 @@ private:
 
 	void SetViewport(const GLViewport& viewport);
 	void SetBufferData(GLenum target, GLenum usage, GLBuffer* buffer, const void* data, size_t size);
+	void SetBlendState(GLBlendState* blendState, const float* BlendConstants = nullptr);
+	void SetDepthStencilState(GLDepthStencilState* depthStencilState);
+	void SetRasterizerState(GLRasterizerState* rasterizerState);
+	void SetUniformBuffers(int start, int count, GLBuffer** buffers);
+	void SetTextures(int start, int count, GLTexture** textures);
+	void SetSamplers(int start, int count, GLSampler** samplers);
 
 	bool UsePrecache = true;
 	vec4 FlashScale = vec4(0.0f);
@@ -360,12 +366,6 @@ private:
 
 	bool IsLocked = false;
 	bool ActiveHdr = false;
-
-	struct
-	{
-		int Width = 0;
-		int Height = 0;
-	} DesktopResolution;
 
 	bool CurrentFullscreen = 0;
 	int CurrentSizeX = 0;
