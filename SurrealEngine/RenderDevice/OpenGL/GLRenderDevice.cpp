@@ -167,7 +167,7 @@ bool GLRenderDevice::Init(int NewX, int NewY, bool Fullscreen)
 			swapDesc.BufferCount = BufferCount;
 			swapDesc.SampleDesc.Count = 1;
 			swapDesc.OutputWindow = GetWindowHandle();
-			swapDesc.Windowed = TRUE;
+			swapDesc.Windowed = GL_TRUE;
 			swapDesc.Flags = DXGI_SWAP_CHAIN_FLAG_ALLOW_MODE_SWITCH;
 			if (RefreshRate != 0)
 			{
@@ -209,33 +209,6 @@ bool GLRenderDevice::Init(int NewX, int NewY, bool Fullscreen)
 				LogMessage("GLDrv: Could not use DXGI_SWAP_EFFECT_FLIP_DISCARD. Falling back to DXGI_SWAP_EFFECT_DISCARD");
 			}
 			ThrowIfFailed(result, "GLCreateDeviceAndSwapChain failed");
-		}
-
-		if (UseDebugLayer)
-		{
-			result = Device->QueryInterface(DebugLayer.GetIID(), DebugLayer.InitPtr());
-			if (SUCCEEDED(result))
-			{
-				result = DebugLayer->QueryInterface(InfoQueue.GetIID(), InfoQueue.InitPtr());
-				if (SUCCEEDED(result))
-				{
-					std::initializer_list<GL_MESSAGE_ID> denyList =
-					{
-						GL_MESSAGE_ID_SETPRIVATEDATA_CHANGINGPARAMS
-					};
-					GL_INFO_QUEUE_FILTER filter = {};
-					filter.DenyList.NumIDs = (UINT)denyList.size();
-					filter.DenyList.pIDList = const_cast<GL_MESSAGE_ID*>(denyList.begin());
-					result = InfoQueue->AddStorageFilterEntries(&filter);
-
-					// result = InfoQueue->SetBreakOnSeverity(GL_MESSAGE_SEVERITY_CORRUPTION, TRUE);
-					// result = InfoQueue->SetBreakOnSeverity(GL_MESSAGE_SEVERITY_ERROR, TRUE);
-				}
-			}
-			else
-			{
-				LogMessage("GLDrv: Could not get IGLDebug interface");
-			}
 		}
 
 		SetDebugName(Device, "GLDrv.Device");
@@ -356,7 +329,7 @@ bool GLRenderDevice::SetRes(int NewX, int NewY, bool Fullscreen)
 	{
 		if (CurrentFullscreen)
 		{
-			result = SwapChain->SetFullscreenState(FALSE, nullptr);
+			result = SwapChain->SetFullscreenState(GL_FALSE, nullptr);
 			if (FAILED(result))
 			{
 				LogMessage("SwapChain.SetFullscreenState failed");
@@ -444,7 +417,7 @@ void GLRenderDevice::Exit()
 
 	ReleaseSwapChainResources();
 	if (CurrentFullscreen && SwapChain)
-		SwapChain->SetFullscreenState(FALSE, nullptr);
+		SwapChain->SetFullscreenState(GL_FALSE, nullptr);
 
 	if (Context)
 		Context->ClearState();
@@ -709,9 +682,9 @@ void GLRenderDevice::CreateScenePass()
 	{
 		GLRasterizerDesc rasterizerDesc = {};
 		rasterizerDesc.CullEnable = false;
-		rasterizerDesc.FrontCounterClockwise = FALSE;
-		rasterizerDesc.DepthClipEnable = FALSE; // Avoid clipping the weapon. The UE1 engine clips the geometry anyway.
-		rasterizerDesc.MultisampleEnable = i == 1 ? TRUE : FALSE;
+		rasterizerDesc.FrontCounterClockwise = false;
+		rasterizerDesc.DepthClipEnable = false; // Avoid clipping the weapon. The UE1 engine clips the geometry anyway.
+		rasterizerDesc.MultisampleEnable = i == 1;
 		ScenePass.RasterizerState[i] = CreateRasterizerState(rasterizerDesc);
 	}
 
@@ -777,7 +750,7 @@ void GLRenderDevice::CreateScenePass()
 		ScenePass.Pipelines[i].BlendState = CreateBlendState(blendDesc);
 
 		GLDepthStencilDesc depthStencilDesc = {};
-		depthStencilDesc.DepthEnable = TRUE;
+		depthStencilDesc.DepthEnable = true;
 		depthStencilDesc.DepthFunc = GL_LEQUAL;
 		if (i & 8) // PF_Occlude
 			depthStencilDesc.DepthWriteMask = true;
@@ -811,7 +784,7 @@ void GLRenderDevice::CreateScenePass()
 		ScenePass.LinePipeline[i].BlendState = CreateBlendState(blendDesc);
 
 		GLDepthStencilDesc depthStencilDesc = {};
-		depthStencilDesc.DepthEnable = TRUE;
+		depthStencilDesc.DepthEnable = true;
 		depthStencilDesc.DepthFunc = GL_LEQUAL;
 		depthStencilDesc.DepthWriteMask = true;
 		ScenePass.LinePipeline[i].DepthStencilState = CreateDepthStencilState(depthStencilDesc);
@@ -2468,9 +2441,9 @@ std::shared_ptr<GLProgram> GLRenderDevice::CreateProgram(const std::string& prog
 	glAttachShader(program->Handle, vertexShader->Handle);
 	glAttachShader(program->Handle, fragmentShader->Handle);
 	glLinkProgram(program->Handle);
-	GLint status = FALSE;
+	GLint status = GL_FALSE;
 	glGetProgramiv(program->Handle, GL_LINK_STATUS, &status);
-	if (status == FALSE)
+	if (status == GL_FALSE)
 	{
 		GLint length = 0;
 		glGetProgramiv(program->Handle, GL_INFO_LOG_LENGTH, &length);
@@ -2516,7 +2489,7 @@ void GLRenderDevice::CompileGlsl(GLShader* shader, const std::string& filename, 
 	glShaderSource(shader->Handle, 1, &source, &length);
 	glCompileShader(shader->Handle);
 
-	GLint status = FALSE;
+	GLint status = GL_FALSE;
 	glGetShaderiv(shader->Handle, GL_COMPILE_STATUS, &status);
 	if (status == GL_FALSE)
 	{
