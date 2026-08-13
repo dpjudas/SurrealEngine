@@ -303,6 +303,20 @@ var commonSources = [
 	"SurrealEngine/RenderDevice/Vulkan/UploadManager.h",
 	"SurrealEngine/RenderDevice/Vulkan/VulkanRenderDevice.cpp",
 	"SurrealEngine/RenderDevice/Vulkan/VulkanRenderDevice.h",
+	"SurrealEngine/RenderDevice/OpenGL/GLRenderDevice.cpp",
+	"SurrealEngine/RenderDevice/OpenGL/GLRenderDevice.h",
+	"SurrealEngine/RenderDevice/OpenGL/GLFileResource.cpp",
+	"SurrealEngine/RenderDevice/OpenGL/GLFileResource.h",
+	"SurrealEngine/RenderDevice/OpenGL/GLHandles.h",
+	"SurrealEngine/RenderDevice/OpenGL/GLTextureManager.cpp",
+	"SurrealEngine/RenderDevice/OpenGL/GLTextureManager.h",
+	"SurrealEngine/RenderDevice/OpenGL/GLTextureUploader.cpp",
+	"SurrealEngine/RenderDevice/OpenGL/GLTextureUploader.h",
+	"SurrealEngine/RenderDevice/OpenGL/GLUploadManager.cpp",
+	"SurrealEngine/RenderDevice/OpenGL/GLUploadManager.h",
+	"SurrealEngine/RenderDevice/OpenGL/GLCachedTexture.h",
+	"SurrealEngine/RenderDevice/OpenGL/gl_load/gl_load.c",
+	"SurrealEngine/RenderDevice/OpenGL/gl_load/gl_load.h",
 	"SurrealEngine/Package/Package.cpp",
 	"SurrealEngine/Package/Package.h",
 	"SurrealEngine/Package/PackageManager.cpp",
@@ -1031,4 +1045,5 @@ if (Environment.isMSVC()) {
 
 	surrealCommon.addPrecompiledHeader("SurrealEngine/Precomp.cpp", "Precomp.h");
 	surrealCommon.addPrecompiledHeaderIgnoreList(thirdPartySources);
+	surrealCommon.addPrecompiledHeaderIgnoreList(["SurrealEngine/RenderDevice/OpenGL/gl_load/gl_load.c"]);
 }

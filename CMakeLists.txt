@@ -305,6 +305,20 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/RenderDevice/Vulkan/UploadManager.h
 	SurrealEngine/RenderDevice/Vulkan/VulkanRenderDevice.cpp
 	SurrealEngine/RenderDevice/Vulkan/VulkanRenderDevice.h
+	SurrealEngine/RenderDevice/OpenGL/GLRenderDevice.cpp
+	SurrealEngine/RenderDevice/OpenGL/GLRenderDevice.h
+	SurrealEngine/RenderDevice/OpenGL/GLFileResource.cpp
+	SurrealEngine/RenderDevice/OpenGL/GLFileResource.h
+	SurrealEngine/RenderDevice/OpenGL/GLHandles.h
+	SurrealEngine/RenderDevice/OpenGL/GLTextureManager.cpp
+	SurrealEngine/RenderDevice/OpenGL/GLTextureManager.h
+	SurrealEngine/RenderDevice/OpenGL/GLTextureUploader.cpp
+	SurrealEngine/RenderDevice/OpenGL/GLTextureUploader.h
+	SurrealEngine/RenderDevice/OpenGL/GLUploadManager.cpp
+	SurrealEngine/RenderDevice/OpenGL/GLUploadManager.h
+	SurrealEngine/RenderDevice/OpenGL/GLCachedTexture.h
+	SurrealEngine/RenderDevice/OpenGL/gl_load/gl_load.c
+	SurrealEngine/RenderDevice/OpenGL/gl_load/gl_load.h
 	SurrealEngine/Package/Package.cpp
 	SurrealEngine/Package/Package.h
 	SurrealEngine/Package/PackageManager.cpp
@@ -945,6 +959,8 @@ source_group("SurrealEngine\\Native" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_
 source_group("SurrealEngine\\Package" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Package/.+")
 source_group("SurrealEngine\\RenderDevice" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/RenderDevice/.+")
 source_group("SurrealEngine\\RenderDevice/Vulkan" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/RenderDevice/Vulkan/.+")
+source_group("SurrealEngine\\RenderDevice/OpenGL" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/RenderDevice/OpenGL/.+")
+source_group("SurrealEngine\\RenderDevice/OpenGL/gl_load" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/RenderDevice/OpenGL/gl_load/.+")
 source_group("SurrealEngine\\RenderDevice/D3D11" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/RenderDevice/D3D11/.+")
 source_group("SurrealEngine\\Render" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Render/.+")
 source_group("SurrealEngine\\UI" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/UI/.+")
