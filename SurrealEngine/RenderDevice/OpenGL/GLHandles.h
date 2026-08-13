@@ -175,17 +175,54 @@ class GLInputLayout
 public:
 };
 
+class GLBlendDesc
+{
+public:
+	bool IndependentBlendEnable;
+	struct
+	{
+		bool RenderTargetWriteMask; // glColorMask
+		bool BlendEnable;
+		GLenum BlendOp;
+		GLenum BlendOpAlpha;
+		GLenum SrcBlend;
+		GLenum SrcBlendAlpha;
+		GLenum DestBlend;
+		GLenum DestBlendAlpha;
+	} RenderTarget[2];
+};
+
 class GLBlendState
 {
 public:
+	GLBlendDesc desc = {};
+};
+
+class GLDepthStencilDesc
+{
+public:
+	bool DepthEnable;
+	GLenum DepthFunc;
+	bool DepthWriteMask;
 };
 
 class GLDepthStencilState
 {
 public:
+	GLDepthStencilDesc desc = {};
+};
+
+class GLRasterizerDesc
+{
+public:
+	bool CullEnable;
+	bool FrontCounterClockwise;
+	bool DepthClipEnable;
+	bool MultisampleEnable;
 };
 
 class GLRasterizerState
 {
 public:
+	GLRasterizerDesc desc = {};
 };

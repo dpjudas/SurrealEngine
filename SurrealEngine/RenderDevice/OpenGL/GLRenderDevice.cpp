@@ -8,7 +8,6 @@
 #include "Math/halffloat.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
 #include <surrealwidgets/core/widget.h>
-#include <comdef.h>
 
 GLRenderDevice::GLRenderDevice(Widget* InViewport)
 {
@@ -699,137 +698,126 @@ void GLRenderDevice::CreateScenePass()
 		{ "AttrTexCoordFour", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(GLSceneVertex, TexCoord4), GL_INPUT_PER_VERTEX_DATA, 0 },
 		{ "AttrColor", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, offsetof(GLSceneVertex, Color), GL_INPUT_PER_VERTEX_DATA, 0 }
 	};
-
-	CreateVertexShader(ScenePass.VertexShader, "ScenePass.VertexShader", ScenePass.InputLayout, "ScenePass.InputLayout", elements, "shaders/Scene.vert");
-	CreateFragmentShader(ScenePass.PixelShader, "ScenePass.PixelShader", "shaders/Scene.frag");
-	CreateFragmentShader(ScenePass.PixelShaderAlphaTest, "ScenePass.PixelShaderAlphaTest", "shaders/Scene.frag", { "ALPHATEST" });
+#endif
+	ScenePass.VertexShader = CreateVertexShader("ScenePass.VertexShader", "shaders/Scene.vert");
+	ScenePass.PixelShader = CreateFragmentShader("ScenePass.PixelShader", "shaders/Scene.frag");
+	ScenePass.PixelShaderAlphaTest = CreateFragmentShader("ScenePass.PixelShaderAlphaTest", "shaders/Scene.frag", { "ALPHATEST" });
 
 	CreateSceneSamplers();
 
 	for (int i = 0; i < 2; i++)
 	{
-		GL_RASTERIZER_DESC rasterizerDesc = {};
-		rasterizerDesc.FillMode = GL_FILL_SOLID;
-		rasterizerDesc.CullMode = GL_CULL_NONE;
+		GLRasterizerDesc rasterizerDesc = {};
+		rasterizerDesc.CullEnable = false;
 		rasterizerDesc.FrontCounterClockwise = FALSE;
 		rasterizerDesc.DepthClipEnable = FALSE; // Avoid clipping the weapon. The UE1 engine clips the geometry anyway.
 		rasterizerDesc.MultisampleEnable = i == 1 ? TRUE : FALSE;
-		HRESULT result = Device->CreateRasterizerState(&rasterizerDesc, ScenePass.RasterizerState[i].TypedInitPtr());
-		ThrowIfFailed(result, "CreateRasterizerState(ScenePass.Pipelines.RasterizerState) failed");
-		SetDebugName(ScenePass.RasterizerState[i], "ScenePass.RasterizerState");
+		ScenePass.RasterizerState[i] = CreateRasterizerState(rasterizerDesc);
 	}
 
 	for (int i = 0; i < 33; i++)
 	{
-		GL_BLEND_DESC blendDesc = {};
-		blendDesc.IndependentBlendEnable = TRUE;
-		blendDesc.RenderTarget[0].BlendEnable = TRUE;
+		GLBlendDesc blendDesc = {};
+		blendDesc.IndependentBlendEnable = true;
+		blendDesc.RenderTarget[0].BlendEnable = true;
 		if (i < 32)
 		{
 			switch (i & 3)
 			{
 			case 0: // PF_Translucent
-				blendDesc.RenderTarget[0].BlendOp = GL_BLEND_OP_ADD;
-				blendDesc.RenderTarget[0].BlendOpAlpha = GL_BLEND_OP_ADD;
-				blendDesc.RenderTarget[0].SrcBlend = GL_BLEND_ONE;
-				blendDesc.RenderTarget[0].SrcBlendAlpha = GL_BLEND_ONE;
-				blendDesc.RenderTarget[0].DestBlend = GL_BLEND_INV_SRC_COLOR;
-				blendDesc.RenderTarget[0].DestBlendAlpha = GL_BLEND_INV_SRC_ALPHA;
+				blendDesc.RenderTarget[0].BlendOp = GL_FUNC_ADD;
+				blendDesc.RenderTarget[0].BlendOpAlpha = GL_FUNC_ADD;
+				blendDesc.RenderTarget[0].SrcBlend = GL_ONE;
+				blendDesc.RenderTarget[0].SrcBlendAlpha = GL_ONE;
+				blendDesc.RenderTarget[0].DestBlend = GL_ONE_MINUS_SRC_COLOR;
+				blendDesc.RenderTarget[0].DestBlendAlpha = GL_ONE_MINUS_SRC_ALPHA;
 				break;
 			case 1: // PF_Modulated
-				blendDesc.RenderTarget[0].BlendOp = GL_BLEND_OP_ADD;
-				blendDesc.RenderTarget[0].BlendOpAlpha = GL_BLEND_OP_ADD;
-				blendDesc.RenderTarget[0].SrcBlend = GL_BLEND_DEST_COLOR;
-				blendDesc.RenderTarget[0].SrcBlendAlpha = GL_BLEND_DEST_ALPHA;
-				blendDesc.RenderTarget[0].DestBlend = GL_BLEND_SRC_COLOR;
+				blendDesc.RenderTarget[0].BlendOp = GL_FUNC_ADD;
+				blendDesc.RenderTarget[0].BlendOpAlpha = GL_FUNC_ADD;
+				blendDesc.RenderTarget[0].SrcBlend = GL_DST_COLOR;
+				blendDesc.RenderTarget[0].SrcBlendAlpha = GL_DST_ALPHA;
+				blendDesc.RenderTarget[0].DestBlend = GL_SRC_COLOR;
 				blendDesc.RenderTarget[0].DestBlendAlpha = GL_BLEND_SRC_ALPHA;
 				break;
 			case 2: // PF_Highlighted
-				blendDesc.RenderTarget[0].BlendOp = GL_BLEND_OP_ADD;
-				blendDesc.RenderTarget[0].BlendOpAlpha = GL_BLEND_OP_ADD;
-				blendDesc.RenderTarget[0].SrcBlend = GL_BLEND_ONE;
-				blendDesc.RenderTarget[0].SrcBlendAlpha = GL_BLEND_ONE;
-				blendDesc.RenderTarget[0].DestBlend = GL_BLEND_INV_SRC_ALPHA;
-				blendDesc.RenderTarget[0].DestBlendAlpha = GL_BLEND_INV_SRC_ALPHA;
+				blendDesc.RenderTarget[0].BlendOp = GL_FUNC_ADD;
+				blendDesc.RenderTarget[0].BlendOpAlpha = GL_FUNC_ADD;
+				blendDesc.RenderTarget[0].SrcBlend = GL_ONE;
+				blendDesc.RenderTarget[0].SrcBlendAlpha = GL_ONE;
+				blendDesc.RenderTarget[0].DestBlend = GL_ONE_MINUS_SRC_ALPHA;
+				blendDesc.RenderTarget[0].DestBlendAlpha = GL_ONE_MINUS_SRC_ALPHA;
 				break;
 			case 3: // Hmm, is it faster to keep the blend mode enabled or to toggle it?
-				blendDesc.RenderTarget[0].BlendOp = GL_BLEND_OP_ADD;
-				blendDesc.RenderTarget[0].BlendOpAlpha = GL_BLEND_OP_ADD;
-				blendDesc.RenderTarget[0].SrcBlend = GL_BLEND_ONE;
-				blendDesc.RenderTarget[0].SrcBlendAlpha = GL_BLEND_ONE;
-				blendDesc.RenderTarget[0].DestBlend = GL_BLEND_ZERO;
-				blendDesc.RenderTarget[0].DestBlendAlpha = GL_BLEND_ZERO;
+				blendDesc.RenderTarget[0].BlendOp = GL_FUNC_ADD;
+				blendDesc.RenderTarget[0].BlendOpAlpha = GL_FUNC_ADD;
+				blendDesc.RenderTarget[0].SrcBlend = GL_ONE;
+				blendDesc.RenderTarget[0].SrcBlendAlpha = GL_ONE;
+				blendDesc.RenderTarget[0].DestBlend = GL_ZERO;
+				blendDesc.RenderTarget[0].DestBlendAlpha = GL_ZERO;
 				break;
 			}
 			if (i & 4) // PF_Invisible
-				blendDesc.RenderTarget[0].RenderTargetWriteMask = 0;
+				blendDesc.RenderTarget[0].RenderTargetWriteMask = false;
 			else
-				blendDesc.RenderTarget[0].RenderTargetWriteMask = GL_COLOR_WRITE_ENABLE_ALL;
+				blendDesc.RenderTarget[0].RenderTargetWriteMask = true;
 		}
 		else // PF_SubpixelFont
 		{
-			blendDesc.RenderTarget[0].BlendOp = GL_BLEND_OP_ADD;
-			blendDesc.RenderTarget[0].BlendOpAlpha = GL_BLEND_OP_ADD;
-			blendDesc.RenderTarget[0].SrcBlend = GL_BLEND_BLEND_FACTOR;
-			blendDesc.RenderTarget[0].SrcBlendAlpha = GL_BLEND_BLEND_FACTOR;
-			blendDesc.RenderTarget[0].DestBlend = GL_BLEND_INV_SRC_COLOR;
-			blendDesc.RenderTarget[0].DestBlendAlpha = GL_BLEND_INV_SRC_ALPHA;
-			blendDesc.RenderTarget[0].RenderTargetWriteMask = GL_COLOR_WRITE_ENABLE_ALL;
+			blendDesc.RenderTarget[0].BlendOp = GL_FUNC_ADD;
+			blendDesc.RenderTarget[0].BlendOpAlpha = GL_FUNC_ADD;
+			blendDesc.RenderTarget[0].SrcBlend = GL_CONSTANT_COLOR;
+			blendDesc.RenderTarget[0].SrcBlendAlpha = GL_CONSTANT_ALPHA;
+			blendDesc.RenderTarget[0].DestBlend = GL_ONE_MINUS_SRC_COLOR;
+			blendDesc.RenderTarget[0].DestBlendAlpha = GL_ONE_MINUS_SRC_ALPHA;
+			blendDesc.RenderTarget[0].RenderTargetWriteMask = true;
 		}
-		blendDesc.RenderTarget[1].BlendEnable = FALSE;
-		blendDesc.RenderTarget[1].RenderTargetWriteMask = GL_COLOR_WRITE_ENABLE_ALL;
-		HRESULT result = Device->CreateBlendState(&blendDesc, ScenePass.Pipelines[i].BlendState.TypedInitPtr());
-		ThrowIfFailed(result, "CreateBlendState(ScenePass.Pipelines.BlendState) failed");
-		SetDebugName(ScenePass.Pipelines[i].BlendState, "ScenePass.Pipelines.BlendState");
+		blendDesc.RenderTarget[1].BlendEnable = false;
+		blendDesc.RenderTarget[1].RenderTargetWriteMask = true;
+		ScenePass.Pipelines[i].BlendState = CreateBlendState(blendDesc);
 
-		GL_DEPTH_STENCIL_DESC depthStencilDesc = {};
+		GLDepthStencilDesc depthStencilDesc = {};
 		depthStencilDesc.DepthEnable = TRUE;
-		depthStencilDesc.DepthFunc = GL_COMPARISON_LESS_EQUAL;
+		depthStencilDesc.DepthFunc = GL_LEQUAL;
 		if (i & 8) // PF_Occlude
-			depthStencilDesc.DepthWriteMask = GL_DEPTH_WRITE_MASK_ALL;
+			depthStencilDesc.DepthWriteMask = true;
 		else
-			depthStencilDesc.DepthWriteMask = GL_DEPTH_WRITE_MASK_ZERO;
-		result = Device->CreateDepthStencilState(&depthStencilDesc, ScenePass.Pipelines[i].DepthStencilState.TypedInitPtr());
-		ThrowIfFailed(result, "CreateDepthStencilState(ScenePass.Pipelines.DepthStencilState) failed");
-		SetDebugName(ScenePass.Pipelines[i].DepthStencilState, "ScenePass.Pipelines.DepthStencilState");
+			depthStencilDesc.DepthWriteMask = false;
+		ScenePass.Pipelines[i].DepthStencilState = CreateDepthStencilState(depthStencilDesc);
 
 		if ((i & 16) || i == 32) // PF_Masked or PF_SubpixelFont
-			ScenePass.Pipelines[i].PixelShader = ScenePass.PixelShaderAlphaTest;
+			ScenePass.Pipelines[i].PixelShader = ScenePass.PixelShaderAlphaTest.get();
 		else
-			ScenePass.Pipelines[i].PixelShader = ScenePass.PixelShader;
+			ScenePass.Pipelines[i].PixelShader = ScenePass.PixelShader.get();
 
-		ScenePass.Pipelines[i].PrimitiveTopology = GL_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		ScenePass.Pipelines[i].PrimitiveTopology = GL_TRIANGLES;
 	}
 
 	// Line pipeline
 	for (int i = 0; i < 2; i++)
 	{
-		GL_BLEND_DESC blendDesc = {};
-		blendDesc.IndependentBlendEnable = TRUE;
-		blendDesc.RenderTarget[0].BlendEnable = TRUE;
-		blendDesc.RenderTarget[0].BlendOp = GL_BLEND_OP_ADD;
-		blendDesc.RenderTarget[0].BlendOpAlpha = GL_BLEND_OP_ADD;
-		blendDesc.RenderTarget[0].SrcBlend = GL_BLEND_ONE;
-		blendDesc.RenderTarget[0].SrcBlendAlpha = GL_BLEND_ONE;
-		blendDesc.RenderTarget[0].DestBlend = GL_BLEND_INV_SRC_ALPHA;
-		blendDesc.RenderTarget[0].DestBlendAlpha = GL_BLEND_INV_SRC_ALPHA;
-		blendDesc.RenderTarget[0].RenderTargetWriteMask = GL_COLOR_WRITE_ENABLE_ALL;
-		blendDesc.RenderTarget[1].BlendEnable = FALSE;
-		blendDesc.RenderTarget[1].RenderTargetWriteMask = GL_COLOR_WRITE_ENABLE_ALL;
-		HRESULT result = Device->CreateBlendState(&blendDesc, ScenePass.LinePipeline[i].BlendState.TypedInitPtr());
-		ThrowIfFailed(result, "CreateBlendState(ScenePass.LinePipeline.BlendState) failed");
-		SetDebugName(ScenePass.LinePipeline[i].BlendState, "ScenePass.LinePipeline.BlendState");
+		GLBlendDesc blendDesc = {};
+		blendDesc.IndependentBlendEnable = true;
+		blendDesc.RenderTarget[0].BlendEnable = true;
+		blendDesc.RenderTarget[0].BlendOp = GL_FUNC_ADD;
+		blendDesc.RenderTarget[0].BlendOpAlpha = GL_FUNC_ADD;
+		blendDesc.RenderTarget[0].SrcBlend = GL_ONE;
+		blendDesc.RenderTarget[0].SrcBlendAlpha = GL_ONE;
+		blendDesc.RenderTarget[0].DestBlend = GL_ONE_MINUS_SRC_ALPHA;
+		blendDesc.RenderTarget[0].DestBlendAlpha = GL_ONE_MINUS_SRC_ALPHA;
+		blendDesc.RenderTarget[0].RenderTargetWriteMask = true;
+		blendDesc.RenderTarget[1].BlendEnable = false;
+		blendDesc.RenderTarget[1].RenderTargetWriteMask = true;
+		ScenePass.LinePipeline[i].BlendState = CreateBlendState(blendDesc);
 
-		GL_DEPTH_STENCIL_DESC depthStencilDesc = {};
+		GLDepthStencilDesc depthStencilDesc = {};
 		depthStencilDesc.DepthEnable = TRUE;
-		depthStencilDesc.DepthFunc = GL_COMPARISON_LESS_EQUAL;
-		depthStencilDesc.DepthWriteMask = GL_DEPTH_WRITE_MASK_ALL;
-		result = Device->CreateDepthStencilState(&depthStencilDesc, ScenePass.LinePipeline[i].DepthStencilState.TypedInitPtr());
-		ThrowIfFailed(result, "CreateDepthStencilState(ScenePass.LinePipeline.DepthStencilState) failed");
-		SetDebugName(ScenePass.LinePipeline[i].DepthStencilState, "ScenePass.LinePipeline.DepthStencilState");
+		depthStencilDesc.DepthFunc = GL_LEQUAL;
+		depthStencilDesc.DepthWriteMask = true;
+		ScenePass.LinePipeline[i].DepthStencilState = CreateDepthStencilState(depthStencilDesc);
 
-		ScenePass.LinePipeline[i].PixelShader = ScenePass.PixelShader;
-		ScenePass.LinePipeline[i].PrimitiveTopology = GL_PRIMITIVE_TOPOLOGY_LINELIST;
+		ScenePass.LinePipeline[i].PixelShader = ScenePass.PixelShader.get();
+		ScenePass.LinePipeline[i].PrimitiveTopology = GL_LINES;
 
 		if (i == 0)
 		{
@@ -841,32 +829,28 @@ void GLRenderDevice::CreateScenePass()
 	// Point pipeline
 	for (int i = 0; i < 2; i++)
 	{
-		GL_BLEND_DESC blendDesc = {};
-		blendDesc.IndependentBlendEnable = TRUE;
-		blendDesc.RenderTarget[0].BlendEnable = TRUE;
-		blendDesc.RenderTarget[0].BlendOp = GL_BLEND_OP_ADD;
-		blendDesc.RenderTarget[0].BlendOpAlpha = GL_BLEND_OP_ADD;
-		blendDesc.RenderTarget[0].SrcBlend = GL_BLEND_ONE;
-		blendDesc.RenderTarget[0].SrcBlendAlpha = GL_BLEND_ONE;
-		blendDesc.RenderTarget[0].DestBlend = GL_BLEND_INV_SRC_ALPHA;
-		blendDesc.RenderTarget[0].DestBlendAlpha = GL_BLEND_INV_SRC_ALPHA;
-		blendDesc.RenderTarget[0].RenderTargetWriteMask = GL_COLOR_WRITE_ENABLE_ALL;
-		blendDesc.RenderTarget[1].BlendEnable = FALSE;
-		blendDesc.RenderTarget[1].RenderTargetWriteMask = GL_COLOR_WRITE_ENABLE_ALL;
-		HRESULT result = Device->CreateBlendState(&blendDesc, ScenePass.PointPipeline[i].BlendState.TypedInitPtr());
-		ThrowIfFailed(result, "CreateBlendState(ScenePass.LinePipeline.BlendState) failed");
-		SetDebugName(ScenePass.PointPipeline[i].BlendState, "ScenePass.PointPipeline.BlendState");
+		GLBlendDesc blendDesc = {};
+		blendDesc.IndependentBlendEnable = true;
+		blendDesc.RenderTarget[0].BlendEnable = true;
+		blendDesc.RenderTarget[0].BlendOp = GL_FUNC_ADD;
+		blendDesc.RenderTarget[0].BlendOpAlpha = GL_FUNC_ADD;
+		blendDesc.RenderTarget[0].SrcBlend = GL_ONE;
+		blendDesc.RenderTarget[0].SrcBlendAlpha = GL_ONE;
+		blendDesc.RenderTarget[0].DestBlend = GL_ONE_MINUS_SRC_ALPHA;
+		blendDesc.RenderTarget[0].DestBlendAlpha = GL_ONE_MINUS_SRC_ALPHA;
+		blendDesc.RenderTarget[0].RenderTargetWriteMask = true;
+		blendDesc.RenderTarget[1].BlendEnable = false;
+		blendDesc.RenderTarget[1].RenderTargetWriteMask = true;
+		ScenePass.PointPipeline[i].BlendState = CreateBlendState(blendDesc);
 
-		GL_DEPTH_STENCIL_DESC depthStencilDesc = {};
-		depthStencilDesc.DepthEnable = TRUE;
-		depthStencilDesc.DepthFunc = GL_COMPARISON_LESS_EQUAL;
-		depthStencilDesc.DepthWriteMask = GL_DEPTH_WRITE_MASK_ALL;
-		result = Device->CreateDepthStencilState(&depthStencilDesc, ScenePass.PointPipeline[i].DepthStencilState.TypedInitPtr());
-		ThrowIfFailed(result, "CreateDepthStencilState(ScenePass.PointPipeline.DepthStencilState) failed");
-		SetDebugName(ScenePass.PointPipeline[i].DepthStencilState, "ScenePass.PointPipeline.DepthStencilState");
+		GLDepthStencilDesc depthStencilDesc = {};
+		depthStencilDesc.DepthEnable = true;
+		depthStencilDesc.DepthFunc = GL_LEQUAL;
+		depthStencilDesc.DepthWriteMask = true;
+		ScenePass.PointPipeline[i].DepthStencilState = CreateDepthStencilState(depthStencilDesc);
 
-		ScenePass.PointPipeline[i].PixelShader = ScenePass.PixelShader;
-		ScenePass.PointPipeline[i].PrimitiveTopology = GL_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		ScenePass.PointPipeline[i].PixelShader = ScenePass.PixelShader.get();
+		ScenePass.PointPipeline[i].PrimitiveTopology = GL_TRIANGLES;
 
 		if (i == 0)
 		{
@@ -875,32 +859,9 @@ void GLRenderDevice::CreateScenePass()
 		}
 	}
 
-	GL_BUFFER_DESC bufDesc = {};
-	bufDesc.Usage = GL_USAGE_DYNAMIC;
-	bufDesc.ByteWidth = SceneVertexBufferSize * sizeof(GLSceneVertex);
-	bufDesc.BindFlags = GL_BIND_VERTEX_BUFFER;
-	bufDesc.CPUAccessFlags = GL_CPU_ACCESS_WRITE;
-	HRESULT result = Device->CreateBuffer(&bufDesc, nullptr, ScenePass.VertexBuffer.TypedInitPtr());
-	ThrowIfFailed(result, "CreateBuffer(ScenePass.VertexBuffer) failed");
-	SetDebugName(ScenePass.VertexBuffer, "ScenePass.VertexBuffer");
-
-	bufDesc = {};
-	bufDesc.Usage = GL_USAGE_DYNAMIC;
-	bufDesc.ByteWidth = SceneIndexBufferSize * sizeof(uint32_t);
-	bufDesc.BindFlags = GL_BIND_INDEX_BUFFER;
-	bufDesc.CPUAccessFlags = GL_CPU_ACCESS_WRITE;
-	result = Device->CreateBuffer(&bufDesc, nullptr, ScenePass.IndexBuffer.TypedInitPtr());
-	ThrowIfFailed(result, "CreateBuffer(ScenePass.IndexBuffer) failed");
-	SetDebugName(ScenePass.IndexBuffer, "ScenePass.IndexBuffer");
-
-	bufDesc = {};
-	bufDesc.Usage = GL_USAGE_DEFAULT;
-	bufDesc.ByteWidth = sizeof(GLScenePushConstants);
-	bufDesc.BindFlags = GL_BIND_CONSTANT_BUFFER;
-	result = Device->CreateBuffer(&bufDesc, nullptr, ScenePass.ConstantBuffer.TypedInitPtr());
-	ThrowIfFailed(result, "CreateBuffer(ScenePass.ConstantBuffer) failed");
-	SetDebugName(ScenePass.ConstantBuffer, "ScenePass.ConstantBuffer");
-#endif
+	ScenePass.VertexBuffer = CreateBuffer(GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, nullptr, SceneVertexBufferSize * sizeof(GLSceneVertex), "ScenePass.VertexBuffer");
+	ScenePass.IndexBuffer = CreateBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW, nullptr, SceneIndexBufferSize * sizeof(uint32_t), "ScenePass.IndexBuffer");
+	ScenePass.ConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, sizeof(GLScenePushConstants), "ScenePass.ConstantBuffer");
 }
 
 void GLRenderDevice::CreateSceneSamplers()
@@ -1213,38 +1174,27 @@ void GLRenderDevice::ComputeBlurSamples(int sampleCount, float blurAmount, float
 
 void GLRenderDevice::CreateBloomPass()
 {
-#if 0
-	CreateFragmentShader(BloomPass.Extract, "BloomPass.Extract", "shaders/BloomExtract.frag");
-	CreateFragmentShader(BloomPass.Combine, "BloomPass.Combine", "shaders/BloomCombine.frag");
-	CreateFragmentShader(BloomPass.BlurVertical, "BloomPass.BlurVertical", "shaders/Blur.frag", { "BLUR_VERTICAL" });
-	CreateFragmentShader(BloomPass.BlurHorizontal, "BloomPass.BlurHorizontal", "shaders/Blur.frag", { "BLUR_HORIZONTAL" });
+	BloomPass.Extract = CreateFragmentShader("BloomPass.Extract", "shaders/BloomExtract.frag");
+	BloomPass.Combine = CreateFragmentShader("BloomPass.Combine", "shaders/BloomCombine.frag");
+	BloomPass.BlurVertical = CreateFragmentShader("BloomPass.BlurVertical", "shaders/Blur.frag", { "BLUR_VERTICAL" });
+	BloomPass.BlurHorizontal = CreateFragmentShader("BloomPass.BlurHorizontal", "shaders/Blur.frag", { "BLUR_HORIZONTAL" });
 
-	GL_BUFFER_DESC bufDesc = {};
-	bufDesc.Usage = GL_USAGE_DEFAULT;
-	bufDesc.ByteWidth = sizeof(GLBloomPushConstants);
-	bufDesc.BindFlags = GL_BIND_CONSTANT_BUFFER;
-	HRESULT result = Device->CreateBuffer(&bufDesc, nullptr, BloomPass.ConstantBuffer.TypedInitPtr());
-	ThrowIfFailed(result, "CreateBuffer(BloomPass.ConstantBuffer) failed");
-	SetDebugName(BloomPass.ConstantBuffer, "BloomPass.ConstantBuffer");
+	BloomPass.ConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, sizeof(GLBloomPushConstants), "BloomPass.ConstantBuffer");
 
-	GL_BLEND_DESC blendDesc = {};
-	blendDesc.RenderTarget[0].RenderTargetWriteMask = GL_COLOR_WRITE_ENABLE_ALL;
-	blendDesc.RenderTarget[0].BlendEnable = TRUE;
-	blendDesc.RenderTarget[0].BlendOp = GL_BLEND_OP_ADD;
-	blendDesc.RenderTarget[0].BlendOpAlpha = GL_BLEND_OP_ADD;
-	blendDesc.RenderTarget[0].SrcBlend = GL_BLEND_ONE;
-	blendDesc.RenderTarget[0].SrcBlendAlpha = GL_BLEND_ONE;
-	blendDesc.RenderTarget[0].DestBlend = GL_BLEND_ONE;
-	blendDesc.RenderTarget[0].DestBlendAlpha = GL_BLEND_ONE;
-	result = Device->CreateBlendState(&blendDesc, BloomPass.AdditiveBlendState.TypedInitPtr());
-	ThrowIfFailed(result, "CreateBlendState(BloomPass.AdditiveBlendState) failed");
-	SetDebugName(BloomPass.AdditiveBlendState, "BloomPass.AdditiveBlendState");
-#endif
+	GLBlendDesc blendDesc = {};
+	blendDesc.RenderTarget[0].RenderTargetWriteMask = true;
+	blendDesc.RenderTarget[0].BlendEnable = true;
+	blendDesc.RenderTarget[0].BlendOp = GL_FUNC_ADD;
+	blendDesc.RenderTarget[0].BlendOpAlpha = GL_FUNC_ADD;
+	blendDesc.RenderTarget[0].SrcBlend = GL_ONE;
+	blendDesc.RenderTarget[0].SrcBlendAlpha = GL_ONE;
+	blendDesc.RenderTarget[0].DestBlend = GL_ONE;
+	blendDesc.RenderTarget[0].DestBlendAlpha = GL_ONE;
+	BloomPass.AdditiveBlendState = CreateBlendState(blendDesc);
 }
 
 void GLRenderDevice::CreatePresentPass()
 {
-#if 0
 	std::vector<vec2> positions =
 	{
 		vec2(-1.0, -1.0),
@@ -1255,32 +1205,17 @@ void GLRenderDevice::CreatePresentPass()
 		vec2( 1.0,  1.0)
 	};
 
-	GL_BUFFER_DESC bufDesc = {};
-	bufDesc.Usage = GL_USAGE_IMMUTABLE;
-	bufDesc.ByteWidth = (UINT)(positions.size() * sizeof(vec2));
-	bufDesc.BindFlags = GL_BIND_VERTEX_BUFFER;
+	PresentPass.PPStepVertexBuffer = CreateBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, positions.data(), positions.size() * sizeof(vec2), "PresentPass.PPStepVertexBuffer");
+	PresentPass.PresentConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, sizeof(GLPresentPushConstants), "PresentPass.PresentConstantBuffer");
 
-	GL_SUBRESOURCE_DATA initData = {};
-	initData.pSysMem = positions.data();
-
-	HRESULT result = Device->CreateBuffer(&bufDesc, &initData, PresentPass.PPStepVertexBuffer.TypedInitPtr());
-	ThrowIfFailed(result, "CreateBuffer(PresentPass.PPStepVertexBuffer) failed");
-	SetDebugName(PresentPass.PPStepVertexBuffer, "PresentPass.PPStepVertexBuffer");
-
-	bufDesc = {};
-	bufDesc.Usage = GL_USAGE_DEFAULT;
-	bufDesc.ByteWidth = sizeof(GLPresentPushConstants);
-	bufDesc.BindFlags = GL_BIND_CONSTANT_BUFFER;
-	result = Device->CreateBuffer(&bufDesc, nullptr, PresentPass.PresentConstantBuffer.TypedInitPtr());
-	ThrowIfFailed(result, "CreateBuffer(PresentPass.PresentConstantBuffer) failed");
-	SetDebugName(PresentPass.PresentConstantBuffer, "PresentPass.PresentConstantBuffer");
-
+#if 0
 	std::vector<GL_INPUT_ELEMENT_DESC> elements =
 	{
 		{ "AttrPos", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, GL_INPUT_PER_VERTEX_DATA, 0 }
 	};
+#endif
 
-	CreateVertexShader(PresentPass.PPStep, "PresentPass.PPStep", PresentPass.PPStepLayout, "PresentPass.PPStepLayout", elements, "shaders/PPStep.vert");
+	PresentPass.PPStep = CreateVertexShader("PresentPass.PPStep", "shaders/PPStep.vert");
 
 	static const char* transferFunctions[2] = { nullptr, "HDR_MODE" };
 	static const char* gammaModes[2] = { "GAMMA_MODE_D3D9", "GAMMA_MODE_XOPENGL" };
@@ -1292,10 +1227,10 @@ void GLRenderDevice::CreatePresentPass()
 		if (gammaModes[(i >> 1) & 1]) defines.push_back(gammaModes[(i >> 1) & 1]);
 		if (colorModes[(i >> 2) & 3]) defines.push_back(colorModes[(i >> 2) & 3]);
 
-		CreateFragmentShader(PresentPass.Present[i], "PresentPass.Present", "shaders/Present.frag", defines);
+		PresentPass.Present[i] = CreateFragmentShader("PresentPass.Present", "shaders/Present.frag", defines);
 	}
 
-	CreateFragmentShader(PresentPass.HitResolve, "PresentPass.HitResolve", "shaders/HitResolve.frag");
+	PresentPass.HitResolve = CreateFragmentShader("PresentPass.HitResolve", "shaders/HitResolve.frag");
 
 	static const float ditherdata[64] =
 	{
@@ -1309,46 +1244,25 @@ void GLRenderDevice::CreatePresentPass()
 		.8515625, .6015625, .9765625, .7265625, .8671875, .6171875, .9921875, .7421875
 	};
 
-	initData = {};
-	initData.pSysMem = ditherdata;
-	initData.SysMemPitch = sizeof(float) * 8;
-
-	GL_TEXTURE2D_DESC texDesc = {};
-	texDesc.Usage = GL_USAGE_IMMUTABLE;
-	texDesc.BindFlags = GL_BIND_SHADER_RESOURCE;
-	texDesc.Format = DXGI_FORMAT_R32_FLOAT;
-	texDesc.Width = 8;
-	texDesc.Height = 8;
-	texDesc.MipLevels = 1;
-	texDesc.ArraySize = 1;
-	texDesc.SampleDesc.Count = 1;
-	result = Device->CreateTexture2D(&texDesc, &initData, PresentPass.DitherTexture.TypedInitPtr());
-	ThrowIfFailed(result, "CreateTexture2D(DitherTexture) failed");
+	PresentPass.DitherTexture = std::make_shared<GLTexture>();
+	glBindTexture(GL_TEXTURE_2D, PresentPass.DitherTexture->Handle);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 8, 8, 0, GL_RED, GL_FLOAT, ditherdata);
+	ThrowIfGLError("CreateTexture2D(DitherTexture) failed");
 	SetDebugName(PresentPass.DitherTexture, "PresentPass.DitherTexture");
 
-	result = Device->CreateShaderResourceView(PresentPass.DitherTexture, nullptr, PresentPass.DitherTextureView.TypedInitPtr());
-	ThrowIfFailed(result, "CreateShaderResourceView(DitherTexture) failed");
-	SetDebugName(PresentPass.DitherTextureView, "PresentPass.DitherTextureView");
+	PresentPass.DitherTextureView = PresentPass.DitherTexture;
 
-	GL_BLEND_DESC blendDesc = {};
-	blendDesc.RenderTarget[0].RenderTargetWriteMask = GL_COLOR_WRITE_ENABLE_ALL;
-	result = Device->CreateBlendState(&blendDesc, PresentPass.BlendState.TypedInitPtr());
-	ThrowIfFailed(result, "CreateBlendState(PresentPass.BlendState) failed");
-	SetDebugName(PresentPass.BlendState, "PresentPass.BlendState");
+	GLBlendDesc blendDesc = {};
+	blendDesc.RenderTarget[0].RenderTargetWriteMask = true;
+	PresentPass.BlendState = CreateBlendState(blendDesc);
 
-	GL_DEPTH_STENCIL_DESC depthStencilDesc = {};
-	depthStencilDesc.DepthFunc = GL_COMPARISON_ALWAYS;
-	result = Device->CreateDepthStencilState(&depthStencilDesc, PresentPass.DepthStencilState.TypedInitPtr());
-	ThrowIfFailed(result, "CreateDepthStencilState(PresentPass.DepthStencilState) failed");
-	SetDebugName(PresentPass.DepthStencilState, "PresentPass.DepthStencilState");
+	GLDepthStencilDesc depthStencilDesc = {};
+	depthStencilDesc.DepthFunc = GL_ALWAYS;
+	PresentPass.DepthStencilState = CreateDepthStencilState(depthStencilDesc);
 
-	GL_RASTERIZER_DESC rasterizerDesc = {};
-	rasterizerDesc.FillMode = GL_FILL_SOLID;
-	rasterizerDesc.CullMode = GL_CULL_NONE;
-	result = Device->CreateRasterizerState(&rasterizerDesc, PresentPass.RasterizerState.TypedInitPtr());
-	ThrowIfFailed(result, "CreateRasterizerState(PresentPass.RasterizerState) failed");
-	SetDebugName(PresentPass.RasterizerState, "PresentPass.RasterizerState");
-#endif
+	GLRasterizerDesc rasterizerDesc = {};
+	rasterizerDesc.CullEnable = false;
+	PresentPass.RasterizerState = CreateRasterizerState(rasterizerDesc);
 }
 
 void GLRenderDevice::Flush(bool AllowPrecache)
@@ -2520,6 +2434,31 @@ void GLRenderDevice::SetDebugName(GLenum type, GLuint handle, const char* name)
 	// Note: only exists in OpenGL 4.3 or if GL_KHR_debug extension is reported
 	if (UseDebugLayer && glObjectLabel)
 		glObjectLabel(type, handle, -1, name);
+}
+
+std::shared_ptr<GLBlendState> GLRenderDevice::CreateBlendState(const GLBlendDesc& desc)
+{
+	return std::make_shared<GLBlendState>(desc);
+}
+
+std::shared_ptr<GLRasterizerState> GLRenderDevice::CreateRasterizerState(const GLRasterizerDesc& desc)
+{
+	return std::make_shared<GLRasterizerState>(desc);
+}
+
+std::shared_ptr<GLDepthStencilState> GLRenderDevice::CreateDepthStencilState(const GLDepthStencilDesc& desc)
+{
+	return std::make_shared<GLDepthStencilState>(desc);
+}
+
+std::shared_ptr<GLBuffer> GLRenderDevice::CreateBuffer(GLenum target, GLenum usage, const void* data, size_t size, const char* debugName)
+{
+	auto buffer = std::make_shared<GLBuffer>();
+	SetDebugName(buffer, debugName);
+	glBindBuffer(GL_UNIFORM_BUFFER, buffer->Handle);
+	glBufferData(GL_UNIFORM_BUFFER, sizeof(GLScenePushConstants), nullptr, GL_DYNAMIC_DRAW);
+	ThrowIfGLError((std::string("CreateBuffer failed for ") + debugName).c_str());
+	return buffer;
 }
 
 std::shared_ptr<GLProgram> GLRenderDevice::CreateProgram(const std::string& programName, std::shared_ptr<GLVertexShader> vertexShader, std::shared_ptr<GLFragmentShader> fragmentShader)

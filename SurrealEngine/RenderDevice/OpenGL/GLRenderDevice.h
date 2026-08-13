@@ -137,7 +137,7 @@ public:
 
 	struct ScenePipelineState
 	{
-		//GL_PRIMITIVE_TOPOLOGY PrimitiveTopology = GL_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		GLenum PrimitiveTopology = GL_TRIANGLES;
 		GLFragmentShader* PixelShader = nullptr;
 		std::shared_ptr<GLBlendState> BlendState;
 		std::shared_ptr<GLDepthStencilState> DepthStencilState;
@@ -308,6 +308,12 @@ private:
 	int GetSettingsMultisample();
 
 	ScenePipelineState* GetPipeline(uint32_t PolyFlags);
+
+	std::shared_ptr<GLBlendState> CreateBlendState(const GLBlendDesc& desc);
+	std::shared_ptr<GLRasterizerState> CreateRasterizerState(const GLRasterizerDesc& desc);
+	std::shared_ptr<GLDepthStencilState> CreateDepthStencilState(const GLDepthStencilDesc& desc);
+
+	std::shared_ptr<GLBuffer> CreateBuffer(GLenum target, GLenum usage, const void* data, size_t size, const char* debugName);
 
 	std::shared_ptr<GLProgram> CreateProgram(const std::string& programName, std::shared_ptr<GLVertexShader> vertexShader, std::shared_ptr<GLFragmentShader> fragmentShader);
 	std::shared_ptr<GLVertexShader> CreateVertexShader(const std::string& shaderName, const std::string& filename, const std::vector<std::string> defines = {});
