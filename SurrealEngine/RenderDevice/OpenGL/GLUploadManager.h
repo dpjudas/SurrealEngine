@@ -1,7 +1,6 @@
 #pragma once
 
 #include "GLTextureUploader.h"
-#include <d3d11.h>
 
 class GLRenderDevice;
 class GLCachedTexture;
