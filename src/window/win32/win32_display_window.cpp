@@ -1,5 +1,6 @@
 
 #include "win32_display_window.h"
+#include "opengl_creation_helper.h"
 #include <surrealwidgets/core/image.h>
 #include <windowsx.h>
 #include <stdexcept>
@@ -125,6 +126,15 @@ Win32DisplayWindow::~Win32DisplayWindow()
 {
 	if (WindowHandle.hwnd)
 	{
+		if (openglContext != 0)
+		{
+			wglMakeCurrent(openglDC, 0);
+			wglDeleteContext(openglContext);
+			ReleaseDC(WindowHandle.hwnd, openglDC);
+			openglContext = 0;
+			openglDC = 0;
+		}
+
 		DestroyWindow(WindowHandle.hwnd);
 		WindowHandle.hwnd = 0;
 	}
@@ -1074,6 +1084,55 @@ VkSurfaceKHR Win32DisplayWindow::CreateVulkanSurface(VkInstance instance)
 std::vector<std::string> Win32DisplayWindow::GetVulkanInstanceExtensions()
 {
 	return { "VK_KHR_surface", "VK_KHR_win32_surface" };
+}
+
+void Win32DisplayWindow::CreateGLContext()
+{
+	openglDC = GetDC(WindowHandle.hwnd);
+	try
+	{
+		OpenGLCreationHelper helper(WindowHandle.hwnd, openglDC);
+		helper.set_pixel_format();
+		openglContext = helper.create_opengl3_context(0, 3, 0);
+	}
+	catch (...)
+	{
+		ReleaseDC(WindowHandle.hwnd, openglDC);
+		throw;
+	}
+
+	wglMakeCurrent(openglDC, openglContext);
+	wglSwapIntervalEXT = (ptr_wglSwapIntervalEXT)wglGetProcAddress("wglSwapIntervalEXT");
+}
+
+void Win32DisplayWindow::MakeGLContextCurrent()
+{
+	if (openglContext == 0)
+		throw std::runtime_error("No OpenGL context was created for this window!");
+
+	if (wglGetCurrentContext() != openglContext) // Just in case some drivers are incredibly dumb about it
+		wglMakeCurrent(openglDC, openglContext);
+}
+
+bool Win32DisplayWindow::SetGLSwapInterval(int interval)
+{
+	MakeGLContextCurrent();
+	if (wglSwapIntervalEXT)
+	{
+		if (swap_interval != interval)
+		{
+			if (wglSwapIntervalEXT(interval) == FALSE)
+				return false;
+			swap_interval = interval;
+		}
+	}
+	return true;
+}
+
+void Win32DisplayWindow::SwapGLBuffers()
+{
+	MakeGLContextCurrent();
+	SwapBuffers(openglDC);
 }
 
 static void CALLBACK Win32TimerCallback(HWND handle, UINT message, UINT_PTR timerID, DWORD timestamp)

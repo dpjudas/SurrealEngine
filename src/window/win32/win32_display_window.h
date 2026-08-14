@@ -66,6 +66,11 @@ public:
 	std::vector<std::string> GetVulkanInstanceExtensions() override;
 	VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
 
+	void CreateGLContext() override;
+	void MakeGLContextCurrent() override;
+	bool SetGLSwapInterval(int interval) override;
+	void SwapGLBuffers() override;
+
 	static void ProcessEvents();
 	static void RunLoop();
 	static void ExitLoop();
@@ -106,6 +111,12 @@ public:
 	std::unique_ptr<Win32CustomCursor> CurrentWin32CustomCursor;
 
 	uint16_t E1Prefix = 0;
+
+	HGLRC openglContext = 0;
+	HDC openglDC = 0;
+	typedef BOOL(APIENTRY* ptr_wglSwapIntervalEXT)(int interval);
+	ptr_wglSwapIntervalEXT wglSwapIntervalEXT = nullptr;
+	int swap_interval = -2;
 };
 
 class Win32CustomCursor

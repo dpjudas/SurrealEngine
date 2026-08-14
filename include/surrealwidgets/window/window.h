@@ -5,6 +5,7 @@
 #include <functional>
 #include <cstdint>
 #include <cstdlib>
+#include <stdexcept>
 #include "../core/rect.h"
 
 #ifndef VULKAN_H_
@@ -370,6 +371,11 @@ public:
 
 	virtual std::vector<std::string> GetVulkanInstanceExtensions() = 0;
 	virtual VkSurfaceKHR CreateVulkanSurface(VkInstance instance) = 0;
+
+	virtual void CreateGLContext() { throw std::runtime_error("CreateOpenGLContext not supported for this backend"); }
+	virtual void MakeGLContextCurrent() { throw std::runtime_error("MakeGLContextCurrent not supported for this backend"); }
+	virtual bool SetGLSwapInterval(int interval) { throw std::runtime_error("SetOpenGLSwapInterval not supported for this backend"); }
+	virtual void SwapGLBuffers() { throw std::runtime_error("SwapOpenGLBuffers not supported for this backend"); }
 };
 
 class DisplayBackend
