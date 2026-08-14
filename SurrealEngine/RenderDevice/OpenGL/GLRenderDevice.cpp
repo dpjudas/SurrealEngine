@@ -40,7 +40,10 @@ bool GLRenderDevice::Init(int NewX, int NewY, bool Fullscreen)
 
 	try
 	{
-		// To do: do opengl init work here
+		// To do: add this to surreal widgets
+		// Viewport->CreateOpenGLContext();
+		// Viewport->MakeGLContextCurrent();
+		ogl_LoadFunctions();
 
 		CreateScenePass();
 		CreatePresentPass();
@@ -252,18 +255,6 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 
 void GLRenderDevice::CreateScenePass()
 {
-#if 0
-	std::vector<GL_INPUT_ELEMENT_DESC> elements =
-	{
-		{ "AttrFlags", 0, DXGI_FORMAT_R32_UINT, 0, offsetof(GLSceneVertex, Flags), GL_INPUT_PER_VERTEX_DATA, 0 },
-		{ "AttrPos", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, offsetof(GLSceneVertex, Position), GL_INPUT_PER_VERTEX_DATA, 0 },
-		{ "AttrTexCoordOne", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(GLSceneVertex, TexCoord), GL_INPUT_PER_VERTEX_DATA, 0 },
-		{ "AttrTexCoordTwo", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(GLSceneVertex, TexCoord2), GL_INPUT_PER_VERTEX_DATA, 0 },
-		{ "AttrTexCoordThree", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(GLSceneVertex, TexCoord3), GL_INPUT_PER_VERTEX_DATA, 0 },
-		{ "AttrTexCoordFour", 0, DXGI_FORMAT_R32G32_FLOAT, 0, offsetof(GLSceneVertex, TexCoord4), GL_INPUT_PER_VERTEX_DATA, 0 },
-		{ "AttrColor", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, offsetof(GLSceneVertex, Color), GL_INPUT_PER_VERTEX_DATA, 0 }
-	};
-#endif
 	ScenePass.VertexShader = CreateVertexShader("ScenePass.VertexShader", "shaders/Scene.vert");
 	ScenePass.FragmentShader = CreateFragmentShader("ScenePass.PixelShader", "shaders/Scene.frag");
 	ScenePass.FragmentShaderAlphaTest = CreateFragmentShader("ScenePass.PixelShaderAlphaTest", "shaders/Scene.frag", { "ALPHATEST" });
@@ -429,6 +420,26 @@ void GLRenderDevice::CreateScenePass()
 	ScenePass.VertexBuffer = CreateBuffer(GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, nullptr, SceneVertexBufferSize * sizeof(GLSceneVertex), "ScenePass.VertexBuffer");
 	ScenePass.IndexBuffer = CreateBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW, nullptr, SceneIndexBufferSize * sizeof(uint32_t), "ScenePass.IndexBuffer");
 	ScenePass.ConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, sizeof(GLScenePushConstants), "ScenePass.ConstantBuffer");
+
+	ScenePass.InputLayout = std::make_shared<GLInputLayout>();
+	SetDebugName(ScenePass.InputLayout, "ScenePass.InputLayout");
+	glBindVertexArray(ScenePass.InputLayout->Handle);
+	glBindBuffer(GL_ARRAY_BUFFER, ScenePass.VertexBuffer->Handle);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(GLSceneVertex), (const void*)offsetof(GLSceneVertex, Flags));
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GLSceneVertex), (const void*)offsetof(GLSceneVertex, Position));
+	glEnableVertexAttribArray(2);
+	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(GLSceneVertex), (const void*)offsetof(GLSceneVertex, TexCoord));
+	glEnableVertexAttribArray(3);
+	glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(GLSceneVertex), (const void*)offsetof(GLSceneVertex, TexCoord2));
+	glEnableVertexAttribArray(4);
+	glVertexAttribPointer(4, 2, GL_FLOAT, GL_FALSE, sizeof(GLSceneVertex), (const void*)offsetof(GLSceneVertex, TexCoord3));
+	glEnableVertexAttribArray(5);
+	glVertexAttribPointer(5, 2, GL_FLOAT, GL_FALSE, sizeof(GLSceneVertex), (const void*)offsetof(GLSceneVertex, TexCoord4));
+	glEnableVertexAttribArray(6);
+	glVertexAttribPointer(6, 4, GL_FLOAT, GL_FALSE, sizeof(GLSceneVertex), (const void*)offsetof(GLSceneVertex, Color));
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void GLRenderDevice::CreateSceneSamplers()
@@ -599,13 +610,7 @@ void GLRenderDevice::RunBloomPass()
 	ComputeBlurSamples(7, blurAmount, pushconstants.SampleWeights);
 
 	GLBuffer* cbs[1] = { BloomPass.ConstantBuffer.get() };
-#if 0
-	GLBuffer* vertexBuffers[1] = { PresentPass.PPStepVertexBuffer.get() };
-	int stride = sizeof(vec2);
-	int offset = 0;
-	Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
-	Context->IASetInputLayout(PresentPass.PPStepLayout);
-#endif
+	glBindVertexArray(PresentPass.PPStepLayout->Handle);
 	SetRasterizerState(PresentPass.RasterizerState.get());
 	SetUniformBuffers(0, 1, cbs);
 	SetDepthStencilState(PresentPass.DepthStencilState.get());
@@ -776,12 +781,13 @@ void GLRenderDevice::CreatePresentPass()
 	PresentPass.PPStepVertexBuffer = CreateBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, positions.data(), positions.size() * sizeof(vec2), "PresentPass.PPStepVertexBuffer");
 	PresentPass.PresentConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, sizeof(GLPresentPushConstants), "PresentPass.PresentConstantBuffer");
 
-#if 0
-	std::vector<GL_INPUT_ELEMENT_DESC> elements =
-	{
-		{ "AttrPos", 0, DXGI_FORMAT_R32G32_FLOAT, 0, 0, GL_INPUT_PER_VERTEX_DATA, 0 }
-	};
-#endif
+	PresentPass.PPStepLayout = std::make_shared<GLInputLayout>();
+	SetDebugName(PresentPass.PPStepLayout, "PresentPass.PPStepLayout");
+	glBindVertexArray(PresentPass.PPStepLayout->Handle);
+	glBindBuffer(GL_ARRAY_BUFFER, PresentPass.PPStepVertexBuffer->Handle);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(vec2), (const void*)offsetof(vec2, x));
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	PresentPass.PPStep = CreateVertexShader("PresentPass.PPStep", "shaders/PPStep.vert");
 
@@ -799,8 +805,9 @@ void GLRenderDevice::CreatePresentPass()
 		PresentPass.PresentProgram[i] = CreateProgram("PresentPass.PresentProgram", PresentPass.PPStep, PresentPass.Present[i]);
 	}
 
-	PresentPass.HitResolve = CreateFragmentShader("PresentPass.HitResolve", "shaders/HitResolve.frag");
-	PresentPass.HitResolveProgram = CreateProgram("PresentPass.HitResolveProgram", PresentPass.PPStep, PresentPass.HitResolve);
+	// To do: vulkan device didn't have this. Figure out why (maybe we don't need it for OpenGL? can we do like the vulkan device does?
+	//PresentPass.HitResolve = CreateFragmentShader("PresentPass.HitResolve", "shaders/HitResolve.frag");
+	//PresentPass.HitResolveProgram = CreateProgram("PresentPass.HitResolveProgram", PresentPass.PPStep, PresentPass.HitResolve);
 
 	static const float ditherdata[64] =
 	{
@@ -933,14 +940,9 @@ void GLRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, 
 	GLenum bufs[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 	glDrawBuffers(2, bufs);
 
-#if 0
-	UINT stride = sizeof(GLSceneVertex);
-	UINT offset = 0;
-	GLBuffer* vertexBuffers[1] = { ScenePass.VertexBuffer.get() };
-	Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
-	Context->IASetIndexBuffer(ScenePass.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
-	Context->IASetInputLayout(ScenePass.InputLayout);
-#endif
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ScenePass.IndexBuffer->Handle);
+	glBindVertexArray(ScenePass.InputLayout->Handle);
+
 	GLBuffer* cbs[1] = { ScenePass.ConstantBuffer.get() };
 	SetUniformBuffers(0, 1, cbs);
 	SetRasterizerState(ScenePass.RasterizerState[SceneBuffers.Multisample > 1].get());
@@ -1055,13 +1057,8 @@ void GLRenderDevice::Unlock(bool Blit)
 		viewport.MaxDepth = 1.0f;
 		SetViewport(viewport);
 
-#if 0
-		UINT stride = sizeof(vec2);
-		UINT offset = 0;
-		GLBuffer* vertexBuffers[1] = { PresentPass.PPStepVertexBuffer.get() };
-		Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
-		Context->IASetInputLayout(PresentPass.PPStepLayout);
-#endif
+		glBindVertexArray(PresentPass.PPStepLayout->Handle);
+
 		SetRasterizerState(PresentPass.RasterizerState.get());
 		GLBuffer* cbs[1] = { PresentPass.PresentConstantBuffer.get() };
 		SetUniformBuffers(0, 1, cbs);
@@ -1072,21 +1069,9 @@ void GLRenderDevice::Unlock(bool Blit)
 		SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-#if 0
-		if (SwapChain1)
-		{
-			UINT flags = 0;
-			if (!UseVSync && !CurrentFullscreen && DxgiSwapChainAllowTearing)
-				flags |= DXGI_PRESENT_ALLOW_TEARING;
-
-			DXGI_PRESENT_PARAMETERS presentParams = {};
-			SwapChain1->Present1(UseVSync ? 1 : 0, flags, &presentParams);
-		}
-		else
-		{
-			SwapChain->Present(UseVSync ? 1 : 0, 0);
-		}
-#endif
+		// To do: add this to surreal widgets
+		// Viewport->SetSwapIntervalOpenGL(UseVSync ? 1 : -1);
+		// Viewport->SwapWindowOpenGL();
 
 		Batch.Pipeline = nullptr;
 		Batch.Tex = nullptr;
@@ -1116,13 +1101,7 @@ void GLRenderDevice::Unlock(bool Blit)
 			viewport.MaxDepth = 1.0f;
 			SetViewport(viewport);
 
-#if 0
-			UINT stride = sizeof(vec2);
-			UINT offset = 0;
-			GLBuffer* vertexBuffers[1] = { PresentPass.PPStepVertexBuffer.get() };
-			Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
-			Context->IASetInputLayout(PresentPass.PPStepLayout);
-#endif
+			glBindVertexArray(PresentPass.PPStepLayout->Handle);
 			SetRasterizerState(PresentPass.RasterizerState.get());
 			GLTexture2D* srvs[1] = { SceneBuffers.HitBuffer.get() };
 			SetTextures(0, 1, srvs);
@@ -1748,13 +1727,8 @@ void GLRenderDevice::ReadPixels(TextureColor* Pixels)
 		viewport.MaxDepth = 1.0f;
 		SetViewport(viewport);
 
-#if 0
-		UINT stride = sizeof(vec2);
-		UINT offset = 0;
-		GLBuffer* vertexBuffers[1] = { PresentPass.PPStepVertexBuffer.get() };
-		Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
-		Context->IASetInputLayout(PresentPass.PPStepLayout);
-#endif
+		glBindVertexArray(PresentPass.PPStepLayout->Handle);
+
 		GLBuffer* cbs[1] = { PresentPass.PresentConstantBuffer.get() };
 		GLTexture2D* psResources[] = { SceneBuffers.PPImage[0].get(), PresentPass.DitherTexture.get() };
 		SetRasterizerState(PresentPass.RasterizerState.get());

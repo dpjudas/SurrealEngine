@@ -170,6 +170,22 @@ public:
 class GLInputLayout
 {
 public:
+	GLInputLayout()
+	{
+		glGenVertexArrays(1, &Handle);
+	}
+
+	~GLInputLayout()
+	{
+		glDeleteVertexArrays(1, &Handle);
+		Handle = 0;
+	}
+
+	GLInputLayout(const GLInputLayout& other) = delete;
+	GLInputLayout& operator=(const GLInputLayout& other) = delete;
+
+	GLuint Handle = 0;
+	static const int Type = GL_VERTEX_ARRAY;
 };
 
 class GLBlendDesc

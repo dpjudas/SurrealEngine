@@ -25,7 +25,6 @@ std::string GLFileResource::readAllText(const std::string& filename)
 			layout(location = 4) in vec2 aTexCoord3;
 			layout(location = 5) in vec2 aTexCoord4;
 			layout(location = 6) in vec4 aColor;
-			layout(location = 7) in ivec4 aTextureBinds;
 
 			layout(location = 0) flat out uint flags;
 			layout(location = 1) out vec2 texCoord;
@@ -34,7 +33,6 @@ std::string GLFileResource::readAllText(const std::string& filename)
 			layout(location = 4) out vec2 texCoord4;
 			layout(location = 5) out vec4 color;
 			layout(location = 6) flat out uint hitIndex;
-			layout(location = 7) flat out ivec4 textureBinds;
 
 			void main()
 			{
@@ -47,14 +45,16 @@ std::string GLFileResource::readAllText(const std::string& filename)
 				texCoord4 = aTexCoord4;
 				color = aColor;
 				hitIndex = uHitIndex;
-				textureBinds = aTextureBinds;
 			}
 		)";
 	}
 	else if (filename == "shaders/Scene.frag")
 	{
 		return R"(
-			layout(binding = 0) uniform sampler2D textures[];
+			layout(binding = 0) uniform sampler2D tex;
+			layout(binding = 1) uniform sampler2D macro;
+			layout(binding = 2) uniform sampler2D detail;
+			layout(binding = 3) uniform sampler2D lightmap;
 
 			layout(location = 0) flat in uint flags;
 			layout(location = 1) centroid in vec2 texCoord;
@@ -75,10 +75,10 @@ std::string GLFileResource::readAllText(const std::string& filename)
 				return vec4(clamp((c.rgb - cutoff) / (1.0 - cutoff), 0.0, 1.0), c.a);
 			}
 
-			vec4 textureTex(vec2 uv) { return texture(textures[nonuniformEXT(textureBinds.x)], uv); }
-			vec4 textureMacro(vec2 uv) { return texture(textures[nonuniformEXT(textureBinds.y)], uv); }
-			vec4 textureDetail(vec2 uv) { return texture(textures[nonuniformEXT(textureBinds.z)], uv); }
-			vec4 textureLightmap(vec2 uv) { return texture(textures[nonuniformEXT(textureBinds.w)], uv); }
+			vec4 textureTex(vec2 uv) { return texture(tex, uv); }
+			vec4 textureMacro(vec2 uv) { return texture(macro, uv); }
+			vec4 textureDetail(vec2 uv) { return texture(detail, uv); }
+			vec4 textureLightmap(vec2 uv) { return texture(lightmap, uv); }
 
 			void main()
 			{
@@ -268,7 +268,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 			}
 		)";
 	}
-	else if (filename == "shaders/HitResolve.frag")
+	/*else if (filename == "shaders/HitResolve.frag")
 	{
 		// To do: vulkan device didn't have this. Figure out why (maybe we don't need it for OpenGL? can we do like the vulkan device does?
 		return R"(
@@ -292,7 +292,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 				return output;
 			}
 		)";
-	}
+	}*/
 	else if (filename == "shaders/BloomExtract.frag")
 	{
 		return R"(
