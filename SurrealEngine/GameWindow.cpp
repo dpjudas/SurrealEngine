@@ -161,6 +161,7 @@ std::unique_ptr<GameWindow> GameWindow::Create(GameWindowHost* windowHost)
 	case RenderDeviceType::Vulkan: api = RenderAPI::Vulkan; break;
 	case RenderDeviceType::D3D11: api = RenderAPI::D3D11; break;
 	case RenderDeviceType::D3D12: api = RenderAPI::D3D12; break;
+	case RenderDeviceType::OpenGL: api = RenderAPI::OpenGL; break;
 	}
 	return std::make_unique<GameWindow>(windowHost, api);
 }

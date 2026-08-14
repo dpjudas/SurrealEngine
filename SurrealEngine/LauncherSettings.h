@@ -4,7 +4,8 @@ enum class RenderDeviceType
 {
 	Vulkan,
 	D3D11,
-	D3D12
+	D3D12,
+	OpenGL
 };
 
 enum class AntialiasMode

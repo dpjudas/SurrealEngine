@@ -122,6 +122,8 @@ var win32Sources = [
 	"src/window/win32/win32_save_file_dialog.cpp",
 	"src/window/win32/win32_save_file_dialog.h",
 	"src/window/win32/win32_util.h",
+	"src/window/win32/opengl_creation_helper.cpp",
+	"src/window/win32/opengl_creation_helper.h",
 	"src/core/resourcedata_win.cpp",
 ];
 

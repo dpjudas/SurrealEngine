@@ -40,9 +40,8 @@ bool GLRenderDevice::Init(int NewX, int NewY, bool Fullscreen)
 
 	try
 	{
-		// To do: add this to surreal widgets
-		// Viewport->CreateOpenGLContext();
-		// Viewport->MakeGLContextCurrent();
+		Viewport->CreateGLContext();
+		Viewport->MakeGLContextCurrent();
 		ogl_LoadFunctions();
 
 		CreateScenePass();
@@ -1069,9 +1068,18 @@ void GLRenderDevice::Unlock(bool Blit)
 		SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
-		// To do: add this to surreal widgets
-		// Viewport->SetSwapIntervalOpenGL(UseVSync ? 1 : -1);
-		// Viewport->SwapWindowOpenGL();
+		if (UseVSync)
+		{
+			// Try use adaptive vsync if available
+			if (!Viewport->SetGLSwapInterval(-1))
+				Viewport->SetGLSwapInterval(1);
+		}
+		else
+		{
+			Viewport->SetGLSwapInterval(0);
+		}
+
+		Viewport->SwapGLBuffers();
 
 		Batch.Pipeline = nullptr;
 		Batch.Tex = nullptr;
@@ -2142,7 +2150,7 @@ std::shared_ptr<GLFragmentShader> GLRenderDevice::CreateFragmentShader(const std
 
 void GLRenderDevice::CompileGlsl(GLShader* shader, const std::string& filename, const std::vector<std::string> defines)
 {
-	std::string code = "#version 330\r\n";
+	std::string code = "#version 420\r\n";
 	for (const std::string& define : defines)
 	{
 		code += "#define ";

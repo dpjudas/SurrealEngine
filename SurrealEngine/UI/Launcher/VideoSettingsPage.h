@@ -25,6 +25,7 @@ private:
 	TextLabel* RenderDeviceLabel = nullptr;
 
 	CheckboxLabel* Vulkan = nullptr;
+	CheckboxLabel* OpenGL = nullptr;
 
 #ifdef WIN32
 	CheckboxLabel* D3D11 = nullptr;

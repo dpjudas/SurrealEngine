@@ -24,6 +24,8 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	D3D11->SetRadioStyle(true);
 	//D3D12->SetRadioStyle(true);
 #endif
+	OpenGL = new CheckboxLabel(this);
+	OpenGL->SetRadioStyle(true);
 
 	AdvancedLabel = new TextLabel(this);
 	UseVSync = new CheckboxLabel(this);
@@ -49,6 +51,7 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	D3D11->SetText("Direct3D 11");
 	//D3D12->SetText("Direct3D 12");
 #endif
+	OpenGL->SetText("OpenGL");
 	AdvancedLabel->SetText("Render settings:");
 	UseVSync->SetText("Use vertical sync");
 	AntialiasModesLabel->SetText("Anti aliasing");
@@ -78,11 +81,13 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 
 
 #ifdef WIN32
-	Vulkan->FuncChanged = [this](bool on) { if (on) { D3D11->SetChecked(false); /*D3D12->SetChecked(false);*/ }};
-	D3D11->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); /*D3D12->SetChecked(false);*/ }};
-	//D3D12->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); D3D11->SetChecked(false); }};
+	Vulkan->FuncChanged = [this](bool on) { if (on) { D3D11->SetChecked(false); OpenGL->SetChecked(false); /*D3D12->SetChecked(false);*/ }};
+	D3D11->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); OpenGL->SetChecked(false); /*D3D12->SetChecked(false);*/ }};
+	//D3D12->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); OpenGL->SetChecked(false); D3D11->SetChecked(false); }};
+	OpenGL->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); D3D11->SetChecked(false); /*D3D12->SetChecked(false);*/ }};
 #else
-	Vulkan->FuncChanged = [this](bool on) { /* Add checkbox logic here if an OpenGL renderer ever gets added */ };
+	Vulkan->FuncChanged = [this](bool on) { if (on) { OpenGL->SetChecked(false); }};
+	OpenGL->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); }};
 #endif
 
 	auto& settings = LauncherSettings::Get();
@@ -91,6 +96,7 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	D3D11->SetChecked(settings.RenderDevice.Type == RenderDeviceType::D3D11);
 	//D3D12->SetChecked(settings.RenderDevice.Type == RenderDeviceType::D3D12);
 #endif
+	OpenGL->SetChecked(settings.RenderDevice.Type == RenderDeviceType::OpenGL);
 	UseVSync->SetChecked(settings.RenderDevice.UseVSync);
 	AntialiasModes->SetSelectedItem((int)settings.RenderDevice.Antialias);
 	LightModes->SetSelectedItem((int)settings.RenderDevice.Light);
@@ -111,6 +117,7 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	renderDeviceLayout->AddWidget(D3D11);
 	// renderDeviceLayout->AddWidget(D3D12);
 #endif
+	renderDeviceLayout->AddWidget(OpenGL);
 	renderDeviceLayout->AddStretch();
 
 	auto antialiasModesLayout = new HBoxLayout();
@@ -185,6 +192,8 @@ void VideoSettingsPage::Save()
 	//if (D3D12->GetChecked())
 	//	settings.RenderDevice.Type = RenderDeviceType::D3D12;
 #endif
+	if (OpenGL->GetChecked())
+		settings.RenderDevice.Type = RenderDeviceType::OpenGL;
 
 	settings.RenderDevice.UseVSync = UseVSync->GetChecked();
 
@@ -222,6 +231,7 @@ void VideoSettingsPage::OnResetButtonClicked()
 	D3D11->SetChecked(false);
 	//D3D12->SetChecked(false);
 #endif
+	OpenGL->SetChecked(false);
 	UseVSync->SetChecked(true);
 	AntialiasModes->SetSelectedItem(0);
 	LightModes->SetSelectedItem(0);

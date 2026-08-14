@@ -39,6 +39,7 @@ int EditorApp::main(Array<std::string> args)
 			case RenderDeviceType::Vulkan: api = RenderAPI::Vulkan; break;
 			case RenderDeviceType::D3D11: api = RenderAPI::D3D11; break;
 			case RenderDeviceType::D3D12: api = RenderAPI::D3D12; break;
+			case RenderDeviceType::OpenGL: api = RenderAPI::OpenGL; break;
 			}
 			auto editorWindow = std::make_unique<EditorMainWindow>(api);
 			editorWindow->SetFrameGeometry(Rect::xywh(0.0, 0.0, 1024.0, 768.0));
