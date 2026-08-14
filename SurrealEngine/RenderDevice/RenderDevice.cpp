@@ -3,6 +3,7 @@
 #include "RenderDevice.h"
 #include "LauncherSettings.h"
 #include "Vulkan/VulkanRenderDevice.h"
+#include "OpenGL/GLRenderDevice.h"
 #ifdef WIN32
 #include "D3D11/D3D11RenderDevice.h"
 #endif
@@ -31,6 +32,10 @@ std::unique_ptr<RenderDevice> RenderDevice::Create(Widget* viewport, RenderAPI r
 	if (renderAPI == RenderAPI::Vulkan)
 	{
 		return std::make_unique<VulkanRenderDevice>(viewport);
+	}
+	else if (renderAPI == RenderAPI::OpenGL)
+	{
+		return std::make_unique<GLRenderDevice>(viewport);
 	}
 #ifdef WIN32
 	else if (renderAPI == RenderAPI::D3D11)

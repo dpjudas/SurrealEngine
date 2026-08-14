@@ -191,12 +191,29 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 		ThrowIfGLError("glTexImage2D(SceneBuffers.PPImage) failed");
 	}
 
-	// To do: create scene framebuffer objects and bind textures to them
+	SceneBuffers.Framebuffer = std::make_shared<GLFramebuffer>();
+	SetDebugName(SceneBuffers.Framebuffer, "SceneBuffers.Framebuffer");
+	glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.Framebuffer->Handle);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, SceneBuffers.ColorBuffer->Handle, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, SceneBuffers.HitBuffer->Handle, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, SceneBuffers.DepthBuffer->Handle, 0);
+
+	SceneBuffers.HitFramebuffer = std::make_shared<GLFramebuffer>();
+	SetDebugName(SceneBuffers.HitFramebuffer, "SceneBuffers.HitFramebuffer");
+	glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.HitFramebuffer->Handle);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, SceneBuffers.HitBuffer->Handle, 0);
+
+	SceneBuffers.PPHitFramebuffer = std::make_shared<GLFramebuffer>();
+	SetDebugName(SceneBuffers.PPHitFramebuffer, "SceneBuffers.PPHitFramebuffer");
+	glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.PPHitFramebuffer->Handle);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, SceneBuffers.PPHitBuffer->Handle, 0);
 
 	for (int i = 0; i < 2; i++)
 	{
-		// To do: create even more framebuffer objects!
-		// SceneBuffers.PPFramebuffer[i]
+		SceneBuffers.PPFramebuffer[i] = std::make_shared<GLFramebuffer>();
+		SetDebugName(SceneBuffers.PPFramebuffer[i], "SceneBuffers.PPFramebuffer");
+		glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.PPFramebuffer[i]->Handle);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, SceneBuffers.PPImage[i]->Handle, 0);
 	}
 
 	int bloomWidth = width;
@@ -218,7 +235,15 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, bloomWidth, bloomHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
 		ThrowIfGLError("glTexImage2D(SceneBuffers.BlurLevels.HTexture) failed");
 
-		// To do: create framebuffer objects
+		level.VFramebuffer = std::make_shared<GLFramebuffer>();
+		SetDebugName(level.VFramebuffer, "SceneBuffers.BlurLevels.VFramebuffer");
+		glBindFramebuffer(GL_FRAMEBUFFER, level.VFramebuffer->Handle);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, level.VTexture->Handle, 0);
+
+		level.HFramebuffer = std::make_shared<GLFramebuffer>();
+		SetDebugName(level.HFramebuffer, "SceneBuffers.BlurLevels.HFramebuffer");
+		glBindFramebuffer(GL_FRAMEBUFFER, level.HFramebuffer->Handle);
+		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, level.HTexture->Handle, 0);
 
 		level.Width = bloomWidth;
 		level.Height = bloomHeight;
