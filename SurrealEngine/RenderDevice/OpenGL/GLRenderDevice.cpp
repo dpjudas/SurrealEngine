@@ -113,7 +113,6 @@ void GLRenderDevice::Exit()
 
 void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 {
-#if 0
 	multisample = std::max(multisample, 1);
 
 	if (SceneBuffers.Width == width && SceneBuffers.Height == height && multisample == SceneBuffers.Multisample && SceneBuffers.ColorBuffer && SceneBuffers.HitBuffer && SceneBuffers.PPHitBuffer && SceneBuffers.StagingHitBuffer && SceneBuffers.DepthBuffer && SceneBuffers.PPImage[0] && SceneBuffers.PPImage[1])
@@ -150,6 +149,7 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 	SceneBuffers.Height = height;
 	SceneBuffers.Multisample = multisample;
 
+#if 0
 	GL_TEXTURE2D_DESC texDesc = {};
 	texDesc.Usage = GL_USAGE_DEFAULT;
 	texDesc.BindFlags = GL_BIND_RENDER_TARGET;
@@ -332,8 +332,10 @@ void GLRenderDevice::CreateScenePass()
 	};
 #endif
 	ScenePass.VertexShader = CreateVertexShader("ScenePass.VertexShader", "shaders/Scene.vert");
-	ScenePass.PixelShader = CreateFragmentShader("ScenePass.PixelShader", "shaders/Scene.frag");
-	ScenePass.PixelShaderAlphaTest = CreateFragmentShader("ScenePass.PixelShaderAlphaTest", "shaders/Scene.frag", { "ALPHATEST" });
+	ScenePass.FragmentShader = CreateFragmentShader("ScenePass.PixelShader", "shaders/Scene.frag");
+	ScenePass.FragmentShaderAlphaTest = CreateFragmentShader("ScenePass.PixelShaderAlphaTest", "shaders/Scene.frag", { "ALPHATEST" });
+	ScenePass.ShaderProgram = CreateProgram("ScenePass.ShaderProgram", ScenePass.VertexShader, ScenePass.FragmentShader);
+	ScenePass.ShaderProgramAlphaTest = CreateProgram("ScenePass.ShaderProgramAlphaTest", ScenePass.VertexShader, ScenePass.FragmentShaderAlphaTest);
 
 	CreateSceneSamplers();
 
@@ -418,9 +420,9 @@ void GLRenderDevice::CreateScenePass()
 		ScenePass.Pipelines[i].DepthStencilState = CreateDepthStencilState(depthStencilDesc);
 
 		if ((i & 16) || i == 32) // PF_Masked or PF_SubpixelFont
-			ScenePass.Pipelines[i].PixelShader = ScenePass.PixelShaderAlphaTest.get();
+			ScenePass.Pipelines[i].ShaderProgram = ScenePass.ShaderProgramAlphaTest.get();
 		else
-			ScenePass.Pipelines[i].PixelShader = ScenePass.PixelShader.get();
+			ScenePass.Pipelines[i].ShaderProgram = ScenePass.ShaderProgram.get();
 
 		ScenePass.Pipelines[i].PrimitiveTopology = GL_TRIANGLES;
 	}
@@ -448,7 +450,7 @@ void GLRenderDevice::CreateScenePass()
 		depthStencilDesc.DepthWriteMask = true;
 		ScenePass.LinePipeline[i].DepthStencilState = CreateDepthStencilState(depthStencilDesc);
 
-		ScenePass.LinePipeline[i].PixelShader = ScenePass.PixelShader.get();
+		ScenePass.LinePipeline[i].ShaderProgram = ScenePass.ShaderProgram.get();
 		ScenePass.LinePipeline[i].PrimitiveTopology = GL_LINES;
 
 		if (i == 0)
@@ -481,7 +483,7 @@ void GLRenderDevice::CreateScenePass()
 		depthStencilDesc.DepthWriteMask = true;
 		ScenePass.PointPipeline[i].DepthStencilState = CreateDepthStencilState(depthStencilDesc);
 
-		ScenePass.PointPipeline[i].PixelShader = ScenePass.PixelShader.get();
+		ScenePass.PointPipeline[i].ShaderProgram = ScenePass.ShaderProgram.get();
 		ScenePass.PointPipeline[i].PrimitiveTopology = GL_TRIANGLES;
 
 		if (i == 0)
@@ -549,8 +551,8 @@ void GLRenderDevice::ReleaseScenePass()
 	ScenePass.ConstantBuffer.reset();
 	ScenePass.RasterizerState[0].reset();
 	ScenePass.RasterizerState[1].reset();
-	ScenePass.PixelShader.reset();
-	ScenePass.PixelShaderAlphaTest.reset();
+	ScenePass.ShaderProgram.reset();
+	ScenePass.ShaderProgramAlphaTest.reset();
 	ReleaseSceneSamplers();
 	for (auto& pipeline : ScenePass.Pipelines)
 	{
@@ -677,7 +679,6 @@ void GLRenderDevice::RunBloomPass()
 	int offset = 0;
 	Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
 	Context->IASetInputLayout(PresentPass.PPStepLayout);
-	Context->VSSetShader(PresentPass.PPStep, nullptr, 0);
 #endif
 	SetRasterizerState(PresentPass.RasterizerState.get());
 	SetUniformBuffers(0, 1, cbs);
@@ -697,9 +698,7 @@ void GLRenderDevice::RunBloomPass()
 	Context->OMSetRenderTargets(1, rtvs, nullptr);
 #endif
 	SetViewport(viewport);
-#if 0
-	Context->PSSetShader(BloomPass.Extract, nullptr, 0);
-#endif
+	glUseProgram(BloomPass.ExtractProgram->Handle);
 	SetTextures(0, 1, srvs);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -724,9 +723,7 @@ void GLRenderDevice::RunBloomPass()
 		Context->OMSetRenderTargets(1, rtvs, nullptr);
 #endif
 		SetViewport(viewport);
-#if 0
-		Context->PSSetShader(BloomPass.Combine, nullptr, 0);
-#endif
+		glUseProgram(BloomPass.CombineProgram->Handle);
 		SetTextures(0, 1, srvs);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
@@ -752,9 +749,7 @@ void GLRenderDevice::RunBloomPass()
 		Context->OMSetRenderTargets(1, rtvs, nullptr);
 #endif
 		SetViewport(viewport);
-#if 0
-		Context->PSSetShader(BloomPass.Combine, nullptr, 0);
-#endif
+		glUseProgram(BloomPass.CombineProgram->Handle);
 		SetTextures(0, 1, srvs);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
@@ -775,9 +770,7 @@ void GLRenderDevice::RunBloomPass()
 #endif
 	SetBlendState(BloomPass.AdditiveBlendState.get());
 	SetViewport(viewport);
-#if 0
-	Context->PSSetShader(BloomPass.Combine, nullptr, 0);
-#endif
+	glUseProgram(BloomPass.CombineProgram->Handle);
 	SetTextures(0, 1, srvs);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
@@ -786,8 +779,8 @@ void GLRenderDevice::BlurStep(GLShaderResourceView* input, GLRenderTargetView* o
 {
 #if 0
 	Context->OMSetRenderTargets(1, &output, nullptr);
-	Context->PSSetShader(vertical ? BloomPass.BlurVertical : BloomPass.BlurHorizontal, nullptr, 0);
 #endif
+	glUseProgram(vertical ? BloomPass.BlurVerticalProgram->Handle : BloomPass.BlurHorizontalProgram->Handle);
 	SetTextures(0, 1, &input);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
@@ -822,9 +815,13 @@ void GLRenderDevice::ComputeBlurSamples(int sampleCount, float blurAmount, float
 void GLRenderDevice::CreateBloomPass()
 {
 	BloomPass.Extract = CreateFragmentShader("BloomPass.Extract", "shaders/BloomExtract.frag");
+	BloomPass.ExtractProgram = CreateProgram("BloomPass.ExtractProgram", PresentPass.PPStep, BloomPass.Extract);
 	BloomPass.Combine = CreateFragmentShader("BloomPass.Combine", "shaders/BloomCombine.frag");
+	BloomPass.CombineProgram = CreateProgram("BloomPass.CombineProgram", PresentPass.PPStep, BloomPass.Combine);
 	BloomPass.BlurVertical = CreateFragmentShader("BloomPass.BlurVertical", "shaders/Blur.frag", { "BLUR_VERTICAL" });
+	BloomPass.BlurVerticalProgram = CreateProgram("BloomPass.BlurVerticalProgram", PresentPass.PPStep, BloomPass.BlurVertical);
 	BloomPass.BlurHorizontal = CreateFragmentShader("BloomPass.BlurHorizontal", "shaders/Blur.frag", { "BLUR_HORIZONTAL" });
+	BloomPass.BlurHorizontalProgram = CreateProgram("BloomPass.BlurHorizontalProgram", PresentPass.PPStep, BloomPass.BlurHorizontal);
 
 	BloomPass.ConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, sizeof(GLBloomPushConstants), "BloomPass.ConstantBuffer");
 
@@ -875,9 +872,11 @@ void GLRenderDevice::CreatePresentPass()
 		if (colorModes[(i >> 2) & 3]) defines.push_back(colorModes[(i >> 2) & 3]);
 
 		PresentPass.Present[i] = CreateFragmentShader("PresentPass.Present", "shaders/Present.frag", defines);
+		PresentPass.PresentProgram[i] = CreateProgram("PresentPass.PresentProgram", PresentPass.PPStep, PresentPass.Present[i]);
 	}
 
 	PresentPass.HitResolve = CreateFragmentShader("PresentPass.HitResolve", "shaders/HitResolve.frag");
+	PresentPass.HitResolveProgram = CreateProgram("PresentPass.HitResolveProgram", PresentPass.PPStep, PresentPass.HitResolve);
 
 	static const float ditherdata[64] =
 	{
@@ -1017,7 +1016,6 @@ void GLRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, 
 	Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
 	Context->IASetIndexBuffer(ScenePass.IndexBuffer, DXGI_FORMAT_R32_UINT, 0);
 	Context->IASetInputLayout(ScenePass.InputLayout);
-	Context->VSSetShader(ScenePass.VertexShader, nullptr, 0);
 #endif
 	GLBuffer* cbs[1] = { ScenePass.ConstantBuffer.get() };
 	SetUniformBuffers(0, 1, cbs);
@@ -1144,13 +1142,9 @@ void GLRenderDevice::Unlock(bool Blit)
 		GLBuffer* vertexBuffers[1] = { PresentPass.PPStepVertexBuffer.get() };
 		Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
 		Context->IASetInputLayout(PresentPass.PPStepLayout);
-		Context->IASetPrimitiveTopology(GL_TRIANGLES);
-		Context->VSSetShader(PresentPass.PPStep, nullptr, 0);
 #endif
 		SetRasterizerState(PresentPass.RasterizerState.get());
-#if 0
-		Context->PSSetShader(PresentPass.Present[presentShader], nullptr, 0);
-#endif
+		glUseProgram(PresentPass.PresentProgram[presentShader]->Handle);
 		GLBuffer* cbs[1] = { PresentPass.PresentConstantBuffer.get() };
 		SetUniformBuffers(0, 1, cbs);
 		GLShaderResourceView* psResources[] = { SceneBuffers.PPImageShaderView[0].get(), PresentPass.DitherTextureView.get() };
@@ -1188,39 +1182,32 @@ void GLRenderDevice::Unlock(bool Blit)
 
 	if (HitData)
 	{
-#if 0
-		GL_BOX box = {};
-		box.left = HitX;
-		box.right = HitX + HitWidth;
-		box.top = SceneBuffers.Height - HitY - HitHeight;
-		box.bottom = SceneBuffers.Height - HitY;
-		box.front = 0;
-		box.back = 1;
-
 		// Resolve multisampling
 		if (SceneBuffers.Multisample > 1)
 		{
 			GLRenderTargetView* rtvs[1] = { SceneBuffers.PPHitBufferView.get() };
+#if 0
 			Context->OMSetRenderTargets(1, rtvs, nullptr);
+#endif
 
 			GLViewport viewport = {};
-			viewport.TopLeftX = (float)box.left;
-			viewport.TopLeftY = (float)box.top;
-			viewport.Width = (float)(box.right - box.left);
-			viewport.Height = (float)(box.bottom - box.top);
+			viewport.TopLeftX = (float)HitX;
+			viewport.TopLeftY = (float)HitY;
+			viewport.Width = (float)HitWidth;
+			viewport.Height = (float)HitHeight;
 			viewport.MaxDepth = 1.0f;
 			SetViewport(viewport);
 
+#if 0
 			UINT stride = sizeof(vec2);
 			UINT offset = 0;
 			GLBuffer* vertexBuffers[1] = { PresentPass.PPStepVertexBuffer.get() };
-			GLShaderResourceView* srvs[1] = { SceneBuffers.HitBufferShaderView.get() };
 			Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
 			Context->IASetInputLayout(PresentPass.PPStepLayout);
-			Context->IASetPrimitiveTopology(GL_TRIANGLES);
-			Context->VSSetShader(PresentPass.PPStep, nullptr, 0);
+#endif
 			SetRasterizerState(PresentPass.RasterizerState.get());
-			Context->PSSetShader(PresentPass.HitResolve, nullptr, 0);
+			glUseProgram(PresentPass.HitResolveProgram->Handle);
+			GLShaderResourceView* srvs[1] = { SceneBuffers.HitBufferShaderView.get() };
 			SetTextures(0, 1, srvs);
 			SetDepthStencilState(PresentPass.DepthStencilState.get());
 			SetBlendState(PresentPass.BlendState.get());
@@ -1229,9 +1216,12 @@ void GLRenderDevice::Unlock(bool Blit)
 		}
 		else
 		{
-			Context->CopySubresourceRegion(SceneBuffers.PPHitBuffer, 0, box.left, box.top, 0, SceneBuffers.HitBuffer, 0, &box);
+#if 0
+			Context->CopySubresourceRegion(SceneBuffers.PPHitBuffer, 0, HitX, HitY, HitWidth, HitHeight, SceneBuffers.HitBuffer);
+#endif
 		}
 
+#if 0
 		// Copy the hit buffer to a mappable texture, but only the part we want to examine
 		Context->CopySubresourceRegion(SceneBuffers.StagingHitBuffer, 0, 0, 0, 0, SceneBuffers.PPHitBuffer, 0, &box);
 
@@ -1845,16 +1835,14 @@ void GLRenderDevice::ReadPixels(TextureColor* Pixels)
 		GLShaderResourceView* psResources[] = { SceneBuffers.PPImageShaderView[0].get(), PresentPass.DitherTextureView.get() };
 		Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
 		Context->IASetInputLayout(PresentPass.PPStepLayout);
-		Context->IASetPrimitiveTopology(GL_TRIANGLES);
-		Context->VSSetShader(PresentPass.PPStep, nullptr, 0);
 		SetRasterizerState(PresentPass.RasterizerState.get());
-		Context->PSSetShader(PresentPass.Present[presentShader], nullptr, 0);
+		glUseProgram(PresentPass.PresentProgram[presentShader]->Handle);
 		SetUniformBuffers(0, 1, cbs);
 		SetTextures(0, 2, psResources);
 		SetDepthStencilState(PresentPass.DepthStencilState.get());
 		SetBlendState(PresentPass.BlendState.get());
 		SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
-		Context->Draw(6, 0);
+		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		Context->CopyResource(stagingTexture, SceneBuffers.PPImage[1]);
 	}
@@ -1987,19 +1975,76 @@ void GLRenderDevice::SetBufferData(GLenum target, GLenum usage, GLBuffer* buffer
 
 void GLRenderDevice::SetBlendState(GLBlendState* blendState, const float* blendConstants)
 {
-	// To do: apply the entire blend state
+	if (blendState->desc.IndependentBlendEnable)
+	{
+		// To do: this might require OpenGL 4.0 - glBlendFuncSeparatei does, not sure about glEnablei(GL_BLEND)
+		for (int i = 0; i < 2; i++)
+		{
+			const GLBlendDesc::Target& target = blendState->desc.RenderTarget[i];
+			GLboolean maskValue = target.RenderTargetWriteMask ? GL_TRUE : GL_FALSE;
+			glColorMaski(i, maskValue, maskValue, maskValue, maskValue);
+			if (target.BlendEnable)
+			{
+				glEnablei(GL_BLEND, i);
+				glBlendEquationSeparatei(i, target.BlendOp, target.BlendOpAlpha);
+				glBlendFuncSeparatei(i, target.SrcBlend, target.DestBlend, target.SrcBlendAlpha, target.DestBlendAlpha);
+			}
+			else
+			{
+				glDisablei(GL_BLEND, i);
+			}
+		}
+	}
+	else
+	{
+		const GLBlendDesc::Target& target = blendState->desc.RenderTarget[0];
+		GLboolean maskValue = target.RenderTargetWriteMask ? GL_TRUE : GL_FALSE;
+		glColorMask(maskValue, maskValue, maskValue, maskValue);
+		if (target.BlendEnable)
+		{
+			glEnable(GL_BLEND);
+			glBlendEquationSeparate(target.BlendOp, target.BlendOpAlpha);
+			glBlendFuncSeparate(target.SrcBlend, target.DestBlend, target.SrcBlendAlpha, target.DestBlendAlpha);
+		}
+		else
+		{
+			glDisable(GL_BLEND);
+		}
+	}
+
 	if (blendConstants)
 		glBlendColor(blendConstants[0], blendConstants[1], blendConstants[2], blendConstants[3]);
 }
 
 void GLRenderDevice::SetDepthStencilState(GLDepthStencilState* depthStencilState)
 {
-	// To do: apply the depth stencil state
+	if (depthStencilState->desc.DepthEnable)
+		glEnable(GL_DEPTH_TEST);
+	else
+		glDisable(GL_DEPTH_TEST);
+
+	glDepthFunc(depthStencilState->desc.DepthFunc);
+	glDepthMask(depthStencilState->desc.DepthWriteMask ? GL_TRUE : GL_FALSE);
 }
 
 void GLRenderDevice::SetRasterizerState(GLRasterizerState* rasterizerState)
 {
-	// To do: apply the rasterizer state
+	if (rasterizerState->desc.CullEnable)
+		glEnable(GL_CULL_FACE);
+	else
+		glDisable(GL_CULL_FACE);
+
+	glFrontFace(rasterizerState->desc.FrontCounterClockwise ? GL_CCW : GL_CW);
+
+	if (rasterizerState->desc.DepthClipEnable)
+		glEnable(GL_DEPTH_CLAMP);
+	else
+		glDisable(GL_DEPTH_CLAMP);
+
+	if (rasterizerState->desc.MultisampleEnable)
+		glEnable(GL_MULTISAMPLE);
+	else
+		glDisable(GL_MULTISAMPLE);
 }
 
 void GLRenderDevice::SetUniformBuffers(int start, int count, GLBuffer** buffers)
@@ -2117,9 +2162,7 @@ void GLRenderDevice::DrawEntry(const DrawBatchEntry& entry)
 
 	SetSamplers(0, 4, samplers);
 	SetTextures(0, 4, views);
-#if 0
-	Context->PSSetShader(entry.Pipeline->PixelShader, nullptr, 0);
-#endif
+	glUseProgram(entry.Pipeline->ShaderProgram->Handle);
 
 	SetBlendState(entry.Pipeline->BlendState.get(), entry.BlendConstants);
 	SetDepthStencilState(entry.Pipeline->DepthStencilState.get());

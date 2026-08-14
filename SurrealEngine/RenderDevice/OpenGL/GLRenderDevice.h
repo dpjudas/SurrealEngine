@@ -138,7 +138,7 @@ public:
 	struct ScenePipelineState
 	{
 		GLenum PrimitiveTopology = GL_TRIANGLES;
-		GLFragmentShader* PixelShader = nullptr;
+		GLProgram* ShaderProgram = nullptr;
 		std::shared_ptr<GLBlendState> BlendState;
 		std::shared_ptr<GLDepthStencilState> DepthStencilState;
 		float MinDepth = 0.1f;
@@ -153,8 +153,10 @@ public:
 		std::shared_ptr<GLBuffer> IndexBuffer;
 		std::shared_ptr<GLBuffer> ConstantBuffer;
 		std::shared_ptr<GLRasterizerState> RasterizerState[2];
-		std::shared_ptr<GLFragmentShader> PixelShader;
-		std::shared_ptr<GLFragmentShader> PixelShaderAlphaTest;
+		std::shared_ptr<GLFragmentShader> FragmentShader;
+		std::shared_ptr<GLFragmentShader> FragmentShaderAlphaTest;
+		std::shared_ptr<GLProgram> ShaderProgram;
+		std::shared_ptr<GLProgram> ShaderProgramAlphaTest;
 		std::shared_ptr<GLSampler> Samplers[16];
 		ScenePipelineState Pipelines[33];
 		ScenePipelineState LinePipeline[2];
@@ -195,6 +197,8 @@ public:
 		std::shared_ptr<GLBuffer> PPStepVertexBuffer;
 		std::shared_ptr<GLFragmentShader> HitResolve;
 		std::shared_ptr<GLFragmentShader> Present[16];
+		std::shared_ptr<GLProgram> HitResolveProgram;
+		std::shared_ptr<GLProgram> PresentProgram[16];
 		std::shared_ptr<GLBuffer> PresentConstantBuffer;
 		std::shared_ptr<GLTexture2D> DitherTexture;
 		std::shared_ptr<GLShaderResourceView> DitherTextureView;
@@ -209,6 +213,10 @@ public:
 		std::shared_ptr<GLFragmentShader> Combine;
 		std::shared_ptr<GLFragmentShader> BlurVertical;
 		std::shared_ptr<GLFragmentShader> BlurHorizontal;
+		std::shared_ptr<GLProgram> ExtractProgram;
+		std::shared_ptr<GLProgram> CombineProgram;
+		std::shared_ptr<GLProgram> BlurVerticalProgram;
+		std::shared_ptr<GLProgram> BlurHorizontalProgram;
 		std::shared_ptr<GLBuffer> ConstantBuffer;
 		std::shared_ptr<GLBlendState> AdditiveBlendState;
 	} BloomPass;

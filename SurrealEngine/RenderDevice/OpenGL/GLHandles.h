@@ -179,7 +179,7 @@ class GLBlendDesc
 {
 public:
 	bool IndependentBlendEnable;
-	struct
+	struct Target
 	{
 		bool RenderTargetWriteMask; // glColorMask
 		bool BlendEnable;
