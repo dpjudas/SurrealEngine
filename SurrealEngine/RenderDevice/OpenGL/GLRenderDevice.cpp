@@ -67,31 +67,13 @@ bool GLRenderDevice::Init(int NewX, int NewY, bool Fullscreen)
 
 bool GLRenderDevice::SetRes(int NewX, int NewY, bool Fullscreen)
 {
-	ReleaseSwapChainResources();
-
 	CurrentSizeX = NewX;
 	CurrentSizeY = NewY;
 	CurrentFullscreen = Fullscreen;
 
 	BufferCount = UseVSync ? 2 : 3;
-	if (!UpdateSwapChain())
-		return false;
 
 	Flush(1);
-	return true;
-}
-
-void GLRenderDevice::ReleaseSwapChainResources()
-{
-#if 0
-	BackBuffer.reset();
-	BackBufferView.reset();
-#endif
-}
-
-bool GLRenderDevice::UpdateSwapChain()
-{
-	// To do: create BackBuffer here, or delete this?
 	return true;
 }
 
@@ -100,8 +82,6 @@ void GLRenderDevice::Exit()
 	LogMessage("GLDrv: exit called");
 
 	UnmapVertices();
-
-	ReleaseSwapChainResources();
 
 	Uploads.reset();
 	Textures.reset();
@@ -118,15 +98,12 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 	if (SceneBuffers.Width == width && SceneBuffers.Height == height && multisample == SceneBuffers.Multisample && SceneBuffers.ColorBuffer && SceneBuffers.HitBuffer && SceneBuffers.PPHitBuffer && SceneBuffers.StagingHitBuffer && SceneBuffers.DepthBuffer && SceneBuffers.PPImage[0] && SceneBuffers.PPImage[1])
 		return;
 
-	SceneBuffers.ColorBufferView.reset();
-	SceneBuffers.HitBufferView.reset();
-	SceneBuffers.HitBufferShaderView.reset();
-	SceneBuffers.PPHitBufferView.reset();
-	SceneBuffers.DepthBufferView.reset();
+	SceneBuffers.Framebuffer.reset();
+	SceneBuffers.HitFramebuffer.reset();
+	SceneBuffers.PPHitFramebuffer.reset();
 	for (int i = 0; i < 2; i++)
 	{
-		SceneBuffers.PPImageShaderView[i].reset();
-		SceneBuffers.PPImageView[i].reset();
+		SceneBuffers.PPFramebuffer[i].reset();
 		SceneBuffers.PPImage[i].reset();
 	}
 	SceneBuffers.ColorBuffer.reset();
@@ -138,11 +115,9 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 	for (PPBlurLevel& level : SceneBuffers.BlurLevels)
 	{
 		level.VTexture.reset();
-		level.VTextureRTV.reset();
-		level.VTextureSRV.reset();
+		level.VFramebuffer.reset();
 		level.HTexture.reset();
-		level.HTextureRTV.reset();
-		level.HTextureSRV.reset();
+		level.HFramebuffer.reset();
 	}
 
 	SceneBuffers.Width = width;
@@ -302,14 +277,6 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 		result = Device->CreateRenderTargetView(level.HTexture, nullptr, level.HTextureRTV.TypedInitPtr());
 		ThrowIfFailed(result, "CreateRenderTargetView(SceneBuffers.BlurLevels.HTextureRTV) failed");
 		SetDebugName(level.HTextureRTV, "SceneBuffers.BlurLevels.HTextureRTV");
-
-		result = Device->CreateShaderResourceView(level.VTexture, nullptr, level.VTextureSRV.TypedInitPtr());
-		ThrowIfFailed(result, "CreateRenderTargetView(SceneBuffers.BlurLevels.VTextureSRV) failed");
-		SetDebugName(level.VTextureSRV, "SceneBuffers.BlurLevels.VTextureSRV");
-
-		result = Device->CreateShaderResourceView(level.HTexture, nullptr, level.HTextureSRV.TypedInitPtr());
-		ThrowIfFailed(result, "CreateRenderTargetView(SceneBuffers.BlurLevels.HTextureSRV) failed");
-		SetDebugName(level.HTextureSRV, "SceneBuffers.BlurLevels.HTextureSRV");
 
 		level.Width = bloomWidth;
 		level.Height = bloomHeight;
@@ -586,7 +553,6 @@ void GLRenderDevice::ReleasePresentPass()
 	PresentPass.HitResolve.reset();
 	for (auto& shader : PresentPass.Present) shader.reset();
 	PresentPass.PresentConstantBuffer.reset();
-	PresentPass.DitherTextureView.reset();
 	PresentPass.DitherTexture.reset();
 	PresentPass.BlendState.reset();
 	PresentPass.DepthStencilState.reset();
@@ -595,15 +561,12 @@ void GLRenderDevice::ReleasePresentPass()
 
 void GLRenderDevice::ReleaseSceneBuffers()
 {
-	SceneBuffers.ColorBufferView.reset();
-	SceneBuffers.HitBufferView.reset();
-	SceneBuffers.HitBufferShaderView.reset();
-	SceneBuffers.PPHitBufferView.reset();
-	SceneBuffers.DepthBufferView.reset();
+	SceneBuffers.Framebuffer.reset();
+	SceneBuffers.HitFramebuffer.reset();
+	SceneBuffers.PPHitFramebuffer.reset();
 	for (int i = 0; i < 2; i++)
 	{
-		SceneBuffers.PPImageShaderView[i].reset();
-		SceneBuffers.PPImageView[i].reset();
+		SceneBuffers.PPFramebuffer[i].reset();
 		SceneBuffers.PPImage[i].reset();
 	}
 	SceneBuffers.ColorBuffer.reset();
@@ -614,11 +577,9 @@ void GLRenderDevice::ReleaseSceneBuffers()
 	for (PPBlurLevel& level : SceneBuffers.BlurLevels)
 	{
 		level.VTexture.reset();
-		level.VTextureRTV.reset();
-		level.VTextureSRV.reset();
+		level.VFramebuffer.reset();
 		level.HTexture.reset();
-		level.HTextureRTV.reset();
-		level.HTextureSRV.reset();
+		level.HFramebuffer.reset();
 	}
 }
 
@@ -665,8 +626,7 @@ GLRenderDevice::ScenePipelineState* GLRenderDevice::GetPipeline(uint32_t PolyFla
 
 void GLRenderDevice::RunBloomPass()
 {
-	GLRenderTargetView* rtvs[1] = {};
-	GLShaderResourceView* srvs[1] = {};
+	GLTexture2D* srvs[1] = {};
 
 	float blurAmount = 0.6f + BloomAmount * (1.9f / 255.0f);
 	GLBloomPushConstants pushconstants;
@@ -692,13 +652,13 @@ void GLRenderDevice::RunBloomPass()
 	// Extract overbright pixels that we want to bloom:
 	viewport.Width = (float)SceneBuffers.BlurLevels[0].Width;
 	viewport.Height = (float)SceneBuffers.BlurLevels[0].Height;
-	rtvs[0] = SceneBuffers.BlurLevels[0].VTextureRTV.get();
-	srvs[0] = SceneBuffers.PPImageShaderView[0].get();
-#if 0
-	Context->OMSetRenderTargets(1, rtvs, nullptr);
-#endif
-	SetViewport(viewport);
+
+	srvs[0] = SceneBuffers.PPImage[0].get();
+	glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.BlurLevels[0].VFramebuffer->Handle);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glUseProgram(BloomPass.ExtractProgram->Handle);
+	SetViewport(viewport);
 	SetTextures(0, 1, srvs);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -711,19 +671,19 @@ void GLRenderDevice::RunBloomPass()
 		viewport.Width = (float)blevel.Width;
 		viewport.Height = (float)blevel.Height;
 		SetViewport(viewport);
-		BlurStep(blevel.VTextureSRV.get(), blevel.HTextureRTV.get(), false);
-		BlurStep(blevel.HTextureSRV.get(), blevel.VTextureRTV.get(), true);
+		BlurStep(blevel.VTexture.get(), blevel.HFramebuffer.get(), false);
+		BlurStep(blevel.HTexture.get(), blevel.VFramebuffer.get(), true);
 
 		// Linear downscale:
 		viewport.Width = (float)next.Width;
 		viewport.Height = (float)next.Height;
-		rtvs[0] = next.VTextureRTV.get();
-		srvs[0] = blevel.VTextureSRV.get();
-#if 0
-		Context->OMSetRenderTargets(1, rtvs, nullptr);
-#endif
-		SetViewport(viewport);
+		srvs[0] = blevel.VTexture.get();
+
+		glBindFramebuffer(GL_FRAMEBUFFER, next.VFramebuffer->Handle);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
 		glUseProgram(BloomPass.CombineProgram->Handle);
+		SetViewport(viewport);
 		SetTextures(0, 1, srvs);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
@@ -737,19 +697,18 @@ void GLRenderDevice::RunBloomPass()
 		viewport.Width = (float)blevel.Width;
 		viewport.Height = (float)blevel.Height;
 		SetViewport(viewport);
-		BlurStep(blevel.VTextureSRV.get(), blevel.HTextureRTV.get(), false);
-		BlurStep(blevel.HTextureSRV.get(), blevel.VTextureRTV.get(), true);
+		BlurStep(blevel.VTexture.get(), blevel.HFramebuffer.get(), false);
+		BlurStep(blevel.HTexture.get(), blevel.VFramebuffer.get(), true);
 
 		// Linear upscale:
 		viewport.Width = (float)next.Width;
 		viewport.Height = (float)next.Height;
-		rtvs[0] = next.VTextureRTV.get();
-		srvs[0] = blevel.VTextureSRV.get();
-#if 0
-		Context->OMSetRenderTargets(1, rtvs, nullptr);
-#endif
-		SetViewport(viewport);
+		srvs[0] = blevel.VTexture.get();
+		glBindFramebuffer(GL_FRAMEBUFFER, next.VFramebuffer->Handle);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
 		glUseProgram(BloomPass.CombineProgram->Handle);
+		SetViewport(viewport);
 		SetTextures(0, 1, srvs);
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 	}
@@ -757,29 +716,28 @@ void GLRenderDevice::RunBloomPass()
 	viewport.Width = (float)SceneBuffers.BlurLevels[0].Width;
 	viewport.Height = (float)SceneBuffers.BlurLevels[0].Height;
 	SetViewport(viewport);
-	BlurStep(SceneBuffers.BlurLevels[0].VTextureSRV.get(), SceneBuffers.BlurLevels[0].HTextureRTV.get(), false);
-	BlurStep(SceneBuffers.BlurLevels[0].HTextureSRV.get(), SceneBuffers.BlurLevels[0].VTextureRTV.get(), true);
+	BlurStep(SceneBuffers.BlurLevels[0].VTexture.get(), SceneBuffers.BlurLevels[0].HFramebuffer.get(), false);
+	BlurStep(SceneBuffers.BlurLevels[0].HTexture.get(), SceneBuffers.BlurLevels[0].VFramebuffer.get(), true);
 
 	// Add bloom back to scene post process texture:
 	viewport.Width = (float)SceneBuffers.Width;
 	viewport.Height = (float)SceneBuffers.Height;
-	rtvs[0] = SceneBuffers.PPImageView[0].get();
-	srvs[0] = SceneBuffers.BlurLevels[0].VTextureSRV.get();
-#if 0
-	Context->OMSetRenderTargets(1, rtvs, nullptr);
-#endif
+	srvs[0] = SceneBuffers.BlurLevels[0].VTexture.get();
+	glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.PPFramebuffer[0]->Handle);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glUseProgram(BloomPass.CombineProgram->Handle);
 	SetBlendState(BloomPass.AdditiveBlendState.get());
 	SetViewport(viewport);
-	glUseProgram(BloomPass.CombineProgram->Handle);
 	SetTextures(0, 1, srvs);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
 }
 
-void GLRenderDevice::BlurStep(GLShaderResourceView* input, GLRenderTargetView* output, bool vertical)
+void GLRenderDevice::BlurStep(GLTexture2D* input, GLFramebuffer* output, bool vertical)
 {
-#if 0
-	Context->OMSetRenderTargets(1, &output, nullptr);
-#endif
+	glBindFramebuffer(GL_FRAMEBUFFER, output->Handle);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glUseProgram(vertical ? BloomPass.BlurVerticalProgram->Handle : BloomPass.BlurHorizontalProgram->Handle);
 	SetTextures(0, 1, &input);
 	glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -896,8 +854,6 @@ void GLRenderDevice::CreatePresentPass()
 	ThrowIfGLError("CreateTexture2D(DitherTexture) failed");
 	SetDebugName(PresentPass.DitherTexture, "PresentPass.DitherTexture");
 
-	PresentPass.DitherTextureView = PresentPass.DitherTexture;
-
 	GLBlendDesc blendDesc = {};
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = true;
 	PresentPass.BlendState = CreateBlendState(blendDesc);
@@ -976,8 +932,6 @@ void GLRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, 
 	if (BufferCount != wantedBufferCount)
 	{
 		BufferCount = wantedBufferCount;
-		ReleaseSwapChainResources();
-		UpdateSwapChain();
 	}
 
 	if (CurrentSizeX && CurrentSizeY)
@@ -999,15 +953,19 @@ void GLRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, 
 	FlashScale = InFlashScale;
 	FlashFog = InFlashFog;
 
-#if 0
-	FLOAT color[4] = { ScreenClear.x, ScreenClear.y, ScreenClear.z, ScreenClear.w };
-	FLOAT zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
-	GLRenderTargetView* views[2] = { SceneBuffers.ColorBufferView.get(), SceneBuffers.HitBufferView.get() };
-	Context->ClearRenderTargetView(SceneBuffers.ColorBufferView, color);
-	Context->ClearRenderTargetView(SceneBuffers.HitBufferView, zero);
-	Context->ClearDepthStencilView(SceneBuffers.DepthBufferView, GL_CLEAR_DEPTH, 1.0f, 0);
-	Context->OMSetRenderTargets(2, views, SceneBuffers.DepthBufferView);
-#endif
+	float color[4] = { ScreenClear.x, ScreenClear.y, ScreenClear.z, ScreenClear.w };
+	float zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.Framebuffer->Handle);
+	glDrawBuffer(GL_COLOR_ATTACHMENT0);
+	glReadBuffer(GL_COLOR_ATTACHMENT0);
+	glClearColor(color[0], color[1], color[2], color[3]);
+	glClearDepth(1.0f);
+	glClearStencil(0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+	glDrawBuffer(GL_COLOR_ATTACHMENT1);
+	glClear(GL_COLOR_BUFFER_BIT);
+	GLenum bufs[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+	glDrawBuffers(2, bufs);
 
 #if 0
 	UINT stride = sizeof(GLSceneVertex);
@@ -1101,32 +1059,16 @@ void GLRenderDevice::Unlock(bool Blit)
 
 	if (Blit)
 	{
-#if 0
-		if (SceneBuffers.Multisample > 1)
-		{
-			Context->ResolveSubresource(SceneBuffers.PPImage[0], 0, SceneBuffers.ColorBuffer, 0, DXGI_FORMAT_R16G16B16A16_FLOAT);
-		}
-		else
-		{
-			Context->CopyResource(SceneBuffers.PPImage[0], SceneBuffers.ColorBuffer);
-		}
-#endif
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, SceneBuffers.Framebuffer->Handle);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, SceneBuffers.PPFramebuffer[0]->Handle);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glBlitFramebuffer(0, 0, CurrentSizeX, CurrentSizeY, 0, 0, CurrentSizeX, CurrentSizeY, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 		if (Bloom)
 		{
 			RunBloomPass();
 		}
-
-#if 0
-		GLRenderTargetView* rtvs[1] = { BackBufferView.get() };
-		Context->OMSetRenderTargets(1, rtvs, nullptr);
-#endif
-
-		GLViewport viewport = {};
-		viewport.Width = (float)CurrentSizeX;
-		viewport.Height = (float)CurrentSizeY;
-		viewport.MaxDepth = 1.0f;
-		SetViewport(viewport);
 
 		GLPresentPushConstants pushconstants = GetGLPresentPushConstants();
 
@@ -1136,6 +1078,17 @@ void GLRenderDevice::Unlock(bool Blit)
 		if (GammaMode == 1) presentShader |= 2;
 		if (pushconstants.Brightness != 0.0f || pushconstants.Contrast != 1.0f || pushconstants.Saturation != 1.0f) presentShader |= (clamp(GrayFormula, 0, 2) + 1) << 2;
 
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
+		glDrawBuffer(GL_BACK);
+		glReadBuffer(GL_BACK);
+		glUseProgram(PresentPass.PresentProgram[presentShader]->Handle);
+
+		GLViewport viewport = {};
+		viewport.Width = (float)CurrentSizeX;
+		viewport.Height = (float)CurrentSizeY;
+		viewport.MaxDepth = 1.0f;
+		SetViewport(viewport);
+
 #if 0
 		UINT stride = sizeof(vec2);
 		UINT offset = 0;
@@ -1144,10 +1097,9 @@ void GLRenderDevice::Unlock(bool Blit)
 		Context->IASetInputLayout(PresentPass.PPStepLayout);
 #endif
 		SetRasterizerState(PresentPass.RasterizerState.get());
-		glUseProgram(PresentPass.PresentProgram[presentShader]->Handle);
 		GLBuffer* cbs[1] = { PresentPass.PresentConstantBuffer.get() };
 		SetUniformBuffers(0, 1, cbs);
-		GLShaderResourceView* psResources[] = { SceneBuffers.PPImageShaderView[0].get(), PresentPass.DitherTextureView.get() };
+		GLTexture2D* psResources[] = { SceneBuffers.PPImage[0].get(), PresentPass.DitherTexture.get() };
 		SetTextures(0, 2, psResources);
 		SetDepthStencilState(PresentPass.DepthStencilState.get());
 		SetBlendState(PresentPass.BlendState.get());
@@ -1185,10 +1137,10 @@ void GLRenderDevice::Unlock(bool Blit)
 		// Resolve multisampling
 		if (SceneBuffers.Multisample > 1)
 		{
-			GLRenderTargetView* rtvs[1] = { SceneBuffers.PPHitBufferView.get() };
-#if 0
-			Context->OMSetRenderTargets(1, rtvs, nullptr);
-#endif
+			glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.PPHitFramebuffer->Handle);
+			glDrawBuffer(GL_COLOR_ATTACHMENT0);
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
+			glUseProgram(PresentPass.HitResolveProgram->Handle);
 
 			GLViewport viewport = {};
 			viewport.TopLeftX = (float)HitX;
@@ -1206,8 +1158,7 @@ void GLRenderDevice::Unlock(bool Blit)
 			Context->IASetInputLayout(PresentPass.PPStepLayout);
 #endif
 			SetRasterizerState(PresentPass.RasterizerState.get());
-			glUseProgram(PresentPass.HitResolveProgram->Handle);
-			GLShaderResourceView* srvs[1] = { SceneBuffers.HitBufferShaderView.get() };
+			GLTexture2D* srvs[1] = { SceneBuffers.HitBuffer.get() };
 			SetTextures(0, 1, srvs);
 			SetDepthStencilState(PresentPass.DepthStencilState.get());
 			SetBlendState(PresentPass.BlendState.get());
@@ -1216,9 +1167,11 @@ void GLRenderDevice::Unlock(bool Blit)
 		}
 		else
 		{
-#if 0
-			Context->CopySubresourceRegion(SceneBuffers.PPHitBuffer, 0, HitX, HitY, HitWidth, HitHeight, SceneBuffers.HitBuffer);
-#endif
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, SceneBuffers.PPHitFramebuffer->Handle);
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, SceneBuffers.HitFramebuffer->Handle);
+			glDrawBuffer(GL_COLOR_ATTACHMENT0);
+			glReadBuffer(GL_COLOR_ATTACHMENT0);
+			glBlitFramebuffer(HitX, HitY, HitX + HitWidth, HitY + HitHeight, HitX, HitY, HitX + HitWidth, HitY + HitHeight, GL_COLOR_BUFFER_BIT, GL_NEAREST);
 		}
 
 #if 0
@@ -1260,9 +1213,9 @@ void GLRenderDevice::Unlock(bool Blit)
 #endif
 	}
 
-#if 0
-	Context->OMSetRenderTargets(0, nullptr, nullptr);
-#endif
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	glDrawBuffer(GL_BACK);
+	glReadBuffer(GL_BACK);
 
 	HitQueryStack.clear();
 	HitQueries.clear();
@@ -1781,16 +1734,15 @@ void GLRenderDevice::ClearZ()
 {
 	DrawBatches();
 
-	// SceneBuffers.DepthBufferView
 	glClearDepth(1.0f);
 	glClear(GL_DEPTH_BUFFER_BIT);
 }
 
 void GLRenderDevice::ReadPixels(TextureColor* Pixels)
 {
-#if 0
 	UnmapVertices();
 
+#if 0
 	GLTexture2D* stagingTexture = nullptr;
 
 	GL_TEXTURE2D_DESC texDesc = {};
@@ -1808,18 +1760,9 @@ void GLRenderDevice::ReadPixels(TextureColor* Pixels)
 	if (FAILED(result))
 		return;
 	SetDebugName(stagingTexture, "ReadPixels.StagingTexture");
-
+#endif
 	if (GammaCorrectScreenshots)
 	{
-		GLRenderTargetView* rtvs[1] = { SceneBuffers.PPImageView[1].get() };
-		Context->OMSetRenderTargets(1, rtvs, nullptr);
-
-		GLViewport viewport = {};
-		viewport.Width = (float)CurrentSizeX;
-		viewport.Height = (float)CurrentSizeY;
-		viewport.MaxDepth = 1.0f;
-		SetViewport(viewport);
-
 		GLPresentPushConstants pushconstants = GetGLPresentPushConstants();
 
 		// Select present shader based on what the user is actually using
@@ -1828,15 +1771,27 @@ void GLRenderDevice::ReadPixels(TextureColor* Pixels)
 		if (GammaMode == 1) presentShader |= 2;
 		if (pushconstants.Brightness != 0.0f || pushconstants.Contrast != 1.0f || pushconstants.Saturation != 1.0f) presentShader |= (clamp(GrayFormula, 0, 2) + 1) << 2;
 
+		glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.PPFramebuffer[1]->Handle);
+		glDrawBuffer(GL_COLOR_ATTACHMENT0);
+		glReadBuffer(GL_COLOR_ATTACHMENT0);
+		glUseProgram(PresentPass.PresentProgram[presentShader]->Handle);
+
+		GLViewport viewport = {};
+		viewport.Width = (float)CurrentSizeX;
+		viewport.Height = (float)CurrentSizeY;
+		viewport.MaxDepth = 1.0f;
+		SetViewport(viewport);
+
+#if 0
 		UINT stride = sizeof(vec2);
 		UINT offset = 0;
 		GLBuffer* vertexBuffers[1] = { PresentPass.PPStepVertexBuffer.get() };
-		GLBuffer* cbs[1] = { PresentPass.PresentConstantBuffer.get() };
-		GLShaderResourceView* psResources[] = { SceneBuffers.PPImageShaderView[0].get(), PresentPass.DitherTextureView.get() };
 		Context->IASetVertexBuffers(0, 1, vertexBuffers, &stride, &offset);
 		Context->IASetInputLayout(PresentPass.PPStepLayout);
+#endif
+		GLBuffer* cbs[1] = { PresentPass.PresentConstantBuffer.get() };
+		GLTexture2D* psResources[] = { SceneBuffers.PPImage[0].get(), PresentPass.DitherTexture.get() };
 		SetRasterizerState(PresentPass.RasterizerState.get());
-		glUseProgram(PresentPass.PresentProgram[presentShader]->Handle);
 		SetUniformBuffers(0, 1, cbs);
 		SetTextures(0, 2, psResources);
 		SetDepthStencilState(PresentPass.DepthStencilState.get());
@@ -1844,13 +1799,18 @@ void GLRenderDevice::ReadPixels(TextureColor* Pixels)
 		SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
+#if 0
 		Context->CopyResource(stagingTexture, SceneBuffers.PPImage[1]);
+#endif
 	}
 	else
 	{
+#if 0
 		Context->CopyResource(stagingTexture, SceneBuffers.PPImage[0]);
+#endif
 	}
 
+#if 0
 	GL_MAPPED_SUBRESOURCE mapped = {};
 	result = Context->Map(stagingTexture, 0, GL_MAP_READ, 0, &mapped);
 	if (SUCCEEDED(result))
@@ -1884,10 +1844,10 @@ void GLRenderDevice::ReadPixels(TextureColor* Pixels)
 	}
 
 	stagingTexture->Release();
+#endif
 
 	if (IsLocked)
 		MapVertices(false);
-#endif
 }
 
 void GLRenderDevice::EndFlash()
@@ -2137,7 +2097,7 @@ void GLRenderDevice::DrawEntry(const DrawBatchEntry& entry)
 {
 	size_t icount = entry.SceneIndexEnd - entry.SceneIndexStart;
 
-	GLShaderResourceView* views[4] =
+	GLTexture2D* views[4] =
 	{
 		entry.Tex->Texture.get(),
 		entry.Lightmap->Texture.get(),
@@ -2160,10 +2120,9 @@ void GLRenderDevice::DrawEntry(const DrawBatchEntry& entry)
 		SetViewport(SceneViewport);
 	}
 
+	glUseProgram(entry.Pipeline->ShaderProgram->Handle);
 	SetSamplers(0, 4, samplers);
 	SetTextures(0, 4, views);
-	glUseProgram(entry.Pipeline->ShaderProgram->Handle);
-
 	SetBlendState(entry.Pipeline->BlendState.get(), entry.BlendConstants);
 	SetDepthStencilState(entry.Pipeline->DepthStencilState.get());
 

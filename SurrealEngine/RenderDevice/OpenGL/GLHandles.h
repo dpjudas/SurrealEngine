@@ -28,9 +28,6 @@ public:
 typedef GLTexture GLTexture1D;
 typedef GLTexture GLTexture2D;
 typedef GLTexture GLTexture3D;
-typedef GLTexture GLRenderTargetView;
-typedef GLTexture GLShaderResourceView;
-typedef GLTexture GLDepthStencilView;
 
 class GLRenderbuffer
 {

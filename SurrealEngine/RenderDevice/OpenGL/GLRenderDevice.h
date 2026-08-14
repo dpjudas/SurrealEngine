@@ -104,30 +104,25 @@ public:
 	struct PPBlurLevel
 	{
 		std::shared_ptr<GLTexture2D> VTexture;
-		std::shared_ptr<GLRenderTargetView> VTextureRTV;
-		std::shared_ptr<GLShaderResourceView> VTextureSRV;
+		std::shared_ptr<GLFramebuffer> VFramebuffer;
 		std::shared_ptr<GLTexture2D> HTexture;
-		std::shared_ptr<GLRenderTargetView> HTextureRTV;
-		std::shared_ptr<GLShaderResourceView> HTextureSRV;
+		std::shared_ptr<GLFramebuffer> HFramebuffer;
 		int Width = 0;
 		int Height = 0;
 	};
 
 	struct
 	{
+		std::shared_ptr<GLFramebuffer> Framebuffer;
 		std::shared_ptr<GLTexture2D> ColorBuffer;
+		std::shared_ptr<GLFramebuffer> HitFramebuffer;
 		std::shared_ptr<GLTexture2D> HitBuffer;
 		std::shared_ptr<GLTexture2D> DepthBuffer;
+		std::shared_ptr<GLFramebuffer> PPFramebuffer[2];
 		std::shared_ptr<GLTexture2D> PPImage[2];
+		std::shared_ptr<GLFramebuffer> PPHitFramebuffer;
 		std::shared_ptr<GLTexture2D> PPHitBuffer;
 		std::shared_ptr<GLTexture2D> StagingHitBuffer;
-		std::shared_ptr<GLRenderTargetView> ColorBufferView;
-		std::shared_ptr<GLRenderTargetView> HitBufferView;
-		std::shared_ptr<GLDepthStencilView> DepthBufferView;
-		std::shared_ptr<GLRenderTargetView> PPHitBufferView;
-		std::shared_ptr<GLRenderTargetView> PPImageView[2];
-		std::shared_ptr<GLShaderResourceView> HitBufferShaderView;
-		std::shared_ptr<GLShaderResourceView> PPImageShaderView[2];
 		enum { NumBloomLevels = 4 };
 		PPBlurLevel BlurLevels[NumBloomLevels];
 		int Width = 0;
@@ -201,7 +196,6 @@ public:
 		std::shared_ptr<GLProgram> PresentProgram[16];
 		std::shared_ptr<GLBuffer> PresentConstantBuffer;
 		std::shared_ptr<GLTexture2D> DitherTexture;
-		std::shared_ptr<GLShaderResourceView> DitherTextureView;
 		std::shared_ptr<GLBlendState> BlendState;
 		std::shared_ptr<GLDepthStencilState> DepthStencilState;
 		std::shared_ptr<GLRasterizerState> RasterizerState;
@@ -250,8 +244,6 @@ private:
 	};
 	void DrawComplexSurfaceFaces(const ComplexSurfaceInfo& info);
 
-	void ReleaseSwapChainResources();
-	bool UpdateSwapChain();
 	void ResizeSceneBuffers(int width, int height, int multisample);
 	void ClearTextureCache();
 
@@ -269,7 +261,7 @@ private:
 	void ReleaseSceneBuffers();
 
 	void RunBloomPass();
-	void BlurStep(GLShaderResourceView* input, GLRenderTargetView* output, bool vertical);
+	void BlurStep(GLTexture2D* input, GLFramebuffer* output, bool vertical);
 	float ComputeBlurGaussian(float n, float theta);
 	void ComputeBlurSamples(int sampleCount, float blurAmount, float* sampleWeights);
 
