@@ -124,124 +124,79 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 	SceneBuffers.Height = height;
 	SceneBuffers.Multisample = multisample;
 
-#if 0
-	GL_TEXTURE2D_DESC texDesc = {};
-	texDesc.Usage = GL_USAGE_DEFAULT;
-	texDesc.BindFlags = GL_BIND_RENDER_TARGET;
-	texDesc.Width = SceneBuffers.Width;
-	texDesc.Height = SceneBuffers.Height;
-	texDesc.MipLevels = 1;
-	texDesc.ArraySize = 1;
-	texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-	texDesc.SampleDesc.Count = SceneBuffers.Multisample;
-	texDesc.SampleDesc.Quality = SceneBuffers.Multisample > 1 ? GL_STANDARD_MULTISAMPLE_PATTERN : 0;
-	HRESULT result = Device->CreateTexture2D(&texDesc, nullptr, SceneBuffers.ColorBuffer.TypedInitPtr());
-	ThrowIfFailed(result, "CreateTexture2D(ColorBuffer) failed");
+	SceneBuffers.ColorBuffer = std::make_shared<GLTexture2D>();
 	SetDebugName(SceneBuffers.ColorBuffer, "SceneBuffers.ColorBuffer");
-
-	texDesc = {};
-	texDesc.Usage = GL_USAGE_DEFAULT;
-	texDesc.BindFlags = GL_BIND_RENDER_TARGET | GL_BIND_SHADER_RESOURCE;
-	texDesc.Width = SceneBuffers.Width;
-	texDesc.Height = SceneBuffers.Height;
-	texDesc.MipLevels = 1;
-	texDesc.ArraySize = 1;
-	texDesc.Format = DXGI_FORMAT_R32_UINT;
-	texDesc.SampleDesc.Count = SceneBuffers.Multisample;
-	texDesc.SampleDesc.Quality = SceneBuffers.Multisample > 1 ? GL_STANDARD_MULTISAMPLE_PATTERN : 0;
-	result = Device->CreateTexture2D(&texDesc, nullptr, SceneBuffers.HitBuffer.TypedInitPtr());
-	ThrowIfFailed(result, "CreateTexture2D(HitBuffer) failed");
-	SetDebugName(SceneBuffers.HitBuffer, "SceneBuffers.HitBuffer");
-
-	texDesc = {};
-	texDesc.Usage = GL_USAGE_DEFAULT;
-	texDesc.BindFlags = GL_BIND_RENDER_TARGET;
-	texDesc.Width = SceneBuffers.Width;
-	texDesc.Height = SceneBuffers.Height;
-	texDesc.MipLevels = 1;
-	texDesc.ArraySize = 1;
-	texDesc.Format = DXGI_FORMAT_R32_UINT;
-	texDesc.SampleDesc.Count = 1;
-	texDesc.SampleDesc.Quality = 0;
-	result = Device->CreateTexture2D(&texDesc, nullptr, SceneBuffers.PPHitBuffer.TypedInitPtr());
-	ThrowIfFailed(result, "CreateTexture2D(PPHitBuffer) failed");
-	SetDebugName(SceneBuffers.PPHitBuffer, "SceneBuffers.PPHitBuffer");
-
-	texDesc = {};
-	texDesc.Usage = GL_USAGE_STAGING;
-	texDesc.BindFlags = 0;
-	texDesc.Width = SceneBuffers.Width;
-	texDesc.Height = SceneBuffers.Height;
-	texDesc.MipLevels = 1;
-	texDesc.ArraySize = 1;
-	texDesc.Format = DXGI_FORMAT_R32_UINT;
-	texDesc.CPUAccessFlags = GL_CPU_ACCESS_READ;
-	texDesc.SampleDesc.Count = 1;
-	texDesc.SampleDesc.Quality = 0;
-	result = Device->CreateTexture2D(&texDesc, nullptr, SceneBuffers.StagingHitBuffer.TypedInitPtr());
-	ThrowIfFailed(result, "CreateTexture2D(StagingHitBuffer) failed");
-	SetDebugName(SceneBuffers.StagingHitBuffer, "SceneBuffers.StagingHitBuffer");
-
-	texDesc = {};
-	texDesc.Usage = GL_USAGE_DEFAULT;
-	texDesc.BindFlags = GL_BIND_DEPTH_STENCIL;
-	texDesc.Width = SceneBuffers.Width;
-	texDesc.Height = SceneBuffers.Height;
-	texDesc.MipLevels = 1;
-	texDesc.ArraySize = 1;
-	texDesc.Format = DXGI_FORMAT_D32_FLOAT;
-	texDesc.SampleDesc.Count = SceneBuffers.Multisample;
-	texDesc.SampleDesc.Quality = SceneBuffers.Multisample > 1 ? GL_STANDARD_MULTISAMPLE_PATTERN : 0;
-	result = Device->CreateTexture2D(&texDesc, nullptr, SceneBuffers.DepthBuffer.TypedInitPtr());
-	ThrowIfFailed(result, "CreateTexture2D(DepthBuffer) failed");
-	SetDebugName(SceneBuffers.DepthBuffer, "SceneBuffers.DepthBuffer");
-
-	for (int i = 0; i < 2; i++)
+	if (SceneBuffers.Multisample > 1)
 	{
-		texDesc = {};
-		texDesc.Usage = GL_USAGE_DEFAULT;
-		texDesc.BindFlags = GL_BIND_RENDER_TARGET | GL_BIND_SHADER_RESOURCE;
-		texDesc.Width = SceneBuffers.Width;
-		texDesc.Height = SceneBuffers.Height;
-		texDesc.MipLevels = 1;
-		texDesc.ArraySize = 1;
-		texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		texDesc.SampleDesc.Count = 1;
-		texDesc.SampleDesc.Quality = 0;
-		result = Device->CreateTexture2D(&texDesc, nullptr, SceneBuffers.PPImage[i].TypedInitPtr());
-		ThrowIfFailed(result, "CreateTexture2D(PPImage) failed");
-		SetDebugName(SceneBuffers.PPImage[i], "SceneBuffers.PPImage");
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.ColorBuffer->Handle);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.Multisample, GL_RGBA16F, SceneBuffers.Width, SceneBuffers.Height, GL_FALSE);
+		ThrowIfGLError("glTexStorage2DMultisample(SceneBuffers.ColorBuffer) failed");
+	}
+	else
+	{
+		glBindTexture(GL_TEXTURE_2D, SceneBuffers.ColorBuffer->Handle);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SceneBuffers.Width, SceneBuffers.Height, 0, GL_RGBA, GL_FLOAT, nullptr);
+		ThrowIfGLError("glTexImage2D(SceneBuffers.ColorBuffer) failed");
 	}
 
-	result = Device->CreateRenderTargetView(SceneBuffers.ColorBuffer, nullptr, SceneBuffers.ColorBufferView.TypedInitPtr());
-	ThrowIfFailed(result, "CreateRenderTargetView(ColorBuffer) failed");
-	SetDebugName(SceneBuffers.ColorBufferView, "SceneBuffers.ColorBufferView");
+	SceneBuffers.HitBuffer = std::make_shared<GLTexture2D>();
+	SetDebugName(SceneBuffers.HitBuffer, "SceneBuffers.HitBuffer");
+	if (SceneBuffers.Multisample > 1)
+	{
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.HitBuffer->Handle);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.Multisample, GL_R32UI, SceneBuffers.Width, SceneBuffers.Height, GL_FALSE);
+		ThrowIfGLError("glTexStorage2DMultisample(SceneBuffers.HitBuffer) failed");
+	}
+	else
+	{
+		glBindTexture(GL_TEXTURE_2D, SceneBuffers.HitBuffer->Handle);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, SceneBuffers.Width, SceneBuffers.Height, 0, GL_RED, GL_UNSIGNED_INT, nullptr);
+		ThrowIfGLError("glTexImage2D(SceneBuffers.HitBuffer) failed");
+	}
 
-	result = Device->CreateRenderTargetView(SceneBuffers.HitBuffer, nullptr, SceneBuffers.HitBufferView.TypedInitPtr());
-	ThrowIfFailed(result, "CreateRenderTargetView(HitBuffer) failed");
-	SetDebugName(SceneBuffers.HitBufferView, "SceneBuffers.HitBufferView");
+	SceneBuffers.PPHitBuffer = std::make_shared<GLTexture2D>();
+	SetDebugName(SceneBuffers.PPHitBuffer, "SceneBuffers.PPHitBuffer");
+	glBindTexture(GL_TEXTURE_2D, SceneBuffers.PPHitBuffer->Handle);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, SceneBuffers.Width, SceneBuffers.Height, 0, GL_RED, GL_UNSIGNED_INT, nullptr);
+	ThrowIfGLError("glTexImage2D(SceneBuffers.PPHitBuffer) failed");
 
-	result = Device->CreateShaderResourceView(SceneBuffers.HitBuffer, nullptr, SceneBuffers.HitBufferShaderView.TypedInitPtr());
-	ThrowIfFailed(result, "CreateShaderResourceView(HitBuffer) failed");
-	SetDebugName(SceneBuffers.HitBufferShaderView, "SceneBuffers.HitBufferShaderView");
+	// To do: staging buffers can't be textures in OpenGL
+	SceneBuffers.StagingHitBuffer = std::make_shared<GLTexture2D>();
+	SetDebugName(SceneBuffers.StagingHitBuffer, "SceneBuffers.StagingHitBuffer");
+	glBindTexture(GL_TEXTURE_2D, SceneBuffers.StagingHitBuffer->Handle);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, SceneBuffers.Width, SceneBuffers.Height, 0, GL_RED, GL_UNSIGNED_INT, nullptr);
+	ThrowIfGLError("glTexImage2D(SceneBuffers.StagingHitBuffer) failed");
 
-	result = Device->CreateRenderTargetView(SceneBuffers.PPHitBuffer, nullptr, SceneBuffers.PPHitBufferView.TypedInitPtr());
-	ThrowIfFailed(result, "CreateRenderTargetView(PPHitBuffer) failed");
-	SetDebugName(SceneBuffers.PPHitBufferView, "SceneBuffers.PPHitBufferView");
-
-	result = Device->CreateDepthStencilView(SceneBuffers.DepthBuffer, nullptr, SceneBuffers.DepthBufferView.TypedInitPtr());
-	ThrowIfFailed(result, "CreateDepthStencilView(DepthBuffer) failed");
-	SetDebugName(SceneBuffers.DepthBufferView, "SceneBuffers.DepthBufferView");
+	SceneBuffers.DepthBuffer = std::make_shared<GLTexture2D>();
+	SetDebugName(SceneBuffers.DepthBuffer, "SceneBuffers.DepthBuffer");
+	if (SceneBuffers.Multisample > 1)
+	{
+		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.DepthBuffer->Handle);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.Multisample, GL_DEPTH_COMPONENT32F, SceneBuffers.Width, SceneBuffers.Height, GL_FALSE);
+		ThrowIfGLError("glTexStorage2DMultisample(SceneBuffers.DepthBuffer) failed");
+	}
+	else
+	{
+		glBindTexture(GL_TEXTURE_2D, SceneBuffers.DepthBuffer->Handle);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SceneBuffers.Width, SceneBuffers.Height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		ThrowIfGLError("glTexImage2D(SceneBuffers.DepthBuffer) failed");
+	}
 
 	for (int i = 0; i < 2; i++)
 	{
-		result = Device->CreateRenderTargetView(SceneBuffers.PPImage[i], nullptr, SceneBuffers.PPImageView[i].TypedInitPtr());
-		ThrowIfFailed(result, "CreateRenderTargetView(PPImage) failed");
-		SetDebugName(SceneBuffers.PPImageView[i], "SceneBuffers.PPImageView");
+		SceneBuffers.PPImage[i] = std::make_shared<GLTexture2D>();
+		SetDebugName(SceneBuffers.PPImage[i], "SceneBuffers.PPImage");
+		glBindTexture(GL_TEXTURE_2D, SceneBuffers.PPImage[i]->Handle);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SceneBuffers.Width, SceneBuffers.Height, 0, GL_RGBA, GL_FLOAT, nullptr);
+		ThrowIfGLError("glTexImage2D(SceneBuffers.PPImage) failed");
+	}
 
-		result = Device->CreateShaderResourceView(SceneBuffers.PPImage[i], nullptr, SceneBuffers.PPImageShaderView[i].TypedInitPtr());
-		ThrowIfFailed(result, "CreateShaderResourceView(PPImage) failed");
-		SetDebugName(SceneBuffers.PPImageShaderView[i], "SceneBuffers.PPImageShaderView");
+	// To do: create scene framebuffer objects and bind textures to them
+
+	for (int i = 0; i < 2; i++)
+	{
+		// To do: create even more framebuffer objects!
+		// SceneBuffers.PPFramebuffer[i]
 	}
 
 	int bloomWidth = width;
@@ -251,37 +206,23 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 		bloomWidth = (bloomWidth + 1) / 2;
 		bloomHeight = (bloomHeight + 1) / 2;
 
-		texDesc = {};
-		texDesc.Usage = GL_USAGE_DEFAULT;
-		texDesc.BindFlags = GL_BIND_RENDER_TARGET | GL_BIND_SHADER_RESOURCE;
-		texDesc.Width = bloomWidth;
-		texDesc.Height = bloomHeight;
-		texDesc.MipLevels = 1;
-		texDesc.ArraySize = 1;
-		texDesc.Format = DXGI_FORMAT_R16G16B16A16_FLOAT;
-		texDesc.SampleDesc.Count = 1;
-		texDesc.SampleDesc.Quality = 0;
-
-		result = Device->CreateTexture2D(&texDesc, nullptr, level.VTexture.TypedInitPtr());
-		ThrowIfFailed(result, "CreateTexture2D(SceneBuffers.BlurLevels.VTexture) failed");
+		level.VTexture = std::make_shared<GLTexture2D>();
 		SetDebugName(level.VTexture, "SceneBuffers.BlurLevels.VTexture");
+		glBindTexture(GL_TEXTURE_2D, level.VTexture->Handle);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, bloomWidth, bloomHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+		ThrowIfGLError("glTexImage2D(SceneBuffers.BlurLevels.VTexture) failed");
 
-		result = Device->CreateTexture2D(&texDesc, nullptr, level.HTexture.TypedInitPtr());
-		ThrowIfFailed(result, "CreateTexture2D(SceneBuffers.BlurLevels.HTexture) failed");
+		level.HTexture = std::make_shared<GLTexture2D>();
 		SetDebugName(level.HTexture, "SceneBuffers.BlurLevels.HTexture");
+		glBindTexture(GL_TEXTURE_2D, level.HTexture->Handle);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, bloomWidth, bloomHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
+		ThrowIfGLError("glTexImage2D(SceneBuffers.BlurLevels.HTexture) failed");
 
-		result = Device->CreateRenderTargetView(level.VTexture, nullptr, level.VTextureRTV.TypedInitPtr());
-		ThrowIfFailed(result, "CreateRenderTargetView(SceneBuffers.BlurLevels.VTextureRTV) failed");
-		SetDebugName(level.VTextureRTV, "SceneBuffers.BlurLevels.VTextureRTV");
-
-		result = Device->CreateRenderTargetView(level.HTexture, nullptr, level.HTextureRTV.TypedInitPtr());
-		ThrowIfFailed(result, "CreateRenderTargetView(SceneBuffers.BlurLevels.HTextureRTV) failed");
-		SetDebugName(level.HTextureRTV, "SceneBuffers.BlurLevels.HTextureRTV");
+		// To do: create framebuffer objects
 
 		level.Width = bloomWidth;
 		level.Height = bloomHeight;
 	}
-#endif
 }
 
 void GLRenderDevice::CreateScenePass()
