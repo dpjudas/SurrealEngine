@@ -8,6 +8,7 @@
 #include "Math/halffloat.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
 #include <surrealwidgets/core/widget.h>
+#include <cmath>
 
 GLRenderDevice::GLRenderDevice(Widget* InViewport)
 {
