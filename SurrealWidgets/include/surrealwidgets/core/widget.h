@@ -181,6 +181,12 @@ public:
 	std::vector<std::string> GetVulkanInstanceExtensions() { return Window()->DispWindow->GetVulkanInstanceExtensions(); }
 	VkSurfaceKHR CreateVulkanSurface(VkInstance instance) { return Window()->DispWindow->CreateVulkanSurface(instance); }
 
+	// OpenGL support:
+	void CreateGLContext() { Window()->DispWindow->CreateGLContext(); }
+	void MakeGLContextCurrent() { Window()->DispWindow->MakeGLContextCurrent(); }
+	bool SetGLSwapInterval(int interval) { return Window()->DispWindow->SetGLSwapInterval(interval); }
+	void SwapGLBuffers() { Window()->DispWindow->SwapGLBuffers(); }
+
 protected:
 	virtual void OnPaintFrame(Canvas* canvas);
 	virtual void OnPaint(Canvas* canvas) { }
