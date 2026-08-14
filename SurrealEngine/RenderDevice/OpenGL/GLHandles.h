@@ -195,6 +195,7 @@ public:
 class GLBlendState
 {
 public:
+	GLBlendState(const GLBlendDesc& desc) : desc(desc) {}
 	GLBlendDesc desc = {};
 };
 
@@ -209,6 +210,7 @@ public:
 class GLDepthStencilState
 {
 public:
+	GLDepthStencilState(const GLDepthStencilDesc& desc) : desc(desc) {}
 	GLDepthStencilDesc desc = {};
 };
 
@@ -224,5 +226,6 @@ public:
 class GLRasterizerState
 {
 public:
+	GLRasterizerState(const GLRasterizerDesc& desc) : desc(desc) {}
 	GLRasterizerDesc desc = {};
 };

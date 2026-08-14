@@ -77,7 +77,7 @@ void GLUploadManager::UploadTexture(GLCachedTexture* tex, const TextureInfo& Inf
 		glBindTexture(GL_TEXTURE_2D, tex->Texture->Handle);
 		int mipwidth = width;
 		int mipheight = height;
-		for (int miplevel = 0; miplevel < mipcount; miplevel)
+		for (int miplevel = 0; miplevel < mipcount; miplevel++)
 		{
 			glTexImage2D(GL_TEXTURE_2D, miplevel, internalFormat, mipwidth, mipheight, 0, format, type, nullptr);
 			ThrowIfGLError("UploadTexture failed");
