@@ -16,9 +16,9 @@ public:
 	virtual int GetUploadSize(int x, int y, int w, int h) = 0;
 	virtual void UploadRect(void* dst, UnrealMipmap* mip, int x, int y, int w, int h, TextureColor* palette, bool masked) = 0;
 
-	GLint GetInternalformat() const { return Format; }
+	GLint GetInternalformat() const { return Internalformat; }
 	GLenum GetFormat() const { return Format; }
-	GLenum GetType() const { return Format; }
+	GLenum GetType() const { return Type; }
 
 	static GLTextureUploader* GetUploader(TextureFormat format);
 

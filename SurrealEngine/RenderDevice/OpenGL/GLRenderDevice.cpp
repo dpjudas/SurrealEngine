@@ -127,59 +127,62 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 	SceneBuffers.Multisample = multisample;
 
 	SceneBuffers.ColorBuffer = std::make_shared<GLTexture2D>();
-	SetDebugName(SceneBuffers.ColorBuffer, "SceneBuffers.ColorBuffer");
 	if (SceneBuffers.Multisample > 1)
 	{
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.ColorBuffer->Handle);
+		SetDebugName(SceneBuffers.ColorBuffer, "SceneBuffers.ColorBuffer");
 		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.Multisample, GL_RGBA16F, SceneBuffers.Width, SceneBuffers.Height, GL_FALSE);
 		ThrowIfGLError("glTexStorage2DMultisample(SceneBuffers.ColorBuffer) failed");
 	}
 	else
 	{
 		glBindTexture(GL_TEXTURE_2D, SceneBuffers.ColorBuffer->Handle);
+		SetDebugName(SceneBuffers.ColorBuffer, "SceneBuffers.ColorBuffer");
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SceneBuffers.Width, SceneBuffers.Height, 0, GL_RGBA, GL_FLOAT, nullptr);
 		ThrowIfGLError("glTexImage2D(SceneBuffers.ColorBuffer) failed");
 	}
 
 	SceneBuffers.HitBuffer = std::make_shared<GLTexture2D>();
-	SetDebugName(SceneBuffers.HitBuffer, "SceneBuffers.HitBuffer");
 	if (SceneBuffers.Multisample > 1)
 	{
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.HitBuffer->Handle);
+		SetDebugName(SceneBuffers.HitBuffer, "SceneBuffers.HitBuffer");
 		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.Multisample, GL_R32UI, SceneBuffers.Width, SceneBuffers.Height, GL_FALSE);
 		ThrowIfGLError("glTexStorage2DMultisample(SceneBuffers.HitBuffer) failed");
 	}
 	else
 	{
 		glBindTexture(GL_TEXTURE_2D, SceneBuffers.HitBuffer->Handle);
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, SceneBuffers.Width, SceneBuffers.Height, 0, GL_RED, GL_UNSIGNED_INT, nullptr);
+		SetDebugName(SceneBuffers.HitBuffer, "SceneBuffers.HitBuffer");
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, SceneBuffers.Width, SceneBuffers.Height, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
 		ThrowIfGLError("glTexImage2D(SceneBuffers.HitBuffer) failed");
 	}
 
 	SceneBuffers.PPHitBuffer = std::make_shared<GLTexture2D>();
-	SetDebugName(SceneBuffers.PPHitBuffer, "SceneBuffers.PPHitBuffer");
 	glBindTexture(GL_TEXTURE_2D, SceneBuffers.PPHitBuffer->Handle);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, SceneBuffers.Width, SceneBuffers.Height, 0, GL_RED, GL_UNSIGNED_INT, nullptr);
+	SetDebugName(SceneBuffers.PPHitBuffer, "SceneBuffers.PPHitBuffer");
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, SceneBuffers.Width, SceneBuffers.Height, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
 	ThrowIfGLError("glTexImage2D(SceneBuffers.PPHitBuffer) failed");
 
 	// To do: staging buffers can't be textures in OpenGL
 	SceneBuffers.StagingHitBuffer = std::make_shared<GLTexture2D>();
-	SetDebugName(SceneBuffers.StagingHitBuffer, "SceneBuffers.StagingHitBuffer");
 	glBindTexture(GL_TEXTURE_2D, SceneBuffers.StagingHitBuffer->Handle);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, SceneBuffers.Width, SceneBuffers.Height, 0, GL_RED, GL_UNSIGNED_INT, nullptr);
+	SetDebugName(SceneBuffers.StagingHitBuffer, "SceneBuffers.StagingHitBuffer");
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32UI, SceneBuffers.Width, SceneBuffers.Height, 0, GL_RED_INTEGER, GL_UNSIGNED_INT, nullptr);
 	ThrowIfGLError("glTexImage2D(SceneBuffers.StagingHitBuffer) failed");
 
 	SceneBuffers.DepthBuffer = std::make_shared<GLTexture2D>();
-	SetDebugName(SceneBuffers.DepthBuffer, "SceneBuffers.DepthBuffer");
 	if (SceneBuffers.Multisample > 1)
 	{
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.DepthBuffer->Handle);
+		SetDebugName(SceneBuffers.DepthBuffer, "SceneBuffers.DepthBuffer");
 		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.Multisample, GL_DEPTH_COMPONENT32F, SceneBuffers.Width, SceneBuffers.Height, GL_FALSE);
 		ThrowIfGLError("glTexStorage2DMultisample(SceneBuffers.DepthBuffer) failed");
 	}
 	else
 	{
 		glBindTexture(GL_TEXTURE_2D, SceneBuffers.DepthBuffer->Handle);
+		SetDebugName(SceneBuffers.DepthBuffer, "SceneBuffers.DepthBuffer");
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SceneBuffers.Width, SceneBuffers.Height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
 		ThrowIfGLError("glTexImage2D(SceneBuffers.DepthBuffer) failed");
 	}
@@ -187,35 +190,39 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 	for (int i = 0; i < 2; i++)
 	{
 		SceneBuffers.PPImage[i] = std::make_shared<GLTexture2D>();
-		SetDebugName(SceneBuffers.PPImage[i], "SceneBuffers.PPImage");
 		glBindTexture(GL_TEXTURE_2D, SceneBuffers.PPImage[i]->Handle);
+		SetDebugName(SceneBuffers.PPImage[i], "SceneBuffers.PPImage");
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, SceneBuffers.Width, SceneBuffers.Height, 0, GL_RGBA, GL_FLOAT, nullptr);
 		ThrowIfGLError("glTexImage2D(SceneBuffers.PPImage) failed");
 	}
 
 	SceneBuffers.Framebuffer = std::make_shared<GLFramebuffer>();
-	SetDebugName(SceneBuffers.Framebuffer, "SceneBuffers.Framebuffer");
 	glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.Framebuffer->Handle);
+	SetDebugName(SceneBuffers.Framebuffer, "SceneBuffers.Framebuffer");
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, SceneBuffers.ColorBuffer->Handle, 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, SceneBuffers.HitBuffer->Handle, 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, SceneBuffers.DepthBuffer->Handle, 0);
+	ThrowIfGLError("Creating SceneBuffers.Framebuffer failed");
 
 	SceneBuffers.HitFramebuffer = std::make_shared<GLFramebuffer>();
-	SetDebugName(SceneBuffers.HitFramebuffer, "SceneBuffers.HitFramebuffer");
 	glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.HitFramebuffer->Handle);
+	SetDebugName(SceneBuffers.HitFramebuffer, "SceneBuffers.HitFramebuffer");
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, SceneBuffers.HitBuffer->Handle, 0);
+	ThrowIfGLError("Creating SceneBuffers.HitFramebuffer failed");
 
 	SceneBuffers.PPHitFramebuffer = std::make_shared<GLFramebuffer>();
-	SetDebugName(SceneBuffers.PPHitFramebuffer, "SceneBuffers.PPHitFramebuffer");
 	glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.PPHitFramebuffer->Handle);
+	SetDebugName(SceneBuffers.PPHitFramebuffer, "SceneBuffers.PPHitFramebuffer");
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, SceneBuffers.PPHitBuffer->Handle, 0);
+	ThrowIfGLError("Creating SceneBuffers.PPHitFramebuffer failed");
 
 	for (int i = 0; i < 2; i++)
 	{
 		SceneBuffers.PPFramebuffer[i] = std::make_shared<GLFramebuffer>();
-		SetDebugName(SceneBuffers.PPFramebuffer[i], "SceneBuffers.PPFramebuffer");
 		glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.PPFramebuffer[i]->Handle);
+		SetDebugName(SceneBuffers.PPFramebuffer[i], "SceneBuffers.PPFramebuffer");
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, SceneBuffers.PPImage[i]->Handle, 0);
+		ThrowIfGLError("Creating SceneBuffers.PPFramebuffer failed");
 	}
 
 	int bloomWidth = width;
@@ -226,26 +233,28 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 		bloomHeight = (bloomHeight + 1) / 2;
 
 		level.VTexture = std::make_shared<GLTexture2D>();
-		SetDebugName(level.VTexture, "SceneBuffers.BlurLevels.VTexture");
 		glBindTexture(GL_TEXTURE_2D, level.VTexture->Handle);
+		SetDebugName(level.VTexture, "SceneBuffers.BlurLevels.VTexture");
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, bloomWidth, bloomHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
 		ThrowIfGLError("glTexImage2D(SceneBuffers.BlurLevels.VTexture) failed");
 
 		level.HTexture = std::make_shared<GLTexture2D>();
-		SetDebugName(level.HTexture, "SceneBuffers.BlurLevels.HTexture");
 		glBindTexture(GL_TEXTURE_2D, level.HTexture->Handle);
+		SetDebugName(level.HTexture, "SceneBuffers.BlurLevels.HTexture");
 		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA16F, bloomWidth, bloomHeight, 0, GL_RGBA, GL_FLOAT, nullptr);
 		ThrowIfGLError("glTexImage2D(SceneBuffers.BlurLevels.HTexture) failed");
 
 		level.VFramebuffer = std::make_shared<GLFramebuffer>();
-		SetDebugName(level.VFramebuffer, "SceneBuffers.BlurLevels.VFramebuffer");
 		glBindFramebuffer(GL_FRAMEBUFFER, level.VFramebuffer->Handle);
+		SetDebugName(level.VFramebuffer, "SceneBuffers.BlurLevels.VFramebuffer");
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, level.VTexture->Handle, 0);
+		ThrowIfGLError("Creating SceneBuffers.BlurLevels.VFramebuffer failed");
 
 		level.HFramebuffer = std::make_shared<GLFramebuffer>();
-		SetDebugName(level.HFramebuffer, "SceneBuffers.BlurLevels.HFramebuffer");
 		glBindFramebuffer(GL_FRAMEBUFFER, level.HFramebuffer->Handle);
+		SetDebugName(level.HFramebuffer, "SceneBuffers.BlurLevels.HFramebuffer");
 		glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, level.HTexture->Handle, 0);
+		ThrowIfGLError("Creating SceneBuffers.BlurLevels.HFramebuffer failed");
 
 		level.Width = bloomWidth;
 		level.Height = bloomHeight;
@@ -421,8 +430,8 @@ void GLRenderDevice::CreateScenePass()
 	ScenePass.ConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, sizeof(GLScenePushConstants), "ScenePass.ConstantBuffer");
 
 	ScenePass.InputLayout = std::make_shared<GLInputLayout>();
-	SetDebugName(ScenePass.InputLayout, "ScenePass.InputLayout");
 	glBindVertexArray(ScenePass.InputLayout->Handle);
+	SetDebugName(ScenePass.InputLayout, "ScenePass.InputLayout");
 	glBindBuffer(GL_ARRAY_BUFFER, ScenePass.VertexBuffer->Handle);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(GLSceneVertex), (const void*)offsetof(GLSceneVertex, Flags));
@@ -446,6 +455,7 @@ void GLRenderDevice::CreateSceneSamplers()
 	for (int i = 0; i < 16; i++)
 	{
 		ScenePass.Samplers[i] = std::make_shared<GLSampler>();
+		glBindSampler(0, ScenePass.Samplers[i]->Handle); // We must bind it before it actually exists. So stupid!
 		SetDebugName(ScenePass.Samplers[i], "ScenePass.Samplers");
 
 		GLuint sampler = ScenePass.Samplers[i]->Handle;
@@ -462,6 +472,8 @@ void GLRenderDevice::CreateSceneSamplers()
 		glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, addressmode);
 		glSamplerParameterf(sampler, GL_TEXTURE_MIN_LOD, (float)dummyMipmapCount);
 		glSamplerParameterf(sampler, GL_TEXTURE_LOD_BIAS, (float)dummyMipmapCount + LODBias);
+
+		ThrowIfGLError("Could not create sampler");
 	}
 
 	ScenePass.LODBias = LODBias;
@@ -781,8 +793,8 @@ void GLRenderDevice::CreatePresentPass()
 	PresentPass.PresentConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, sizeof(GLPresentPushConstants), "PresentPass.PresentConstantBuffer");
 
 	PresentPass.PPStepLayout = std::make_shared<GLInputLayout>();
-	SetDebugName(PresentPass.PPStepLayout, "PresentPass.PPStepLayout");
 	glBindVertexArray(PresentPass.PPStepLayout->Handle);
+	SetDebugName(PresentPass.PPStepLayout, "PresentPass.PPStepLayout");
 	glBindBuffer(GL_ARRAY_BUFFER, PresentPass.PPStepVertexBuffer->Handle);
 	glEnableVertexAttribArray(0);
 	glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(vec2), (const void*)offsetof(vec2, x));
@@ -822,9 +834,9 @@ void GLRenderDevice::CreatePresentPass()
 
 	PresentPass.DitherTexture = std::make_shared<GLTexture>();
 	glBindTexture(GL_TEXTURE_2D, PresentPass.DitherTexture->Handle);
+	SetDebugName(PresentPass.DitherTexture, "PresentPass.DitherTexture");
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_R32F, 8, 8, 0, GL_RED, GL_FLOAT, ditherdata);
 	ThrowIfGLError("CreateTexture2D(DitherTexture) failed");
-	SetDebugName(PresentPass.DitherTexture, "PresentPass.DitherTexture");
 
 	GLBlendDesc blendDesc = {};
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = true;
@@ -954,6 +966,8 @@ void GLRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, 
 	ForceHitIndex = -1;
 
 	IsLocked = true;
+
+	ThrowIfGLError("Lock failed");
 }
 
 GLPresentPushConstants GLRenderDevice::GetGLPresentPushConstants()
@@ -1019,6 +1033,8 @@ void GLRenderDevice::Unlock(bool Blit)
 
 	DrawBatches();
 	UnmapVertices();
+
+	ThrowIfGLError("Drawing failed");
 
 	Batch.SceneIndexStart = 0;
 	GLSceneVertexPos = 0;
@@ -1177,6 +1193,8 @@ void GLRenderDevice::Unlock(bool Blit)
 	HitSize = nullptr;
 
 	IsLocked = false;
+
+	ThrowIfGLError("Unlock failed");
 }
 
 void GLRenderDevice::PushHit(const uint8_t* Data, int Count)
@@ -2082,7 +2100,12 @@ void GLRenderDevice::SetDebugName(GLenum type, GLuint handle, const char* name)
 {
 	// Note: only exists in OpenGL 4.3 or if GL_KHR_debug extension is reported
 	if (UseDebugLayer && glObjectLabel)
-		glObjectLabel(type, handle, -1, name);
+	{
+		// OpenGL sucks!
+		GLint maxlength = 0;
+		glGetIntegerv(GL_MAX_LABEL_LENGTH, &maxlength);
+		glObjectLabel(type, handle, (GLsizei)std::min((GLint)strlen(name), maxlength), name);
+	}
 }
 
 std::shared_ptr<GLBlendState> GLRenderDevice::CreateBlendState(const GLBlendDesc& desc)
@@ -2103,8 +2126,8 @@ std::shared_ptr<GLDepthStencilState> GLRenderDevice::CreateDepthStencilState(con
 std::shared_ptr<GLBuffer> GLRenderDevice::CreateBuffer(GLenum target, GLenum usage, const void* data, size_t size, const char* debugName)
 {
 	auto buffer = std::make_shared<GLBuffer>();
-	SetDebugName(buffer, debugName);
 	glBindBuffer(GL_UNIFORM_BUFFER, buffer->Handle);
+	SetDebugName(buffer, debugName);
 	glBufferData(GL_UNIFORM_BUFFER, sizeof(GLScenePushConstants), nullptr, GL_DYNAMIC_DRAW);
 	ThrowIfGLError((std::string("CreateBuffer failed for ") + debugName).c_str());
 	return buffer;
