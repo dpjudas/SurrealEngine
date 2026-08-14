@@ -794,7 +794,7 @@ void GLRenderDevice::BlurStep(GLShaderResourceView* input, GLRenderTargetView* o
 
 float GLRenderDevice::ComputeBlurGaussian(float n, float theta) // theta = Blur Amount
 {
-	return (float)((1.0f / std::sqrtf(2 * 3.14159265359f * theta)) * std::expf(-(n * n) / (2.0f * theta * theta)));
+	return (float)((1.0f / std::sqrt(2 * 3.14159265359f * theta)) * std::exp(-(n * n) / (2.0f * theta * theta)));
 }
 
 void GLRenderDevice::ComputeBlurSamples(int sampleCount, float blurAmount, float* sampleWeights)
