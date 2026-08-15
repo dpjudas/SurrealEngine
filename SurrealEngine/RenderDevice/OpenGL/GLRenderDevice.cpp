@@ -436,9 +436,9 @@ void GLRenderDevice::CreateScenePass()
 		}
 	}
 
-	ScenePass.VertexBuffer = CreateBuffer(GL_ARRAY_BUFFER, GL_DYNAMIC_DRAW, nullptr, SceneVertexBufferSize * sizeof(GLSceneVertex), "ScenePass.VertexBuffer");
-	ScenePass.IndexBuffer = CreateBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_DYNAMIC_DRAW, nullptr, SceneIndexBufferSize * sizeof(uint32_t), "ScenePass.IndexBuffer");
-	ScenePass.ConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, sizeof(GLScenePushConstants), "ScenePass.ConstantBuffer");
+	ScenePass.VertexBuffer = CreateBuffer(GL_ARRAY_BUFFER, GL_STREAM_DRAW, nullptr, SceneVertexBufferSize * sizeof(GLSceneVertex), "ScenePass.VertexBuffer");
+	ScenePass.IndexBuffer = CreateBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_STREAM_DRAW, nullptr, SceneIndexBufferSize * sizeof(uint32_t), "ScenePass.IndexBuffer");
+	ScenePass.ConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_STREAM_DRAW, nullptr, sizeof(GLScenePushConstants), "ScenePass.ConstantBuffer");
 
 	ScenePass.InputLayout = std::make_shared<GLInputLayout>();
 	glBindVertexArray(ScenePass.InputLayout->Handle);
@@ -636,7 +636,7 @@ void GLRenderDevice::RunBloomPass()
 	GLBloomPushConstants pushconstants;
 	ComputeBlurSamples(7, blurAmount, pushconstants.SampleWeights);
 
-	SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, BloomPass.ConstantBuffer.get(), &pushconstants, sizeof(GLBloomPushConstants));
+	SetBufferData(GL_UNIFORM_BUFFER, GL_STREAM_DRAW, BloomPass.ConstantBuffer.get(), &pushconstants, sizeof(GLBloomPushConstants));
 
 	GLBuffer* cbs[1] = { BloomPass.ConstantBuffer.get() };
 	glBindVertexArray(PresentPass.PPStepLayout->Handle);
@@ -780,7 +780,7 @@ void GLRenderDevice::CreateBloomPass()
 	BloomPass.BlurHorizontal = CreateFragmentShader("BloomPass.BlurHorizontal", "shaders/Blur.frag", { "BLUR_HORIZONTAL" });
 	BloomPass.BlurHorizontalProgram = CreateProgram("BloomPass.BlurHorizontalProgram", PresentPass.PPStep, BloomPass.BlurHorizontal);
 
-	BloomPass.ConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, sizeof(GLBloomPushConstants), "BloomPass.ConstantBuffer");
+	BloomPass.ConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_STREAM_DRAW, nullptr, sizeof(GLBloomPushConstants), "BloomPass.ConstantBuffer");
 
 	GLBlendDesc blendDesc = {};
 	blendDesc.RenderTarget[0].RenderTargetWriteMask = true;
@@ -807,7 +807,7 @@ void GLRenderDevice::CreatePresentPass()
 	};
 
 	PresentPass.PPStepVertexBuffer = CreateBuffer(GL_ARRAY_BUFFER, GL_STATIC_DRAW, positions.data(), positions.size() * sizeof(vec2), "PresentPass.PPStepVertexBuffer");
-	PresentPass.PresentConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, nullptr, sizeof(GLPresentPushConstants), "PresentPass.PresentConstantBuffer");
+	PresentPass.PresentConstantBuffer = CreateBuffer(GL_UNIFORM_BUFFER, GL_STREAM_DRAW, nullptr, sizeof(GLPresentPushConstants), "PresentPass.PresentConstantBuffer");
 
 	PresentPass.PPStepLayout = std::make_shared<GLInputLayout>();
 	glBindVertexArray(PresentPass.PPStepLayout->Handle);
@@ -880,16 +880,20 @@ void GLRenderDevice::Flush(bool AllowPrecache)
 
 void GLRenderDevice::MapVertices(bool nextBuffer)
 {
-	// To do: OpenGL doesn't have D3D11_MAP_WRITE_NO_OVERWRITE.
-	// This will ruin the performance when nextBuffer is false.
-	// It _does_ have persistent buffers that we could utilize.
+	if (nextBuffer)
+	{
+		GLSceneVertexPos = 0;
+		SceneIndexPos = 0;
+		Stats.BuffersUsed++;
+	}
 
 	if (!SceneVertices)
 	{
 		glBindBuffer(GL_ARRAY_BUFFER, ScenePass.VertexBuffer->Handle);
 		if (nextBuffer)
-			glBufferData(GL_ARRAY_BUFFER, SceneVertexBufferSize * sizeof(GLSceneVertex), nullptr, GL_DYNAMIC_DRAW);
-		SceneVertices = (GLSceneVertex*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+			glBufferData(GL_ARRAY_BUFFER, SceneVertexBufferSize * sizeof(GLSceneVertex), nullptr, GL_STREAM_DRAW); // Should we use GL_MAP_INVALIDATE_BUFFER_BIT here instead? OpenGL truly sucked.
+		SceneVertices = (GLSceneVertex*)glMapBufferRange(GL_ARRAY_BUFFER, GLSceneVertexPos * sizeof(GLSceneVertex), (SceneVertexBufferSize - GLSceneVertexPos) * sizeof(GLSceneVertex), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+		SceneVertices -= GLSceneVertexPos; // Draw code assumes the pointer is relative to the start of the buffer, even if we never touch that part
 		if (!SceneVertices)
 			throw std::runtime_error("Could not map ScenePass.VertexBuffer");
 	}
@@ -898,8 +902,9 @@ void GLRenderDevice::MapVertices(bool nextBuffer)
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ScenePass.IndexBuffer->Handle);
 		if (nextBuffer)
-			glBufferData(GL_ELEMENT_ARRAY_BUFFER, SceneIndexBufferSize * sizeof(uint32_t), nullptr, GL_DYNAMIC_DRAW);
-		SceneIndexes = (uint32_t*)glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+			glBufferData(GL_ELEMENT_ARRAY_BUFFER, SceneIndexBufferSize * sizeof(uint32_t), nullptr, GL_STREAM_DRAW); // Should we use GL_MAP_INVALIDATE_BUFFER_BIT here instead? OpenGL truly sucked.
+		SceneIndexes = (uint32_t*)glMapBufferRange(GL_ELEMENT_ARRAY_BUFFER, SceneIndexPos * sizeof(uint32_t), (SceneIndexBufferSize - SceneIndexPos) * sizeof(uint32_t), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_RANGE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+		SceneIndexes -= SceneIndexPos; // Draw code assumes the pointer is relative to the start of the buffer, even if we never touch that part
 		if (!SceneIndexes)
 			throw std::runtime_error("Could not map ScenePass.SceneIndexes");
 	}
@@ -1102,7 +1107,7 @@ void GLRenderDevice::Unlock(bool Blit)
 
 		glBindVertexArray(PresentPass.PPStepLayout->Handle);
 
-		SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
+		SetBufferData(GL_UNIFORM_BUFFER, GL_STREAM_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
 
 		SetRasterizerState(PresentPass.RasterizerState.get());
 		GLBuffer* cbs[1] = { PresentPass.PresentConstantBuffer.get() };
@@ -1266,7 +1271,7 @@ void GLRenderDevice::SetHitLocation()
 		SceneConstants.HitIndex = 0;
 	}
 
-	SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, ScenePass.ConstantBuffer.get(), &SceneConstants, sizeof(GLScenePushConstants));
+	SetBufferData(GL_UNIFORM_BUFFER, GL_STREAM_DRAW, ScenePass.ConstantBuffer.get(), &SceneConstants, sizeof(GLScenePushConstants));
 }
 
 void GLRenderDevice::DrawComplexSurface(SceneNode* Frame, SurfaceInfo& Surface, SurfaceFacet& Facet)
@@ -1785,7 +1790,7 @@ void GLRenderDevice::ReadPixels(TextureColor* Pixels)
 
 		glBindVertexArray(PresentPass.PPStepLayout->Handle);
 
-		SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
+		SetBufferData(GL_UNIFORM_BUFFER, GL_STREAM_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
 
 		GLBuffer* cbs[1] = { PresentPass.PresentConstantBuffer.get() };
 		GLTexture2D* psResources[] = { SceneBuffers.PPImage[0].get(), PresentPass.DitherTexture.get() };
@@ -1860,7 +1865,7 @@ void GLRenderDevice::EndFlash()
 		SceneConstants.ObjectToView = mat4::identity();
 		SceneConstants.NearClip = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
-		SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, ScenePass.ConstantBuffer.get(), &SceneConstants, sizeof(GLScenePushConstants));
+		SetBufferData(GL_UNIFORM_BUFFER, GL_STREAM_DRAW, ScenePass.ConstantBuffer.get(), &SceneConstants, sizeof(GLScenePushConstants));
 
 		SetPipeline(PF_Highlighted);
 		SetDescriptorSet(0);
@@ -1921,7 +1926,7 @@ void GLRenderDevice::SetSceneNode(SceneNode* Frame)
 	SceneConstants.ObjectToView = Frame->WorldToView * Frame->ObjectToWorld;
 	SceneConstants.NearClip = Frame->NearClip;
 
-	SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, ScenePass.ConstantBuffer.get(), &SceneConstants, sizeof(GLScenePushConstants));
+	SetBufferData(GL_UNIFORM_BUFFER, GL_STREAM_DRAW, ScenePass.ConstantBuffer.get(), &SceneConstants, sizeof(GLScenePushConstants));
 }
 
 void GLRenderDevice::SetBufferData(GLenum target, GLenum usage, GLBuffer* buffer, const void* data, size_t size)
@@ -2079,13 +2084,6 @@ void GLRenderDevice::DrawBatches(bool nextBuffer)
 
 	MapVertices(nextBuffer);
 
-	if (nextBuffer)
-	{
-		GLSceneVertexPos = 0;
-		SceneIndexPos = 0;
-		Stats.BuffersUsed++;
-	}
-
 	Batch.SceneIndexStart = SceneIndexPos;
 }
 
@@ -2156,9 +2154,9 @@ std::shared_ptr<GLDepthStencilState> GLRenderDevice::CreateDepthStencilState(con
 std::shared_ptr<GLBuffer> GLRenderDevice::CreateBuffer(GLenum target, GLenum usage, const void* data, size_t size, const char* debugName)
 {
 	auto buffer = std::make_shared<GLBuffer>();
-	glBindBuffer(GL_UNIFORM_BUFFER, buffer->Handle);
+	glBindBuffer(target, buffer->Handle);
 	SetDebugName(buffer, debugName);
-	glBufferData(GL_UNIFORM_BUFFER, sizeof(GLScenePushConstants), nullptr, GL_DYNAMIC_DRAW);
+	glBufferData(target, size, data, usage);
 	ThrowIfGLError((std::string("CreateBuffer failed for ") + debugName).c_str());
 	return buffer;
 }
