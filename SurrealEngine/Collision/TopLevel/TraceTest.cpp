@@ -352,7 +352,7 @@ static int GetQuadraticRoots(double a, double b, double c, double& root_lower, d
 	}
 	else if (discriminant > -FLT_EPSILON && discriminant <= FLT_EPSILON)
 	{
-		root_lower = -(b / 2.0 * a);
+		root_lower = -b / (2.0 * a); // quadratic formula's double root
 		root_upper = root_lower;
 		return 1;
 	}
@@ -385,6 +385,29 @@ double TraceTester::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayDir
 	double a = 1 - (caDotRd * caDotRd);
 	double b = 2 * (dot(rayDirNormalized, rl) - caDotRd * caDotRl);
 	double c = rlDotRl - caDotRl * caDotRl - (cylinderRadius * cylinderRadius);
+
+	if (std::abs(a) <= FLT_EPSILON)
+	{
+		// Ray direction is parallel to the cylinder's axis (a == 0 exactly, e.g. a
+		// vertical step-up/step-down trace against a Z-axis-aligned actor): it can never
+		// cross the curved side, only the end caps, and only if it's already within the
+		// radius (c <= 0). Handled directly here since the quadratic degenerates and
+		// carries no usable root in this case.
+		if (c > FLT_EPSILON)
+			return tmax;
+
+		double dTop, dBottom;
+		bool hitTop = RayCircleTrace(rayOrigin, rayDirNormalized, ct, ca, cylinderRadius, dTop);
+		bool hitBottom = RayCircleTrace(rayOrigin, rayDirNormalized, cb, -ca, cylinderRadius, dBottom);
+		if (hitTop && hitBottom)
+			return std::min(dTop, dBottom);
+		else if (hitTop)
+			return dTop;
+		else if (hitBottom)
+			return dBottom;
+		else
+			return tmax;
+	}
 
 	double t0;
 	double t1;
@@ -429,19 +452,24 @@ double TraceTester::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayDir
 		// along the cylinder's axis -- whether from inside or outside -- then the ray 
 		// could still hit an endcap.
 		// 
-		// Let's project the ray origin onto the cylinder's axis, and figure out which 
-		// endcap we're nearer to. (Well, actually, we already have that value: it's 
+		// Let's project the ray origin onto the cylinder's axis, and figure out which
+		// endcap we're nearer to. (Well, actually, we already have that value: it's
 		// Ca_dot_Rl.)
+		//
+		// Rl is measured from cb, the *bottom* of the cylinder, so Ca_dot_Rl is how far the
+		// ray origin sits above the bottom cap: <= 0 means it starts below the cylinder, and
+		// >= ch means it starts above it. The only cap such a ray can enter through is the
+		// one nearest it, so trace that one and not the far one.
 		//
 		if (caDotRl <= 0.0)
 		{
-			// above
-			valid1 = RayCircleTrace(rayOrigin, rayDirNormalized, ct, ca, cylinderRadius, t0);
+			// below
+			valid1 = RayCircleTrace(rayOrigin, rayDirNormalized, cb, -ca, cylinderRadius, t0);
 		}
 		else if (caDotRl >= ch)
 		{
-			// below
-			valid2 = RayCircleTrace(rayOrigin, rayDirNormalized, cb, -ca, cylinderRadius, t1);
+			// above
+			valid2 = RayCircleTrace(rayOrigin, rayDirNormalized, ct, ca, cylinderRadius, t1);
 		}
 
 		if (valid1)
@@ -480,7 +508,7 @@ double TraceTester::RayCylinderTrace(const dvec3& rayOrigin, const dvec3& rayDir
 		}
 		else if (disc2)
 		{
-			d0 = t1;
+			d0 = d1; // the bottom disc is the only one we hit, so that is the distance to compare
 			disc1 = disc2;
 		}
 
