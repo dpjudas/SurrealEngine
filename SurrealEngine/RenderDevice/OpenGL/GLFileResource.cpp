@@ -98,7 +98,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 					outColor.rgb *= clamp(textureLightmap(texCoord2).rgb, 0.0, 1.0) * oneXBlending;
 				}
 
-				/*if ((flags & 4) != 0) // Detail texture
+				if ((flags & 4) != 0) // Detail texture
 				{
 					float fadedistance = 380.0f;
 					float a = clamp(2.0f - (1.0f / gl_FragCoord.w) / fadedistance, 0.0f, 1.0f);
@@ -114,7 +114,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 				{
 					vec4 fogcolor = vec4(texCoord2, texCoord3);
 					outColor.rgb = fogcolor.rgb + outColor.rgb * (1.0 - fogcolor.a);
-				}*/
+				}
 
 				#if defined(ALPHATEST)
 				if (outColor.a < 0.5) discard;

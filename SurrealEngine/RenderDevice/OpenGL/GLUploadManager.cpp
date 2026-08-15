@@ -130,19 +130,22 @@ void GLUploadManager::UploadData(GLTexture2D* image, const TextureInfo& Info, bo
 			uint32_t mipheight = std::max(Mip->Height, minSize);
 
 			int mipsize = uploader->GetUploadSize(0, 0, mipwidth, mipheight);
-			mipsize = (mipsize + 15) / 16 * 16; // memory alignment
 
 			auto data = (uint32_t*)GetUploadBuffer(mipsize);
 			uploader->UploadRect(data, Mip, 0, 0, mipwidth, mipheight, Info.Palette, masked);
 
-			// To do: do we need this?
-			// int pitch = uploader->GetUploadSize(0, 0, mipwidth, 1);
-			// glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-			// glPixelStorei(GL_UNPACK_ROW_LENGTH, pitch / bytesPerPixel);
-
-			glBindTexture(GL_TEXTURE_2D, image->Handle);
-			glTexSubImage2D(GL_TEXTURE_2D, level + dummyMipmapCount, 0, 0, mipwidth, mipheight, uploader->GetFormat(), uploader->GetType(), data);
-			ThrowIfGLError("UploadData failed");
+			if (uploader->GetFormat() != 0)
+			{
+				glBindTexture(GL_TEXTURE_2D, image->Handle);
+				glTexSubImage2D(GL_TEXTURE_2D, level + dummyMipmapCount, 0, 0, mipwidth, mipheight, uploader->GetFormat(), uploader->GetType(), data);
+				ThrowIfGLError("UploadData failed");
+			}
+			else
+			{
+				glBindTexture(GL_TEXTURE_2D, image->Handle);
+				glCompressedTexImage2D(GL_TEXTURE_2D, level + dummyMipmapCount, uploader->GetInternalformat(), mipwidth, mipheight, 0, mipsize, data);
+				ThrowIfGLError("UploadData(compressed) failed");
+			}
 		}
 	}
 }
