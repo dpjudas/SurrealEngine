@@ -315,7 +315,7 @@ void GLRenderDevice::CreateScenePass()
 				blendDesc.RenderTarget[0].SrcBlend = GL_DST_COLOR;
 				blendDesc.RenderTarget[0].SrcBlendAlpha = GL_DST_ALPHA;
 				blendDesc.RenderTarget[0].DestBlend = GL_SRC_COLOR;
-				blendDesc.RenderTarget[0].DestBlendAlpha = GL_BLEND_SRC_ALPHA;
+				blendDesc.RenderTarget[0].DestBlendAlpha = GL_SRC_ALPHA;
 				break;
 			case 2: // PF_Highlighted
 				blendDesc.RenderTarget[0].BlendOp = GL_FUNC_ADD;
@@ -917,12 +917,14 @@ void GLRenderDevice::UnmapVertices()
 		glBindBuffer(GL_ARRAY_BUFFER, ScenePass.VertexBuffer->Handle);
 		glUnmapBuffer(GL_ARRAY_BUFFER);
 		SceneVertices = nullptr;
+		ThrowIfGLError("Could not unmap ScenePass.VertexBuffer");
 	}
 
 	if (SceneIndexes)
 	{
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ScenePass.IndexBuffer->Handle);
 		glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+		ThrowIfGLError("Could not unmap ScenePass.IndexBuffer");
 		SceneIndexes = nullptr;
 	}
 }
@@ -2076,11 +2078,15 @@ void GLRenderDevice::DrawBatches(bool nextBuffer)
 {
 	AddDrawBatch();
 
+	ThrowIfGLError("DrawBatches failed (before draw)");
+
 	UnmapVertices();
 
 	for (const DrawBatchEntry& entry : QueuedBatches)
 		DrawEntry(entry);
 	QueuedBatches.clear();
+
+	ThrowIfGLError("DrawBatches failed (after draw)");
 
 	MapVertices(nextBuffer);
 
