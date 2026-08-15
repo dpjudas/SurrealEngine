@@ -37,7 +37,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 			void main()
 			{
 				gl_Position = objectToProjection * vec4(aPosition, 1.0);
-				gl_ClipDistance[0] = dot(nearClip, objectToView * vec4(aPosition, 1.0));
+				//gl_ClipDistance[0] = dot(nearClip, objectToView * vec4(aPosition, 1.0));
 				flags = aFlags;
 				texCoord = aTexCoord;
 				texCoord2 = aTexCoord2;
@@ -88,7 +88,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 				outColor = darkClamp(textureTex(texCoord)) * color;
 				outColor.rgb *= actorXBlending;
 
-				if ((flags & 2) != 0) // Macro texture
+				/*if ((flags & 2) != 0) // Macro texture
 				{
 					outColor *= darkClamp(textureMacro(texCoord3));
 				}
@@ -114,7 +114,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 				{
 					vec4 fogcolor = vec4(texCoord2, texCoord3);
 					outColor.rgb = fogcolor.rgb + outColor.rgb * (1.0 - fogcolor.a);
-				}
+				}*/
 
 				#if defined(ALPHATEST)
 				if (outColor.a < 0.5) discard;

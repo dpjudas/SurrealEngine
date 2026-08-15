@@ -434,7 +434,7 @@ void GLRenderDevice::CreateScenePass()
 	SetDebugName(ScenePass.InputLayout, "ScenePass.InputLayout");
 	glBindBuffer(GL_ARRAY_BUFFER, ScenePass.VertexBuffer->Handle);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(0, 1, GL_UNSIGNED_INT, GL_FALSE, sizeof(GLSceneVertex), (const void*)offsetof(GLSceneVertex, Flags));
+	glVertexAttribIPointer(0, 1, GL_UNSIGNED_INT, sizeof(GLSceneVertex), (const void*)offsetof(GLSceneVertex, Flags));
 	glEnableVertexAttribArray(1);
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(GLSceneVertex), (const void*)offsetof(GLSceneVertex, Position));
 	glEnableVertexAttribArray(2);
@@ -463,10 +463,15 @@ void GLRenderDevice::CreateSceneSamplers()
 		int dummyMipmapCount = (i >> 2) & 3;
 		GLint addressmode = (i & 2) ? GL_MIRROR_CLAMP_TO_EDGE : GL_MIRRORED_REPEAT;
 
+#if 1
+		glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, (i & 1) ? GL_NEAREST : GL_LINEAR);
+		glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, (i & 1) ? GL_NEAREST : GL_LINEAR);
+#else
 		glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, (i & 1) ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_LINEAR);
 		glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, (i & 1) ? GL_NEAREST : GL_LINEAR);
 		if (i & 1)
 			glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0f); // To do: we should check for this extension
+#endif
 		glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, addressmode);
 		glSamplerParameteri(sampler, GL_TEXTURE_WRAP_T, addressmode);
 		glSamplerParameteri(sampler, GL_TEXTURE_WRAP_R, addressmode);
@@ -620,13 +625,14 @@ void GLRenderDevice::RunBloomPass()
 	GLBloomPushConstants pushconstants;
 	ComputeBlurSamples(7, blurAmount, pushconstants.SampleWeights);
 
+	SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, BloomPass.ConstantBuffer.get(), &pushconstants, sizeof(GLBloomPushConstants));
+
 	GLBuffer* cbs[1] = { BloomPass.ConstantBuffer.get() };
 	glBindVertexArray(PresentPass.PPStepLayout->Handle);
 	SetRasterizerState(PresentPass.RasterizerState.get());
 	SetUniformBuffers(0, 1, cbs);
 	SetDepthStencilState(PresentPass.DepthStencilState.get());
 	SetBlendState(PresentPass.BlendState.get());
-	SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, BloomPass.ConstantBuffer.get(), &pushconstants, sizeof(GLBloomPushConstants));
 
 	GLViewport viewport = {};
 	viewport.MaxDepth = 1.0f;
@@ -872,6 +878,8 @@ void GLRenderDevice::MapVertices(bool nextBuffer)
 		if (nextBuffer)
 			glBufferData(GL_ARRAY_BUFFER, SceneVertexBufferSize * sizeof(GLSceneVertex), nullptr, GL_DYNAMIC_DRAW);
 		SceneVertices = (GLSceneVertex*)glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		if (!SceneVertices)
+			throw std::runtime_error("Could not map ScenePass.VertexBuffer");
 	}
 
 	if (!SceneIndexes)
@@ -880,6 +888,8 @@ void GLRenderDevice::MapVertices(bool nextBuffer)
 		if (nextBuffer)
 			glBufferData(GL_ELEMENT_ARRAY_BUFFER, SceneIndexBufferSize * sizeof(uint32_t), nullptr, GL_DYNAMIC_DRAW);
 		SceneIndexes = (uint32_t*)glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, GL_WRITE_ONLY);
+		if (!SceneIndexes)
+			throw std::runtime_error("Could not map ScenePass.SceneIndexes");
 	}
 }
 
@@ -940,16 +950,12 @@ void GLRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, 
 	float color[4] = { ScreenClear.x, ScreenClear.y, ScreenClear.z, ScreenClear.w };
 	float zero[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
 	glBindFramebuffer(GL_FRAMEBUFFER, SceneBuffers.Framebuffer->Handle);
-	glDrawBuffer(GL_COLOR_ATTACHMENT0);
-	glReadBuffer(GL_COLOR_ATTACHMENT0);
 	glClearColor(color[0], color[1], color[2], color[3]);
 	glClearDepth(1.0f);
-	glClearStencil(0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
-	glDrawBuffer(GL_COLOR_ATTACHMENT1);
-	glClear(GL_COLOR_BUFFER_BIT);
+	//glClearStencil(0);
 	GLenum bufs[2] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
 	glDrawBuffers(2, bufs);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT /* | GL_STENCIL_BUFFER_BIT*/);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ScenePass.IndexBuffer->Handle);
 	glBindVertexArray(ScenePass.InputLayout->Handle);
@@ -1074,6 +1080,8 @@ void GLRenderDevice::Unlock(bool Blit)
 
 		glBindVertexArray(PresentPass.PPStepLayout->Handle);
 
+		SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
+
 		SetRasterizerState(PresentPass.RasterizerState.get());
 		GLBuffer* cbs[1] = { PresentPass.PresentConstantBuffer.get() };
 		SetUniformBuffers(0, 1, cbs);
@@ -1081,7 +1089,6 @@ void GLRenderDevice::Unlock(bool Blit)
 		SetTextures(0, 2, psResources);
 		SetDepthStencilState(PresentPass.DepthStencilState.get());
 		SetBlendState(PresentPass.BlendState.get());
-		SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 		if (UseVSync)
@@ -1755,6 +1762,8 @@ void GLRenderDevice::ReadPixels(TextureColor* Pixels)
 
 		glBindVertexArray(PresentPass.PPStepLayout->Handle);
 
+		SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
+
 		GLBuffer* cbs[1] = { PresentPass.PresentConstantBuffer.get() };
 		GLTexture2D* psResources[] = { SceneBuffers.PPImage[0].get(), PresentPass.DitherTexture.get() };
 		SetRasterizerState(PresentPass.RasterizerState.get());
@@ -1762,7 +1771,6 @@ void GLRenderDevice::ReadPixels(TextureColor* Pixels)
 		SetTextures(0, 2, psResources);
 		SetDepthStencilState(PresentPass.DepthStencilState.get());
 		SetBlendState(PresentPass.BlendState.get());
-		SetBufferData(GL_UNIFORM_BUFFER, GL_DYNAMIC_DRAW, PresentPass.PresentConstantBuffer.get(), &pushconstants, sizeof(GLPresentPushConstants));
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
 #if 0
@@ -1881,7 +1889,7 @@ void GLRenderDevice::SetSceneNode(SceneNode* Frame)
 	SceneViewport.MaxDepth = 1.0f;
 	SetViewport(SceneViewport);
 
-	SceneConstants.ObjectToProjection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
+	SceneConstants.ObjectToProjection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::negative_positive_w);
 
 	// TBD; do this or do like UE1 does and do the transform on the CPU?
 	// maybe optionally do one or the other? transform on CPU can be super slow --Xaleros
@@ -1895,7 +1903,7 @@ void GLRenderDevice::SetSceneNode(SceneNode* Frame)
 
 void GLRenderDevice::SetBufferData(GLenum target, GLenum usage, GLBuffer* buffer, const void* data, size_t size)
 {
-	glBindBuffer(target, ScenePass.ConstantBuffer->Handle);
+	glBindBuffer(target, buffer->Handle);
 	glBufferData(target, size, data, usage);
 }
 
@@ -1944,9 +1952,9 @@ void GLRenderDevice::SetBlendState(GLBlendState* blendState, const float* blendC
 
 void GLRenderDevice::SetDepthStencilState(GLDepthStencilState* depthStencilState)
 {
-	if (depthStencilState->desc.DepthEnable)
+	/*if (depthStencilState->desc.DepthEnable)
 		glEnable(GL_DEPTH_TEST);
-	else
+	else*/
 		glDisable(GL_DEPTH_TEST);
 
 	glDepthFunc(depthStencilState->desc.DepthFunc);
@@ -2003,7 +2011,7 @@ void GLRenderDevice::SetViewport(const GLViewport& viewport)
 {
 	// To do: deal with OpenGL viewports using lower left origin
 	glViewport((GLint)std::round(viewport.TopLeftX), (GLint)std::round(viewport.TopLeftY), (GLsizei)std::round(viewport.Width), (GLsizei)std::round(viewport.Height));
-	glDepthRangef(viewport.MinDepth, viewport.MaxDepth);
+	glDepthRange((GLdouble)viewport.MinDepth, (GLdouble)viewport.MaxDepth);
 }
 
 void GLRenderDevice::PrecacheTexture(TextureInfo& Info, uint32_t PolyFlags)
