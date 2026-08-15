@@ -1093,7 +1093,7 @@ void Win32DisplayWindow::CreateGLContext()
 	{
 		OpenGLCreationHelper helper(WindowHandle.hwnd, openglDC);
 		helper.set_pixel_format();
-		openglContext = helper.create_opengl3_context(0, 3, 0);
+		openglContext = helper.create_opengl3_context(0, 3, 2); // RenderDoc has 3.2 as minimum and honestly anything less is more trouble than its worth
 	}
 	catch (...)
 	{
