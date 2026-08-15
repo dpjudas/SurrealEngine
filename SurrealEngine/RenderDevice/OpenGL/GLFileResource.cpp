@@ -52,9 +52,9 @@ std::string GLFileResource::readAllText(const std::string& filename)
 	{
 		return R"(
 			layout(binding = 0) uniform sampler2D tex;
-			layout(binding = 1) uniform sampler2D macro;
-			layout(binding = 2) uniform sampler2D detail;
-			layout(binding = 3) uniform sampler2D lightmap;
+			layout(binding = 1) uniform sampler2D lightmap;
+			layout(binding = 2) uniform sampler2D macro;
+			layout(binding = 3) uniform sampler2D detail;
 
 			layout(location = 0) flat in uint flags;
 			layout(location = 1) centroid in vec2 texCoord;
@@ -88,7 +88,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 				outColor = darkClamp(textureTex(texCoord)) * color;
 				outColor.rgb *= actorXBlending;
 
-				/*if ((flags & 2) != 0) // Macro texture
+				if ((flags & 2) != 0) // Macro texture
 				{
 					outColor *= darkClamp(textureMacro(texCoord3));
 				}
@@ -98,7 +98,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 					outColor.rgb *= clamp(textureLightmap(texCoord2).rgb, 0.0, 1.0) * oneXBlending;
 				}
 
-				if ((flags & 4) != 0) // Detail texture
+				/*if ((flags & 4) != 0) // Detail texture
 				{
 					float fadedistance = 380.0f;
 					float a = clamp(2.0f - (1.0f / gl_FragCoord.w) / fadedistance, 0.0f, 1.0f);
@@ -259,7 +259,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 
 			void main()
 			{
-				vec3 color = gammaCorrect(colorCorrect(texture(texSampler, texCoord).rgb));
+				vec3 color = gammaCorrect(colorCorrect(texture(texSampler, vec2(texCoord.x, 1.0 - texCoord.y)).rgb));
 			#if defined(HDR_MODE)
 				outColor = vec4(linearHdr(color), 1.0f);
 			#else

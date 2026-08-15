@@ -51,8 +51,8 @@ struct GLBloomPushConstants
 
 struct GLViewport
 {
-	float TopLeftX;
-	float TopLeftY;
+	float X;
+	float Y;
 	float Width;
 	float Height;
 	float MinDepth;

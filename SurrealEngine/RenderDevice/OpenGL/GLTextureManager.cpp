@@ -98,5 +98,6 @@ GLCachedTexture* GLTextureManager::CreateNullTexture()
 	NullTexture->Texture = std::make_shared<GLTexture2D>();
 	glBindTexture(GL_TEXTURE_2D, NullTexture->Texture->Handle);
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, 1, 1, 0, GL_RGBA, GL_UNSIGNED_INT_8_8_8_8, &white);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 	return NullTexture.get();
 }

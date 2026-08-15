@@ -84,6 +84,7 @@ void GLUploadManager::UploadTexture(GLCachedTexture* tex, const TextureInfo& Inf
 			mipwidth = std::max(mipwidth >> 1, 1);
 			mipheight = std::max(mipheight >> 1, 1);
 		}
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, std::max(mipcount - 1, 0));
 	}
 
 	if (uploader)
