@@ -119,4 +119,12 @@ public:
 	static std::unordered_map<void *, std::function<void()>> Timers;
 	static unsigned long TimerIDs;
 	static Uint32 TimerEventNumber;
+
+	SDL_GLContext m_GLContext = nullptr;
+
+	void CreateGLContext() override;
+	void MakeGLContextCurrent() override;
+	bool SetGLSwapInterval(int interval) override;
+	void SwapGLBuffers() override;
+	GLFuncPtr GetGLProcAddress(const char* name) override;
 };

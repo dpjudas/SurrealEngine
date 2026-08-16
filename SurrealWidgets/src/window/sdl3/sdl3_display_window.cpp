@@ -57,6 +57,12 @@ SDL3DisplayWindow::~SDL3DisplayWindow()
 		BackBufferTexture = nullptr;
 	}
 
+	if (m_GLContext)
+	{
+		SDL_GL_DestroyContext(m_GLContext);
+		m_GLContext = nullptr;
+	}
+
 	if (RendererHandle)
 		SDL_DestroyRenderer(RendererHandle);
 	SDL_DestroyWindow(Handle.window);
@@ -642,6 +648,39 @@ void SDL3DisplayWindow::OnTimerEvent(const SDL_UserEvent& event)
 		return;
 
 	func->second();
+}
+
+void SDL3DisplayWindow::CreateGLContext()
+{
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 2);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+	m_GLContext = SDL_GL_CreateContext(Handle.window);
+}
+
+void SDL3DisplayWindow::MakeGLContextCurrent()
+{
+	if (!m_GLContext)
+		return;
+
+	SDL_GL_MakeCurrent(Handle.window, m_GLContext);
+}
+
+bool SDL3DisplayWindow::SetGLSwapInterval(int interval)
+{
+	SDL_GL_SetSwapInterval(interval);
+	return true;
+}
+
+void SDL3DisplayWindow::SwapGLBuffers()
+{
+	SDL_GL_SwapWindow(Handle.window);
+}
+
+DisplayWindow::GLFuncPtr SDL3DisplayWindow::GetGLProcAddress(const char* name)
+{
+	return (GLFuncPtr)SDL_GL_GetProcAddress(name);
 }
 
 InputKey SDL3DisplayWindow::ScancodeToInputKey(SDL_Scancode keycode)

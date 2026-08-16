@@ -8,6 +8,8 @@
 #include <X11/keysymdef.h>
 #include <X11/XKBlib.h>
 #include <X11/extensions/XInput2.h>
+#include <EGL/egl.h>
+#include <EGL/eglext.h>
 #include <map>
 
 class X11DisplayWindow : public DisplayWindow
@@ -61,6 +63,12 @@ public:
 
 	std::vector<std::string> GetVulkanInstanceExtensions() override;
 	VkSurfaceKHR CreateVulkanSurface(VkInstance instance) override;
+
+	void CreateGLContext() override;
+	void MakeGLContextCurrent() override;
+	bool SetGLSwapInterval(int interval) override;
+	void SwapGLBuffers() override;
+	GLFuncPtr GetGLProcAddress(const char* name) override;
 
 private:
 	void UpdateCursor();
@@ -134,6 +142,10 @@ private:
 	} backbuffer;
 
 	bool needsUpdate = false;
+
+	EGLDisplay m_EGLDisplay = nullptr;
+	EGLContext m_EGLContext = nullptr;
+	EGLSurface m_EGLSurface = nullptr;
 
 	friend class X11Connection;
 	friend class X11DisplayBackend;

@@ -10,6 +10,11 @@ WaylandDisplayWindow::WaylandDisplayWindow(WaylandDisplayBackend* backend, Displ
 {
 	m_WindowSurface = backend->m_waylandCompositor.create_surface();
 
+	if (m_renderAPI == RenderAPI::OpenGL)
+	{
+		m_EGLWindow = wayland::egl_window_t(m_WindowSurface, 320, 240);
+	}
+
 	m_NativeHandle.display = backend->s_waylandDisplay;
 	m_NativeHandle.surface = m_WindowSurface;
 
@@ -60,6 +65,17 @@ WaylandDisplayWindow::WaylandDisplayWindow(WaylandDisplayBackend* backend, Displ
 
 WaylandDisplayWindow::~WaylandDisplayWindow()
 {
+	if (m_EGLContext)
+	{
+		eglMakeCurrent(m_EGLDisplay, m_EGLSurface, m_EGLSurface, nullptr);
+		eglDestroyContext(m_EGLDisplay, m_EGLContext);
+		eglDestroySurface(m_EGLDisplay, m_EGLSurface);
+		eglTerminate(m_EGLDisplay);
+
+		m_EGLContext = nullptr;
+		m_EGLSurface = nullptr;
+		m_EGLDisplay = nullptr;
+	}
 	backend->OnWindowDestroyed(this);
 }
 
@@ -445,6 +461,9 @@ void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
 	if (m_Viewport)
 		m_Viewport.set_destination(width, height);
 	m_WindowSize = Size(scaled_width, scaled_height);
+
+	if (m_EGLWindow)
+		m_EGLWindow.resize(width, height);
 }
 
 void WaylandDisplayWindow::CreateAppIconBuffers(const std::vector<std::shared_ptr<Image>>& images)
@@ -477,6 +496,82 @@ void WaylandDisplayWindow::CreateAppIconBuffers(const std::vector<std::shared_pt
 std::string WaylandDisplayWindow::GetWaylandWindowID()
 {
 	return m_windowID;
+}
+
+void WaylandDisplayWindow::CreateGLContext()
+{
+	EGLint majorVer, minorVer;
+
+	EGLint ctxAttrs[] = {
+		EGL_CONTEXT_MAJOR_VERSION, 3,
+		EGL_CONTEXT_MINOR_VERSION, 2,
+		EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+		EGL_NONE
+	};
+
+	EGLint confAttrs[] = {
+		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+		EGL_CONFORMANT,	EGL_OPENGL_BIT,
+		EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+		EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
+
+		EGL_RED_SIZE, 8,
+		EGL_GREEN_SIZE, 8,
+		EGL_BLUE_SIZE, 8,
+		EGL_DEPTH_SIZE, 24,
+		EGL_STENCIL_SIZE, 8,
+
+		EGL_NONE
+	};
+
+	m_EGLDisplay = eglGetDisplay(backend->s_waylandDisplay);
+
+	if (m_EGLDisplay == EGL_NO_DISPLAY)
+		throw std::runtime_error("No EGL Display found");
+
+	if (!eglInitialize(m_EGLDisplay, &majorVer, &minorVer))
+		throw std::runtime_error("Error initializing EGL");
+
+	if (majorVer < 1 || (majorVer == 1 && minorVer < 5))
+		throw std::runtime_error("EGL version 1.5 or higher required");
+
+	if (!eglBindAPI(EGL_OPENGL_API))
+		throw std::runtime_error("EGL cannot bind to OpenGL API");
+
+	EGLConfig config;
+	EGLint config_count;
+
+	if (!eglChooseConfig(m_EGLDisplay, confAttrs, &config, 1, &config_count) || config_count != 1)
+		throw std::runtime_error("Cannot choose EGL config. Error code: " + std::to_string(eglGetError()));
+
+	m_EGLContext = eglCreateContext(m_EGLDisplay, config, EGL_NO_CONTEXT, ctxAttrs);
+	if (m_EGLContext == EGL_NO_CONTEXT)
+		throw std::runtime_error("Failed to create EGL context. Error code: " + std::to_string(eglGetError()));
+
+	m_EGLSurface = eglCreateWindowSurface(m_EGLDisplay, config, m_EGLWindow, nullptr);
+	if (m_EGLSurface == EGL_NO_SURFACE)
+		throw std::runtime_error("Failed to create EGL surface. Error code: " + std::to_string(eglGetError()));
+}
+
+void WaylandDisplayWindow::MakeGLContextCurrent()
+{
+	if (!eglMakeCurrent(m_EGLDisplay, m_EGLSurface, m_EGLSurface, m_EGLContext))
+		throw std::runtime_error("Error in eglMakeCurrent(). Error code: " + std::to_string(eglGetError()));
+}
+
+bool WaylandDisplayWindow::SetGLSwapInterval(int interval)
+{
+	return eglSwapInterval(m_EGLDisplay, interval);
+}
+
+void WaylandDisplayWindow::SwapGLBuffers()
+{
+	eglSwapBuffers(m_EGLDisplay, m_EGLSurface);
+}
+
+DisplayWindow::GLFuncPtr X11DisplayWindow::GetGLProcAddress(const char* name)
+{
+	return (GLFuncPtr)eglGetProcAddress(name);
 }
 
 // This is to avoid needing all the Vulkan headers and the volk binding library just for this:

@@ -139,6 +139,18 @@ X11DisplayWindow::~X11DisplayWindow()
 		XFreePixmap(display, cursor_bitmap);
 	}
 
+	if (m_EGLContext)
+	{
+		eglMakeCurrent(m_EGLDisplay, m_EGLSurface, m_EGLSurface, nullptr);
+		eglDestroyContext(m_EGLDisplay, m_EGLContext);
+		eglDestroySurface(m_EGLDisplay, m_EGLSurface);
+		eglTerminate(m_EGLDisplay);
+
+		m_EGLContext = nullptr;
+		m_EGLSurface = nullptr;
+		m_EGLDisplay = nullptr;
+	}
+
 	DestroyBackbuffer();
 	XDestroyWindow(display, window);
 	GetX11Connection()->windows.erase(GetX11Connection()->windows.find(window));
@@ -1164,6 +1176,93 @@ void X11DisplayWindow::OnSelectionRequest(XEvent* event)
 
 		XSendEvent(display, requestor, False, 0, &response);
 	}
+}
+
+void X11DisplayWindow::CreateGLContext()
+{
+	EGLint majorVer, minorVer;
+
+	EGLint ctxAttrs[] = {
+		EGL_CONTEXT_MAJOR_VERSION, 3,
+		EGL_CONTEXT_MINOR_VERSION, 2,
+		EGL_CONTEXT_OPENGL_PROFILE_MASK, EGL_CONTEXT_OPENGL_CORE_PROFILE_BIT,
+		EGL_NONE
+	};
+
+	EGLint confAttrs[] = {
+		EGL_SURFACE_TYPE, EGL_WINDOW_BIT,
+		EGL_CONFORMANT,	EGL_OPENGL_BIT,
+		EGL_RENDERABLE_TYPE, EGL_OPENGL_BIT,
+		EGL_COLOR_BUFFER_TYPE, EGL_RGB_BUFFER,
+
+		EGL_RED_SIZE, 8,
+		EGL_GREEN_SIZE, 8,
+		EGL_BLUE_SIZE, 8,
+		EGL_DEPTH_SIZE, 24,
+		EGL_STENCIL_SIZE, 8,
+
+		EGL_NONE
+	};
+
+	m_EGLDisplay = eglGetPlatformDisplay(EGL_PLATFORM_X11_KHR, display, nullptr);
+
+	if (m_EGLDisplay == EGL_NO_DISPLAY)
+		throw std::runtime_error("No EGL Display found");
+
+	if (!eglInitialize(m_EGLDisplay, &majorVer, &minorVer))
+		throw std::runtime_error("Error initializing EGL");
+
+	if (majorVer < 1 || (majorVer == 1 && minorVer < 5))
+		throw std::runtime_error("EGL version 1.5 or higher required");
+
+	if (!eglBindAPI(EGL_OPENGL_API))
+		throw std::runtime_error("EGL cannot bind to OpenGL API");
+
+	m_EGLContext = eglCreateContext(m_EGLDisplay, EGL_NO_CONFIG_KHR, EGL_NO_CONTEXT, ctxAttrs);
+	if (m_EGLContext == EGL_NO_CONTEXT)
+		throw std::runtime_error("Failed to create EGL context. Error code: " + std::to_string(eglGetError()));
+
+	EGLConfig configs[32];
+	EGLint config_count = 32;
+
+	if (!eglChooseConfig(m_EGLDisplay, confAttrs, configs, config_count, &config_count) || config_count == 0)
+		throw std::runtime_error("Cannot choose EGL config. Error code: " + std::to_string(eglGetError()));
+
+	for (EGLint i = 0 ; i < config_count ; i++)
+	{
+		EGLAttrib attrs[] = {
+			EGL_RENDER_BUFFER, EGL_BACK_BUFFER,
+			EGL_NONE
+		};
+
+		m_EGLSurface = eglCreateWindowSurface(m_EGLDisplay, configs[i], window, nullptr);
+		if (m_EGLSurface != EGL_NO_SURFACE)
+			break;
+	}
+
+	if (m_EGLSurface == EGL_NO_SURFACE)
+		throw std::runtime_error("Failed to create EGL surface. Error code: " + std::to_string(eglGetError()));
+}
+
+void X11DisplayWindow::MakeGLContextCurrent()
+{
+	if (!eglMakeCurrent(m_EGLDisplay, m_EGLSurface, m_EGLSurface, m_EGLContext))
+		throw std::runtime_error("Error in eglMakeCurrent(). Error code: " + std::to_string(eglGetError()));
+}
+
+bool X11DisplayWindow::SetGLSwapInterval(int interval)
+{
+	return eglSwapInterval(m_EGLDisplay, interval);
+}
+
+void X11DisplayWindow::SwapGLBuffers()
+{
+	eglSwapBuffers(m_EGLDisplay, m_EGLSurface);
+}
+
+DisplayWindow::GLFuncPtr X11DisplayWindow::GetGLProcAddress(const char* name)
+{
+	return (GLFuncPtr)eglGetProcAddress(name);
 }
 
 // This is to avoid needing all the Vulkan headers and the volk binding library just for this:

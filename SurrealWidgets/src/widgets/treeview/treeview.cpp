@@ -81,7 +81,7 @@ void TreeView::AddItem(const std::string& text, int index, int column, bool asCh
 
 int TreeView::GetColumnCount() const
 {
-    return m_Header->GetColumnCount();
+    return (int)m_Header->GetColumnCount();
 }
 
 double TreeView::GetColumnWidth(const int index) const
@@ -171,7 +171,7 @@ double TreeView::GetPreferredWidth()
 
     if (m_Header->GetColumnCount() != 0)
     {
-        for (int i = 0, count = m_Header->GetColumnCount(); i < count; i++)
+        for (int i = 0, count = (int)m_Header->GetColumnCount(); i < count; i++)
         {
             total += m_Header->GetColumnWidth(i);
         }
@@ -356,7 +356,7 @@ void TreeViewBody::OnPaint(Canvas* canvas)
 				canvas->fillRect(Rect::xywh(x - 2.0, itemY, w, itemHeight), selectionColor);
 			}
 			double cx = x;
-			int colCount = std::min(item->m_Columns.size(), m_TreeView->m_Header->GetColumnCount());
+			int colCount = (int)std::min(item->m_Columns.size(), m_TreeView->m_Header->GetColumnCount());
 			for (int colIndex = 0; colIndex < colCount; ++colIndex)
 			{
 				double colwidth = m_TreeView->m_Header->GetColumnWidth(colIndex);

@@ -376,6 +376,8 @@ public:
 	virtual void MakeGLContextCurrent() { throw std::runtime_error("MakeGLContextCurrent not supported for this backend"); }
 	virtual bool SetGLSwapInterval(int interval) { throw std::runtime_error("SetOpenGLSwapInterval not supported for this backend"); }
 	virtual void SwapGLBuffers() { throw std::runtime_error("SwapOpenGLBuffers not supported for this backend"); }
+	typedef void(*GLFuncPtr)();
+	virtual GLFuncPtr GetGLProcAddress(const char* name) { throw std::runtime_error("GetGLProcAddress not supported for this backend"); }
 };
 
 class DisplayBackend
