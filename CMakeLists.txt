@@ -329,12 +329,13 @@ elseif(APPLE)
 		message(FATAL_ERROR "CoreVideo framework not found")
 	endif()
 
+	find_library(QUARTZCORE_FRAMEWORK QuartzCore)
+	if (NOT QUARTZCORE_FRAMEWORK)
+		message(FATAL_ERROR "QuartzCore framework not found")
+	endif()
+
 	if(ENABLE_METAL)
 		find_library(METAL_FRAMEWORK Metal)
-		find_library(QUARTZCORE_FRAMEWORK QuartzCore)
-		if (NOT QUARTZCORE_FRAMEWORK)
-			message(FATAL_ERROR "QuartzCore framework not found")
-		endif()
 	endif()
 
 	if(ENABLE_OPENGL)
