@@ -35,7 +35,7 @@ struct InitDbgHelp
 	bool bHasSymbols;
 };
 
-#elif defined __linux__
+#elif defined __linux__ || defined __APPLE__
 
 #include <execinfo.h>
 #include <cxxabi.h>
@@ -129,6 +129,70 @@ int Exception::CaptureStackFrames(std::ostringstream& sstream, int maxframes)
 
 	return frame;
 
+
+/////////////////////////////////////////////////////////////////////
+#elif defined __APPLE__
+
+	if (maxframes <= 0)
+		return 0;
+
+	std::vector<void*> frames(static_cast<size_t>(maxframes));
+	const int frameCount = backtrace(frames.data(), maxframes);
+	if (frameCount <= 2)
+		return 0;
+
+	using SymbolList = std::unique_ptr<char*, decltype(&std::free)>;
+	SymbolList symbols(backtrace_symbols(frames.data(), frameCount), &std::free);
+	if (!symbols)
+		return 0;
+
+	auto formatSymbol = [](const char* rawSymbol)
+	{
+		if (!rawSymbol)
+			return std::string("<unknown>");
+
+		std::string symbol(rawSymbol);
+		const size_t offsetPos = symbol.rfind(" + ");
+		const size_t addressPos = symbol.find("0x");
+
+		if (offsetPos == std::string::npos || addressPos == std::string::npos)
+			return symbol;
+
+		const size_t addressEnd = symbol.find_first_of(" \t", addressPos);
+		if (addressEnd == std::string::npos)
+			return symbol;
+
+		const size_t nameBegin = symbol.find_first_not_of(" \t", addressEnd);
+		if (nameBegin == std::string::npos || nameBegin >= offsetPos)
+			return symbol;
+
+		std::string functionName = symbol.substr(nameBegin, offsetPos - nameBegin);
+		std::string mangledName = functionName;
+
+		// Mach-O symbols have some underscores
+		if (mangledName.compare(0, 3, "__Z") == 0)
+			mangledName.erase(0, 1);
+
+		if (mangledName.compare(0, 2, "_Z") == 0)
+		{
+			int status = 0;
+			std::unique_ptr<char, decltype(&std::free)> demangled(
+				abi::__cxa_demangle(mangledName.c_str(), nullptr, nullptr, &status),
+				&std::free);
+
+			if (status == 0 && demangled)
+				functionName = demangled.get();
+		}
+
+		return functionName + symbol.substr(offsetPos);
+	};
+
+	for (size_t frame = 0; frame < frameCount; frame++)
+	{
+		sstream << "at " << formatSymbol(symbols.get()[frame]) << std::endl;
+	}
+
+	return frameCount;
 
 /////////////////////////////////////////////////////////////////////
 #else
