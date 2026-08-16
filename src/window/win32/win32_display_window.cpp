@@ -1135,6 +1135,11 @@ void Win32DisplayWindow::SwapGLBuffers()
 	SwapBuffers(openglDC);
 }
 
+DisplayWindow::GLFuncPtr Win32DisplayWindow::GetGLProcAddress(const char* name)
+{
+	return (GLFuncPtr)wglGetProcAddress(name);
+}
+
 static void CALLBACK Win32TimerCallback(HWND handle, UINT message, UINT_PTR timerID, DWORD timestamp)
 {
 	auto it = Win32DisplayWindow::Timers.find(timerID);

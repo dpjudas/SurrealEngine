@@ -70,6 +70,7 @@ public:
 	void MakeGLContextCurrent() override;
 	bool SetGLSwapInterval(int interval) override;
 	void SwapGLBuffers() override;
+	GLFuncPtr GetGLProcAddress(const char* name) override;
 
 	static void ProcessEvents();
 	static void RunLoop();

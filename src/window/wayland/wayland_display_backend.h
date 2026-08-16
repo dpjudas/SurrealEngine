@@ -7,6 +7,7 @@
 #include <wayland-client-protocol-extra.hpp>
 #include <wayland-client-protocol-unstable.hpp>
 #include <wayland-cursor.hpp>
+#include <wayland-egl.hpp>
 #include "wl_fractional_scaling_protocol.hpp"
 #include "wl_xdg_toplevel_icon.hpp"
 #include "wl_xdg_dialog_v1.hpp"
