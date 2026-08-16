@@ -11,9 +11,12 @@
 #include <cmath>
 
 static Widget* InitGLWidget = nullptr;
-void* IntGetProcAddress(const GLubyte* name)
+extern "C"
 {
-	return reinterpret_cast<void*>(InitGLWidget->GetGLProcAddress((const char*)name));
+	void* IntGetProcAddress(const GLubyte* name)
+	{
+		return reinterpret_cast<void*>(InitGLWidget->GetGLProcAddress((const char*)name));
+	}
 }
 
 GLRenderDevice::GLRenderDevice(Widget* InViewport)
@@ -50,8 +53,10 @@ bool GLRenderDevice::Init(int NewX, int NewY, bool Fullscreen)
 		Viewport->MakeGLContextCurrent();
 
 		InitGLWidget = Viewport;
-		ogl_LoadFunctions();
+		int result = ogl_LoadFunctions();
 		InitGLWidget = nullptr;
+		if (result == ogl_LOAD_FAILED)
+			throw std::runtime_error("ogl_LoadFunctions failed");
 
 		CreateScenePass();
 		CreatePresentPass();
