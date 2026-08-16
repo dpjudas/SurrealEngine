@@ -1101,7 +1101,22 @@ if(WIN32)
 	add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:OpenAL::OpenAL>" $<TARGET_FILE_DIR:SurrealEngine>)
 endif()
 
-add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine.pk3" $<TARGET_FILE_DIR:SurrealEngine>)
+if(APPLE)
+	foreach(bundle_target SurrealEngine SurrealEditor)
+		add_custom_command(TARGET ${bundle_target} POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Resources"
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+				"${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine.pk3"
+				"$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Resources"
+		)
+	endforeach()
+else()
+	add_custom_command(TARGET SurrealEngine POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+			"${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine.pk3"
+			$<TARGET_FILE_DIR:SurrealEngine>
+	)
+endif()
 
 if(MSVC)
 	# Create stripped PDBs for nightly builds
