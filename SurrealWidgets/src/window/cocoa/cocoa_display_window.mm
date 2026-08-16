@@ -5,6 +5,8 @@
 #include <map>
 #include <dlfcn.h>
 #include <cmath>
+#include <atomic>
+
 // Minimal Vulkan type definitions (no headers required)
 #ifndef VK_VERSION_1_0
 
@@ -42,6 +44,48 @@ typedef VkResult(VKAPI_PTR* PFN_vkCreateMetalSurfaceEXT)(
 #endif
 
 #endif
+
+class CocoaVulkanLoader
+{
+public:
+    CocoaVulkanLoader()
+    {
+        static const char* libraryNames[] = {
+            "libvulkan.dylib",
+            "libvulkan.1.dylib",
+            "libMoltenVK.dylib"
+        };
+
+        // volk loads the active implementation RTLD_LOCAL, so, re-open only an
+        // already loaded image so this never selects a second implementation
+        for (const char* libraryName : libraryNames)
+        {
+            module = dlopen(libraryName, RTLD_NOW | RTLD_LOCAL | RTLD_NOLOAD);
+            if (module)
+                break;
+        }
+        if (!module)
+            throw std::runtime_error("Could not access the active Vulkan implementation");
+
+        getInstanceProcAddr = reinterpret_cast<PFN_vkGetInstanceProcAddr>(dlsym(module, "vkGetInstanceProcAddr"));
+        if (!getInstanceProcAddr)
+        {
+            dlclose(module);
+            module = nullptr;
+            throw std::runtime_error("vkGetInstanceProcAddr not found in the active Vulkan implementation");
+        }
+    }
+
+    ~CocoaVulkanLoader()
+    {
+        if (module)
+            dlclose(module);
+    }
+
+    PFN_vkGetInstanceProcAddr getInstanceProcAddr = nullptr;
+    void* module = nullptr;
+};
+
 #include <surrealwidgets/core/image.h>
 #include "surrealwidgets/window/cocoanativehandle.h"
 #ifdef HAVE_METAL
@@ -50,9 +94,11 @@ typedef VkResult(VKAPI_PTR* PFN_vkCreateMetalSurfaceEXT)(
 #import "AppKitWrapper.h"
 #import <Cocoa/Cocoa.h>
 
+#import <QuartzCore/CAMetalLayer.h>
+#import <QuartzCore/CATransaction.h>
+
 #ifdef HAVE_METAL
 #import <Metal/Metal.h>
-#import <QuartzCore/CAMetalLayer.h>
 #endif
 
 #ifdef HAVE_OPENGL
@@ -131,6 +177,12 @@ InputKey keycode_to_inputkey(unsigned short keycode)
     return InputKey::None;
 }
 
+struct CocoaDisplayWindowLifetime
+{
+    std::atomic<bool> alive = true;
+    std::atomic<bool> updatePending = false;
+};
+
 struct CocoaDisplayWindowImpl
 {
 public:
@@ -142,6 +194,7 @@ public:
     std::map<InputKey, bool> keyState;
     bool mouseCaptured = false;
     RenderAPI renderAPI = RenderAPI::Unspecified;
+    std::shared_ptr<CocoaDisplayWindowLifetime> lifetime = std::make_shared<CocoaDisplayWindowLifetime>();
 
     CVDisplayLinkRef displayLink = nullptr;
 
@@ -151,9 +204,9 @@ public:
     int bitmapWidth = 0;
     int bitmapHeight = 0;
 
+    CAMetalLayer* metalLayer = nil;
 #ifdef HAVE_METAL
     id<MTLDevice> metalDevice = nil;
-    CAMetalLayer* metalLayer = nil;
 #endif
 
 #ifdef HAVE_OPENGL
@@ -162,9 +215,7 @@ public:
 
     // Declare methods, but implement them outside the struct
     void initOpenGL(ZWidgetView* view);
-#ifdef HAVE_METAL
     void updateDrawableSize(CGSize size);
-#endif
 
     CVReturn displayLinkOutputCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* inNow, const CVTimeStamp* inOutputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext);
     void startDisplayLink();
@@ -172,6 +223,7 @@ public:
 
     ~CocoaDisplayWindowImpl()
     {
+        stopDisplayLink();
         if (bitmapContext) CGContextRelease(bitmapContext);
         if (colorSpace) CGColorSpaceRelease(colorSpace);
         if (cgImage) CGImageRelease(cgImage);
@@ -219,14 +271,11 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
     if (self)
     {
         impl = d;
-        // Only use layer-backing for Metal/OpenGL, not for Bitmap rendering
-        // For Bitmap rendering, we need drawRect: to be called
-        if (impl->renderAPI == RenderAPI::Metal || impl->renderAPI == RenderAPI::OpenGL)
-        {
-            self.wantsLayer = YES;
-            self.layer.contentsScale = [NSScreen mainScreen].backingScaleFactor;
-        }
-        // CRITICAL: Don't access self.layer for Bitmap rendering - accessing it creates a layer!
+        // Vulkan via MoltenVK and Metal both render through a CAMetalLayer.
+        // Bitmap rendering uses the backing layer's contents for reliable
+        // presentation on modern macOS
+        self.wantsLayer = YES;
+        self.layer.contentsScale = [NSScreen mainScreen].backingScaleFactor;
         // Don't create tracking area here - it will be created in updateTrackingAreas
         trackingArea = nil;
     }
@@ -263,9 +312,8 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
 
 - (CALayer *)makeBackingLayer
 {
-    // This is only called for layer-backed views (Metal/OpenGL)
-    // Create appropriate layer based on render API
-    if (impl && impl->renderAPI == RenderAPI::Metal)
+    // Vulkan via MoltenVK and Metal both require a CAMetalLayer
+    if (impl && (impl->renderAPI == RenderAPI::Vulkan || impl->renderAPI == RenderAPI::Metal))
     {
         return [CAMetalLayer layer];
     }
@@ -279,12 +327,10 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
 - (void)setFrame:(NSRect)frame
 {
     [super setFrame:frame];
-#ifdef HAVE_METAL
-    if (impl && impl->renderAPI == RenderAPI::Metal)
+    if (impl && (impl->renderAPI == RenderAPI::Vulkan || impl->renderAPI == RenderAPI::Metal))
     {
         impl->updateDrawableSize(frame.size);
     }
-#endif
 }
 - (NSView *)hitTest:(NSPoint)point
 {
@@ -342,12 +388,9 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
         }
 #endif
     }
-    else if (impl->renderAPI == RenderAPI::Metal)
+    else if (impl->renderAPI == RenderAPI::Vulkan || impl->renderAPI == RenderAPI::Metal)
     {
-#ifdef HAVE_METAL
-        // Metal rendering is handled by the CVDisplayLink callback
-        // No need to do anything here directly
-#endif
+        // Vulkan and Metal rendering are performed outside drawRect:.
     }
 }
 
@@ -359,8 +402,8 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
         [[self window] makeFirstResponder:self];
 
         impl->windowHost->OnWindowPaint();
-        // Only start displayLink for OpenGL/Metal rendering (continuous refresh needed)
-        // Bitmap rendering is event-driven, no continuous refresh needed
+        // Vulkan is driven by the engine's render loop. The display link is only
+        // needed by the existing OpenGL/Metal paths.
         if (impl->renderAPI == RenderAPI::OpenGL || impl->renderAPI == RenderAPI::Metal)
         {
             impl->startDisplayLink();
@@ -656,16 +699,14 @@ void CocoaDisplayWindowImpl::initOpenGL(ZWidgetView* view)
 #endif
 }
 
-#ifdef HAVE_METAL
 void CocoaDisplayWindowImpl::updateDrawableSize(CGSize size)
 {
     if (metalLayer)
     {
-        CGFloat scale = [NSScreen mainScreen].backingScaleFactor;
+        CGFloat scale = window ? window.backingScaleFactor : [NSScreen mainScreen].backingScaleFactor;
         metalLayer.drawableSize = CGSizeMake(size.width * scale, size.height * scale);
     }
 }
-#endif
 
 CVReturn CocoaDisplayWindowImpl::displayLinkOutputCallback(CVDisplayLinkRef displayLink, const CVTimeStamp* inNow, const CVTimeStamp* inOutputTime, CVOptionFlags flagsIn, CVOptionFlags* flagsOut, void* displayLinkContext)
 {
@@ -722,30 +763,35 @@ CocoaDisplayWindow::CocoaDisplayWindow(DisplayWindowHost* windowHost, WidgetType
         [impl->window setParentWindow:cocoaOwner->impl->window];
     }
 
-#ifdef HAVE_METAL
-    // Only create Metal layer if actually using Metal rendering
-    // Accessing view.layer forces layer-backing which breaks Bitmap rendering
-    if (renderAPI == RenderAPI::Metal)
+    // Accessing view.layer forces layer-backing, so only do it for APIs that
+    // render through Core Animation. Let the view create the CAMetalLayer so
+    // it remains the layer delegate, recommended by the MoltenVK docs
+    if (renderAPI == RenderAPI::Vulkan || renderAPI == RenderAPI::Metal)
     {
-        // Create Metal device and layer for application rendering
-        // Applications can access these via GetMetalDevice() and GetMetalLayer()
-        impl->metalDevice = MTLCreateSystemDefaultDevice();
-        if (impl->metalDevice)
+        impl->metalLayer = (CAMetalLayer*)view.layer;
+        impl->metalLayer.contentsScale = impl->window.backingScaleFactor;
+        impl->updateDrawableSize(view.bounds.size);
+
+        if (renderAPI == RenderAPI::Metal)
         {
-            impl->metalLayer = [CAMetalLayer layer];
-            impl->metalLayer.device = impl->metalDevice;
-            impl->metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
-            impl->metalLayer.framebufferOnly = NO;  // Allow reading for screenshots, etc.
-            impl->metalLayer.presentsWithTransaction = NO;
-            impl->metalLayer.displaySyncEnabled = YES;
-            impl->metalLayer.maximumDrawableCount = 3;
-            impl->metalLayer.autoresizingMask = kCALayerWidthSizable | kCALayerHeightSizable;
-            impl->metalLayer.contentsScale = [[NSScreen mainScreen] backingScaleFactor];
-            impl->metalLayer.frame = view.layer.frame;
-            [view.layer addSublayer:impl->metalLayer];
+#ifdef HAVE_METAL
+            impl->metalDevice = MTLCreateSystemDefaultDevice();
+            if (impl->metalDevice)
+            {
+                impl->metalLayer.device = impl->metalDevice;
+                impl->metalLayer.pixelFormat = MTLPixelFormatBGRA8Unorm;
+                impl->metalLayer.framebufferOnly = NO;  // Allow reading for screenshots, etc.
+                impl->metalLayer.presentsWithTransaction = NO;
+                impl->metalLayer.displaySyncEnabled = YES;
+                impl->metalLayer.maximumDrawableCount = 3;
+            }
+            else
+#endif
+            {
+                impl->renderAPI = RenderAPI::Bitmap;
+            }
         }
     }
-#endif
 #ifdef HAVE_OPENGL
     if (renderAPI == RenderAPI::OpenGL)
     {
@@ -753,6 +799,7 @@ CocoaDisplayWindow::CocoaDisplayWindow(DisplayWindowHost* windowHost, WidgetType
     }
     else
 #endif
+    if (renderAPI != RenderAPI::Vulkan && renderAPI != RenderAPI::Metal)
     {
         impl->renderAPI = RenderAPI::Bitmap;
     }
@@ -760,6 +807,22 @@ CocoaDisplayWindow::CocoaDisplayWindow(DisplayWindowHost* windowHost, WidgetType
 
 CocoaDisplayWindow::~CocoaDisplayWindow()
 {
+    if (!impl)
+        return;
+
+    impl->lifetime->alive = false;
+    impl->windowHost = nullptr;
+
+    if (impl->window)
+    {
+        ZWidgetView* view = (ZWidgetView*)[impl->window contentView];
+        view->impl = nullptr;
+        [impl->window setDelegate:nil];
+        [impl->window orderOut:nil];
+        [impl->window close];
+        impl->window = nil;
+    }
+    impl->delegate = nil;
 }
 
 void CocoaDisplayWindow::SetWindowTitle(const std::string& text)
@@ -978,21 +1041,26 @@ void CocoaDisplayWindow::Update()
     if (!impl->window || !impl->windowHost)
         return;
 
-    // Queue paint asynchronously to avoid interfering with event processing
-    // Use weak reference to window to avoid dangling pointer issues
+    // Guard the raw DisplayWindowHost pointer because the NSWindow can outlive
+    // its C++ owner, so merely capturing it weakly is not enough to make a
+    // queued paint safe after the owner is destroyed.
+    std::shared_ptr<CocoaDisplayWindowLifetime> lifetime = impl->lifetime;
+    if (lifetime->updatePending.exchange(true))
+        return;
+
     __weak NSWindow* weakWindow = impl->window;
     DisplayWindowHost* hostPtr = impl->windowHost;
 
     dispatch_async(dispatch_get_main_queue(), ^{
+        lifetime->updatePending = false;
+        if (!lifetime->alive)
+            return;
+
         NSWindow* strongWindow = weakWindow;
         if (!strongWindow)
             return;
 
-        // Regenerate the bitmap
         hostPtr->OnWindowPaint();
-
-        // Trigger redraw
-        [[strongWindow contentView] setNeedsDisplay:YES];
     });
 }
 
@@ -1171,11 +1239,12 @@ void CocoaDisplayWindow::PresentBitmap(int width, int height, const uint32_t* pi
 
         if (impl->window)
         {
-            dispatch_async(dispatch_get_main_queue(), ^{
-                NSView* contentView = [impl->window contentView];
-                [contentView setNeedsDisplay:YES];
-                [contentView displayIfNeeded];
-            });
+            NSView* contentView = [impl->window contentView];
+            [CATransaction begin];
+            [CATransaction setDisableActions:YES];
+            contentView.layer.contents = (__bridge id)impl->cgImage;
+            contentView.layer.contentsGravity = kCAGravityResize;
+            [CATransaction commit];
         }
     }
 }
@@ -1206,9 +1275,7 @@ void* CocoaDisplayWindow::GetNativeHandle()
     {
         handle->nsWindow = impl->window;
         handle->nsView = [impl->window contentView];
-#ifdef HAVE_METAL
         handle->metalLayer = (__bridge void*)impl->metalLayer;
-#endif
     }
     return handle;
 }
@@ -1223,33 +1290,26 @@ std::vector<std::string> CocoaDisplayWindow::GetVulkanInstanceExtensions()
 }
 VkSurfaceKHR CocoaDisplayWindow::CreateVulkanSurface(VkInstance instance)
 {
-    if (impl->window && impl->metalLayer)
-    {
-        // Dynamically load vkCreateMetalSurfaceEXT
-        static PFN_vkCreateMetalSurfaceEXT vkCreateMetalSurfaceEXT = nullptr;
-        if (!vkCreateMetalSurfaceEXT)
-        {
-            void* vulkanLib = dlopen("libvulkan.dylib", RTLD_NOW);
-            if (vulkanLib)
-            {
-                vkCreateMetalSurfaceEXT = (PFN_vkCreateMetalSurfaceEXT)dlsym(vulkanLib, "vkCreateMetalSurfaceEXT");
-            }
-        }
+    if (!impl->window || !impl->metalLayer)
+        throw std::runtime_error("Could not create vulkan surface: no metal layer");
 
-        if (vkCreateMetalSurfaceEXT)
-        {
-            VkMetalSurfaceCreateInfoEXT surfaceInfo = {};
-            surfaceInfo.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
-            surfaceInfo.pLayer = (__bridge void*)impl->metalLayer;
+    // Query through the same Vulkan implementation that volk used to create
+    // this instance, rather than opening a separate loader
+    static CocoaVulkanLoader loader;
 
-            VkSurfaceKHR surface = nullptr;
-            VkResult err = vkCreateMetalSurfaceEXT(instance, &surfaceInfo, nullptr, &surface);
-            if (err != VK_SUCCESS)
-                throw std::runtime_error("Could not create vulkan surface: vkCreateMetalSurfaceEXT failed");
-            return surface;
-        }
-    }
-    throw std::runtime_error("Could not create vulkan surface: no metal layer");
+    auto createMetalSurface = reinterpret_cast<PFN_vkCreateMetalSurfaceEXT>(loader.getInstanceProcAddr(instance, "vkCreateMetalSurfaceEXT"));
+    if (!createMetalSurface)
+        throw std::runtime_error("Could not create vulkan surface: vkCreateMetalSurfaceEXT not found");
+
+    VkMetalSurfaceCreateInfoEXT surfaceInfo = {};
+    surfaceInfo.sType = VK_STRUCTURE_TYPE_METAL_SURFACE_CREATE_INFO_EXT;
+    surfaceInfo.pLayer = (__bridge void*)impl->metalLayer;
+
+    VkSurfaceKHR surface = nullptr;
+    VkResult err = createMetalSurface(instance, &surfaceInfo, nullptr, &surface);
+    if (err != VK_SUCCESS)
+        throw std::runtime_error("Could not create vulkan surface: vkCreateMetalSurfaceEXT failed");
+    return surface;
 }
 
 void* CocoaDisplayWindow::GetMetalDevice()
@@ -1264,10 +1324,5 @@ void* CocoaDisplayWindow::GetMetalDevice()
 
 void* CocoaDisplayWindow::GetMetalLayer()
 {
-#ifdef HAVE_METAL
-    // Return the CAMetalLayer for application rendering
     return (__bridge void*)impl->metalLayer;
-#else
-    throw std::runtime_error("Metal support not compiled into zwidget");
-#endif
 }
