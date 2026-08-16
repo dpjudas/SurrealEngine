@@ -186,7 +186,7 @@ public:
 	void MakeGLContextCurrent() { Window()->DispWindow->MakeGLContextCurrent(); }
 	bool SetGLSwapInterval(int interval) { return Window()->DispWindow->SetGLSwapInterval(interval); }
 	void SwapGLBuffers() { Window()->DispWindow->SwapGLBuffers(); }
-	DisplayWindow::GLFuncPtr GetGLProcAddress(const char* name) { Window()->DispWindow->GetGLProcAddress(name); }
+	DisplayWindow::GLFuncPtr GetGLProcAddress(const char* name) { return Window()->DispWindow->GetGLProcAddress(name); }
 
 protected:
 	virtual void OnPaintFrame(Canvas* canvas);
