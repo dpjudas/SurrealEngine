@@ -10,6 +10,12 @@
 #include <surrealwidgets/core/widget.h>
 #include <cmath>
 
+static Widget* InitGLWidget = nullptr;
+void* IntGetProcAddress(const GLubyte* name)
+{
+	return reinterpret_cast<void*>(InitGLWidget->GetGLProcAddress((const char*)name));
+}
+
 GLRenderDevice::GLRenderDevice(Widget* InViewport)
 {
 	Viewport = InViewport;
@@ -42,7 +48,10 @@ bool GLRenderDevice::Init(int NewX, int NewY, bool Fullscreen)
 	{
 		Viewport->CreateGLContext();
 		Viewport->MakeGLContextCurrent();
+
+		InitGLWidget = Viewport;
 		ogl_LoadFunctions();
+		InitGLWidget = nullptr;
 
 		CreateScenePass();
 		CreatePresentPass();
