@@ -569,7 +569,7 @@ void WaylandDisplayWindow::SwapGLBuffers()
 	eglSwapBuffers(m_EGLDisplay, m_EGLSurface);
 }
 
-DisplayWindow::GLFuncPtr X11DisplayWindow::GetGLProcAddress(const char* name)
+DisplayWindow::GLFuncPtr WaylandDisplayWindow::GetGLProcAddress(const char* name)
 {
 	return (GLFuncPtr)eglGetProcAddress(name);
 }

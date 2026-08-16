@@ -1147,14 +1147,19 @@ public:
 
 DisplayWindow::GLFuncPtr Win32DisplayWindow::GetGLProcAddress(const char* name)
 {
-	// This doesn't work due to wglGetProcAddress not returning functions that was also part of OpenGL 1
-	// return (GLFuncPtr)wglGetProcAddress(name);
+	// First try ask wglGetProcAddress:
+
+	auto ptr = (GLFuncPtr)wglGetProcAddress(name);
+	if (ptr)
+		return ptr;
+
+	// Fall back to OpenGL32.dll for functions that were part of OpenGL 1 (wglGetProcAddress won't return those!)
 
 	static Win32OpenGLModule module;
 	if (module.handle)
 		return (GLFuncPtr)GetProcAddress(module.handle, name);
-	else
-		return nullptr;
+
+	return nullptr;
 }
 
 static void CALLBACK Win32TimerCallback(HWND handle, UINT message, UINT_PTR timerID, DWORD timestamp)
