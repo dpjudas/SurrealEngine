@@ -30,6 +30,10 @@ jobs:
           deps_cmdline: sudo apt-get update && sudo apt-get install clang-15 libsdl2-dev libx11-dev libopenal-dev
           build_type: RelWithDebInfo
 
+        - name: macOS arm64
+          os: macos-latest
+          build_type: RelWithDebInfo
+
     steps:
     - uses: actions/checkout@v4
 
