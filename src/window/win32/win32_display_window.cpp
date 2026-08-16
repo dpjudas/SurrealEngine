@@ -1135,9 +1135,26 @@ void Win32DisplayWindow::SwapGLBuffers()
 	SwapBuffers(openglDC);
 }
 
+class Win32OpenGLModule
+{
+public:
+	Win32OpenGLModule()
+	{
+		handle = GetModuleHandle(L"OpenGL32.dll");
+	}
+	HMODULE handle = 0;
+};
+
 DisplayWindow::GLFuncPtr Win32DisplayWindow::GetGLProcAddress(const char* name)
 {
-	return (GLFuncPtr)wglGetProcAddress(name);
+	// This doesn't work due to wglGetProcAddress not returning functions that was also part of OpenGL 1
+	// return (GLFuncPtr)wglGetProcAddress(name);
+
+	static Win32OpenGLModule module;
+	if (module.handle)
+		return (GLFuncPtr)GetProcAddress(module.handle, name);
+	else
+		return nullptr;
 }
 
 static void CALLBACK Win32TimerCallback(HWND handle, UINT message, UINT_PTR timerID, DWORD timestamp)
