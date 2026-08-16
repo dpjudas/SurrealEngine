@@ -160,6 +160,10 @@ void VulkanInstance::CreateInstance()
 
 		VkInstanceCreateInfo createInfo = {};
 		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+#if defined(__APPLE__)
+		if (EnabledExtensions.find(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME) != EnabledExtensions.end())
+			createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
+#endif
 		createInfo.pApplicationInfo = &appInfo;
 		createInfo.enabledExtensionCount = (uint32_t)EnabledExtensions.size();
 		createInfo.enabledLayerCount = (uint32_t)enabledLayersCStr.size();
