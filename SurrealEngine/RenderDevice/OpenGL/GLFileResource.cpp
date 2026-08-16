@@ -151,7 +151,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 	else if (filename == "shaders/Present.frag")
 	{
 		return R"(
-			layout(push_constant) uniform PresentPushConstants
+			uniform PresentPushConstants
 			{
 				float Contrast;
 				float Saturation;
@@ -296,7 +296,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 	else if (filename == "shaders/BloomExtract.frag")
 	{
 		return R"(
-			layout(push_constant) uniform BloomPushConstants
+			uniform BloomPushConstants
 			{
 				float SampleWeights0;
 				float SampleWeights1;
@@ -321,7 +321,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 	else if (filename == "shaders/BloomCombine.frag")
 	{
 		return R"(
-			layout(push_constant) uniform BloomPushConstants
+			uniform BloomPushConstants
 			{
 				float SampleWeights0;
 				float SampleWeights1;
@@ -346,7 +346,7 @@ std::string GLFileResource::readAllText(const std::string& filename)
 	else if (filename == "shaders/Blur.frag")
 	{
 		return R"(
-			layout(push_constant) uniform BloomPushConstants
+			uniform BloomPushConstants
 			{
 				float SampleWeights0;
 				float SampleWeights1;
