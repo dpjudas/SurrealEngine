@@ -57,7 +57,7 @@ jobs:
         cmake --build build --config ${{ matrix.config.build_type }} --parallel 3
 
     - name: Create Package
-      if: (runner.os == 'Windows' || matrix.config.name == 'Linux GCC 12') && matrix.config.build_type == 'RelWithDebInfo'
+      if: (runner.os == 'Windows' || matrix.config.name == 'Linux GCC 12' || runner.os == 'macOS') && matrix.config.build_type == 'RelWithDebInfo'
       shell: bash
       run: |
         cd build
@@ -78,10 +78,12 @@ jobs:
           strip package/SurrealEditor
           strip package/SurrealDebugger
           strip package/libSurrealVideo.so
+        elif [[ "${{ runner.os }}" == 'macOS' ]]; then
+          cp -r SurrealEngine.app package
         fi
 
     - name: Upload Package
-      if: runner.os == 'Windows' || matrix.config.name == 'Linux GCC 12'
+      if: runner.os == 'Windows' || matrix.config.name == 'Linux GCC 12' || runner.os == 'macOS'
       uses: actions/upload-artifact@v4
       with:
         path: build/package
@@ -113,12 +115,19 @@ jobs:
         name: Linux GCC 12 RelWithDebInfo
         path: build/SurrealEngine-linux-prerelease
 
+    - name: Download macOS artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: macOS arm64 RelWithDebInfo
+        path: build/SurrealEngine-macos-prerelease
+
     - name: Zip artifacts
       shell: bash
       run: |
         cd build
         zip -r SurrealEngine-windows-prerelease.zip SurrealEngine-windows-prerelease
         zip -r SurrealEngine-linux-prerelease.zip SurrealEngine-linux-prerelease
+        zip -r SurrealEngine-macos-prerelease.zip SurrealEngine-macos-prerelease
 
     - name: Update nightly release
       uses: pyTooling/Actions/releaser@r0
@@ -126,5 +135,5 @@ jobs:
         tag: nightly
         rm: true
         token: ${{ secrets.GITHUB_TOKEN }}
-        files: build/SurrealEngine-windows-prerelease.zip build/SurrealEngine-linux-prerelease.zip
+        files: build/SurrealEngine-windows-prerelease.zip build/SurrealEngine-linux-prerelease.zip build/SurrealEngine-macos-prerelease.zip
 
