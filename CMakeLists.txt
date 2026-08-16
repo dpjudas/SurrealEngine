@@ -1120,11 +1120,17 @@ endif()
 
 if(APPLE)
 	foreach(bundle_target SurrealEngine SurrealEditor)
+		set_property(TARGET ${bundle_target} APPEND PROPERTY BUILD_RPATH "@executable_path/../Frameworks")
+		set_property(TARGET ${bundle_target} APPEND PROPERTY INSTALL_RPATH "@executable_path/../Frameworks")
 		add_custom_command(TARGET ${bundle_target} POST_BUILD
 			COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Resources"
+			COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Frameworks"
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different
 				"${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine.pk3"
 				"$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Resources"
+			COMMAND ${CMAKE_COMMAND} -E copy_if_different
+				"${MOLTENVK_DYLIB}"
+				"$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Frameworks/libMoltenVK.dylib"
 		)
 	endforeach()
 else()
