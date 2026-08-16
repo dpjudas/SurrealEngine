@@ -10,6 +10,23 @@ if (WIN32 OR APPLE)
 	add_subdirectory(Thirdparty/openal-soft)
 endif()
 
+if(APPLE)
+	include(FetchContent)
+	FetchContent_Declare(moltenvk
+		URL "https://github.com/KhronosGroup/MoltenVK/releases/download/v1.4.2/MoltenVK-macos.tar"
+		URL_HASH "SHA256=f95765a6229cb7b915990a2890ce12ebe36a730b021545d3d52ae69ce4c4024e"
+		DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+		SOURCE_SUBDIR "cmake-source-not-used"
+	)
+	FetchContent_MakeAvailable(moltenvk)
+
+	set(MOLTENVK_DYLIB
+		"${moltenvk_SOURCE_DIR}/MoltenVK/dynamic/dylib/macOS/libMoltenVK.dylib")
+	if(NOT EXISTS "${MOLTENVK_DYLIB}")
+		message(FATAL_ERROR "MoltenVK runtime was not found in the downloaded package")
+	endif()
+endif()
+
 project(SurrealEngine)
 
 set(SURREALCOMMON_SOURCES
