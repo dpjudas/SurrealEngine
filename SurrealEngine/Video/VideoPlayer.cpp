@@ -37,7 +37,7 @@ public:
 
 	size_t ReadSamples(float* output, size_t samples) override
 	{
-		size_t count = std::min(pos + samples, Data.size()) - pos;
+		size_t count = std::min<size_t>(pos + samples, Data.size()) - pos;
 		int16_t* d = Data.data() + pos;
 		for (size_t i = 0; i < count; i++)
 		{
