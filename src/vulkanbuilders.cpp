@@ -1687,6 +1687,9 @@ VulkanInstanceBuilder::VulkanInstanceBuilder()
 
 	OptionalExtension(VK_KHR_GET_SURFACE_CAPABILITIES_2_EXTENSION_NAME);
 	OptionalExtension(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
+#if defined(__APPLE__)
+	OptionalExtension(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
+#endif
 }
 
 VulkanInstanceBuilder& VulkanInstanceBuilder::ApiVersionsToTry(const std::vector<uint32_t>& versions)
@@ -1750,6 +1753,9 @@ std::shared_ptr<VulkanInstance> VulkanInstanceBuilder::Create()
 #ifndef VK_KHR_MAINTENANCE4_EXTENSION_NAME
 #define VK_KHR_MAINTENANCE4_EXTENSION_NAME "VK_KHR_maintenance4"
 #endif
+#ifndef VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME
+#define VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME "VK_KHR_portability_subset"
+#endif
 
 VulkanDeviceBuilder::VulkanDeviceBuilder()
 {
@@ -1768,6 +1774,11 @@ VulkanDeviceBuilder::VulkanDeviceBuilder()
 	// For pipeline building
 	OptionalExtension(VK_KHR_PIPELINE_LIBRARY_EXTENSION_NAME);
 	OptionalExtension(VK_EXT_GRAPHICS_PIPELINE_LIBRARY_EXTENSION_NAME);
+
+#if defined(__APPLE__)
+	// MoltenVK require this extension to be enabled
+	OptionalExtension(VK_KHR_PORTABILITY_SUBSET_EXTENSION_NAME);
+#endif
 }
 
 VulkanDeviceBuilder& VulkanDeviceBuilder::RequireExtension(const std::string& extensionName)
