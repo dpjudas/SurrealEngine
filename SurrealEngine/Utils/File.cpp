@@ -396,7 +396,7 @@ std::string OS::executable_path()
 	CFBundleRef mainBundle = CFBundleGetMainBundle();
 	if (mainBundle)
 	{
-		CFURLRef mainURL = CFBundleCopyBundleURL(mainBundle);
+		CFURLRef mainURL = CFBundleCopyResourcesDirectoryURL(mainBundle);
 
 		if (mainURL)
 		{
