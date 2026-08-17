@@ -22,7 +22,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, bool wireframe, b
 	engine->render->Stats.Actors++;
 	engine->Level->Light.UpdateLightList(actor);
 
-	DrawDebugInfo(frame, actor);
+	// DrawDebugInfo(frame, actor);
 
 	mat4 objectToWorld = mat4::translate(actor->Location() + actor->PrePivot()) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(actor->DrawScale());
 	mat4 meshToWorld = objectToWorld * mesh->meshToObject;

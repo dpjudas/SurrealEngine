@@ -55,7 +55,7 @@ void Shadowmap::Load(UModel* model, int lightMap, int lightindex)
 	this->width = width;
 	this->height = height;
 
-#if 0
+#if 1
 	// Convert bits to floats that are easier to work with
 
 	const uint8_t* bits = model->LightBits.data() + lmindex.DataOffset + lightindex * pitch * height;
@@ -92,7 +92,8 @@ void Shadowmap::Load(UModel* model, int lightMap, int lightindex)
 			dest[x] = value;
 		}
 	}
-#else
+
+#else // There is a bug in this that creates artifacts. It also wasn't much faster anyway...
 
 	// Convert bits to floats and apply 3x3 gaussian blur
 
