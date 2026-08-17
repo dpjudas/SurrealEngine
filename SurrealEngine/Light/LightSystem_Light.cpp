@@ -247,7 +247,7 @@ vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3
 		for (UActor* light : actor->TouchingLights.List)
 		{
 			vec3 lightLocation = light->Location();
-			vec3 L = location - lightLocation;
+			vec3 L = lightLocation - location;
 
 			// Distance falloff
 			float attenuation = std::max(1.0f - length(L) / light->WorldLightRadius(), 0.0f);
@@ -269,8 +269,8 @@ vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3
 
 	// Clamp final result and double the contribution to match lightmaps
 	vec3 color = ambientColor + dynamicLight;
-	color.x = std::min(color.x, 1.0f);
-	color.y = std::min(color.y, 1.0f);
-	color.z = std::min(color.z, 1.0f);
+	color.r = std::min(color.r, 1.0f);
+	color.g = std::min(color.g, 1.0f);
+	color.b = std::min(color.b, 1.0f);
 	return color * 2.0f;
 }
