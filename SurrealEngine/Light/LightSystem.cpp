@@ -139,14 +139,10 @@ void LightSystem::UpdateLightList(UActor* actor)
 	LightTree.CollectLights(location, std::max(extents.x, std::max(extents.y, extents.z)));
 	for (UActor* light : LightTree.CollectedLights)
 	{
-		if (!light->bCorona() && !light->bSpecialLit())
+		if (!light->bCorona() && light->bSpecialLit() == actor->bSpecialLit())
 		{
 			float radius = light->WorldLightRadius();
 			vec3 L = light->Location() - location;
-			if (light->LightEffect() == LE_Cylinder) // Cylinder lights have infinite Z axis range
-			{
-				L.z = 0.0f;
-			}
 			if (dot(L, L) < radius * radius && !engine->Level->Collision.TraceAnyHit(light->Location(), location, actor, false, true, true))
 			{
 				actor->TouchingLights.List.push_back(light);

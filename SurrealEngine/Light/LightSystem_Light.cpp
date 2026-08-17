@@ -66,7 +66,7 @@ TextureInfo LightSystem::GetMoverLightmap(UMover* mover, const Poly& poly, UZone
 		model, poly.BrushPolyIndex, worldCoords, zoneActor,
 		(objectToWorld * vec4(mover->Light.Center, 1.0f)).xyz(),
 		mover->Light.Radius * std::max(scale.x, std::max(scale.y, scale.z)),
-		mover->bDynamicLightMover() ? mover : nullptr);
+		mover->bDynamicLightMover() ? mover : nullptr, mover->bSpecialLit());
 }
 
 TextureInfo LightSystem::GetLevelLightmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model)
@@ -76,10 +76,10 @@ TextureInfo LightSystem::GetLevelLightmap(BspSurface& surface, UZoneInfo* zoneAc
 	mapCoords.XAxis = model->Vectors[surface.vTextureU];
 	mapCoords.YAxis = model->Vectors[surface.vTextureV];
 	mapCoords.ZAxis = model->Vectors[surface.vNormal];
-	return GetLightmap(model, surface.LightMap, mapCoords, zoneActor, surface.Center, surface.Radius, nullptr);
+	return GetLightmap(model, surface.LightMap, mapCoords, zoneActor, surface.Center, surface.Radius, nullptr, surface.PolyFlags & PF_SpecialLit);
 }
 
-TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor, const vec3& worldLocation, float radius, UMover* dynamicMover)
+TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor, const vec3& worldLocation, float radius, UMover* dynamicMover, bool specialLit)
 {
 	if (lightmapIndex < 0)
 		return {};
@@ -104,42 +104,51 @@ TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coo
 	int lastUpdate = -1;
 	TempDynLightList.clear();
 
-	if (dynamicMover)
+	if (!dynamicMover)
+	{
+		// Examine all the lights that are statically baked into the map:
+
+		if (lmindex.LightActors >= 0)
+		{
+			UActor** lightlist = &model->Lights[lmindex.LightActors];
+			for (int lightindex = 0; lightlist[lightindex] != nullptr; lightindex++)
+			{
+				UActor* light = lightlist[lightindex];
+				CheckLight(light);
+				lastUpdate = std::max(lastUpdate, light->Light.LastUpdate);
+
+				// Mark the light as visited so the second pass doesn't pick it up
+				light->Light.LightmapCheckCounter = checkCounter;
+			}
+		}
+
+		// Look at all lights potentially touching the surface. They go into our dynamic light list:
+
+		LightTree.CollectLights(worldLocation, radius);
+		for (UActor* light : LightTree.CollectedLights)
+		{
+			if (light->Light.LightmapCheckCounter != checkCounter)
+			{
+				light->Light.LightmapCheckCounter = checkCounter;
+				if (!light->bStatic() && !light->bNoDelete() && light->bSpecialLit() == specialLit)
+				{
+					CheckLight(light);
+					lastUpdate = std::max(lastUpdate, light->Light.LastUpdate);
+					TempDynLightList.push_back(light);
+				}
+			}
+		}
+	}
+	else
 	{
 		// To do: ideally we only want to do this if the mover moved
 		lastUpdate = FrameCounter;
-	}
 
-	// Examine all the lights that are statically baked into the map:
-
-	if (lmindex.LightActors >= 0)
-	{
-		UActor** lightlist = &model->Lights[lmindex.LightActors];
-		for (int lightindex = 0; lightlist[lightindex] != nullptr; lightindex++)
+		for (UActor* light : dynamicMover->TouchingLights.List)
 		{
-			UActor* light = lightlist[lightindex];
 			CheckLight(light);
 			lastUpdate = std::max(lastUpdate, light->Light.LastUpdate);
-
-			// Mark the light as visited so the second pass doesn't pick it up
-			light->Light.LightmapCheckCounter = checkCounter;
-		}
-	}
-
-	// Look at all lights potentially touching the surface. They go into our dynamic light list:
-
-	LightTree.CollectLights(worldLocation, radius);
-	for (UActor* light : LightTree.CollectedLights)
-	{
-		if (light->Light.LightmapCheckCounter != checkCounter)
-		{
-			light->Light.LightmapCheckCounter = checkCounter;
-			if (dynamicMover || !light->bStatic())
-			{
-				CheckLight(light);
-				lastUpdate = std::max(lastUpdate, light->Light.LastUpdate);
-				TempDynLightList.push_back(light);
-			}
+			TempDynLightList.push_back(light);
 		}
 	}
 
@@ -152,7 +161,8 @@ TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coo
 		engine->render->Stats.LightmapsUpdated++;
 
 		Builder.Setup(model, coords, lightmapIndex, zoneActor);
-		Builder.AddStaticLights(model, lightmapIndex);
+		if (!dynamicMover)
+			Builder.AddStaticLights(model, lightmapIndex);
 		Builder.AddDynamicLights(model, lightmapIndex, TempDynLightList);
 
 		if (!lmtexture || lmtexture->Mip.Width != Builder.Width() || lmtexture->Mip.Height != Builder.Height())
