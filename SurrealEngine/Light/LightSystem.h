@@ -42,7 +42,7 @@ public:
 	TextureInfo GetMoverFogmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
 	TextureInfo GetLevelFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
 
-	vec3 GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, UZoneInfo* zoneActor);
+	vec3 GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, bool twosided, UZoneInfo* zoneActor);
 	vec4 GetVertexFog(UActor* actor, const vec3& location);
 
 private:

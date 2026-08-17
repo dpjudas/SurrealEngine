@@ -217,7 +217,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UActor* lightLoca
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyflags & PF_Unlit), zoneActor);
+			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyflags & PF_Unlit), !!(polyflags & PF_TwoSided), zoneActor);
 			vertices[i].Fog = lightsys->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
@@ -530,7 +530,7 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, UActor* li
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), zoneActor);
+			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), !!(polyFlags & PF_TwoSided), zoneActor);
 			vertices[i].Fog = lightsys->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
@@ -763,7 +763,7 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyflags & PF_Unlit), zoneActor);
+			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyflags & PF_Unlit), !!(polyflags & PF_TwoSided), zoneActor);
 			vertices[i].Fog = lightsys->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
@@ -1028,7 +1028,7 @@ bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* 
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), zoneActor);
+			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), !!(polyFlags & PF_TwoSided), zoneActor);
 			vertices[i].Fog = lightsys->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 

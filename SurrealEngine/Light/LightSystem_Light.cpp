@@ -235,32 +235,42 @@ void LightSystem::CheckLight(UActor* light)
 	}
 }
 
-vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, UZoneInfo* zoneActor)
+vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, bool twosided, UZoneInfo* zoneActor)
 {
 	// AmbientGlow value 255 is a special pulsating effect used for powerups
 	float ambientGlow = actor->AmbientGlow() == 255 ? AmbientGlowAmount : actor->AmbientGlow() * (1.0f / 255.0f);
 	vec3 ambientColor = ambientGlow + hsbtorgb(zoneActor->AmbientHue(), zoneActor->AmbientSaturation(), zoneActor->AmbientBrightness());
 
-	if (unlit)
+	vec3 dynamicLight(0.0f);
+	if (!unlit)
 	{
-		return (ambientColor + actor->ScaleGlow() * 0.5f) * 2.0f;
-	}
-	else
-	{
-		vec3 color(0.0f);
-
 		for (UActor* light : actor->TouchingLights.List)
 		{
-			vec3 L = light->Location() - location;
+			vec3 lightLocation = light->Location();
+			vec3 L = location - lightLocation;
+
+			// Distance falloff
 			float attenuation = std::max(1.0f - length(L) / light->WorldLightRadius(), 0.0f);
 			if (attenuation > 0.0f)
 			{
-				float angleAttenuation = std::abs(dot(normalize(L), normal));
-				vec3 lightcolor = LightmapBuilder::GetLightColor(light);
-				color += lightcolor * (attenuation * angleAttenuation);
+				// Diffuse light contribution
+				float d = dot(normalize(L), normal);
+				attenuation *= twosided ? std::abs(d) : std::max(d, 0.0f);
+				if (attenuation > 0.0f)
+				{
+					vec3 lightcolor = LightmapBuilder::GetLightColor(light);
+					dynamicLight += lightcolor * attenuation;
+				}
 			}
 		}
 
-		return (ambientColor + color * (actor->ScaleGlow() * 1.5f)) * 2.0f;
+		dynamicLight *= actor->ScaleGlow();
 	}
+
+	// Clamp final result and double the contribution to match lightmaps
+	vec3 color = ambientColor + dynamicLight;
+	color.x = std::min(color.x, 1.0f);
+	color.y = std::min(color.y, 1.0f);
+	color.z = std::min(color.z, 1.0f);
+	return color * 2.0f;
 }
