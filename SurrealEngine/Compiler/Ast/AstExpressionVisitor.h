@@ -47,6 +47,7 @@ class AstCaseInsensitiveEqualExpression;
 class AstLogicalAndExpression;
 class AstLogicalOrExpression;
 class AstLogicalXorExpression;
+class AstLogicalXorXorExpression;
 class AstConditionalAndExpression;
 class AstConditionalOrExpression;
 class AstAssignmentExpression;
@@ -101,6 +102,7 @@ public:
 	virtual void expression(AstLogicalAndExpression *node) = 0;
 	virtual void expression(AstLogicalOrExpression *node) = 0;
 	virtual void expression(AstLogicalXorExpression *node) = 0;
+	virtual void expression(AstLogicalXorXorExpression* node) = 0;
 	virtual void expression(AstConditionalAndExpression *node) = 0;
 	virtual void expression(AstConditionalOrExpression *node) = 0;
 	virtual void expression(AstAssignmentExpression *node) = 0;

@@ -104,7 +104,22 @@ AstBlockStatement *Parser::parse_block_statement(bool isStateBlock)
 		}
 		else if (isStateBlock && (is_keyword("function") || is_keyword("event") || is_keyword("singular") || is_keyword("simulated") || is_keyword("exec")))
 		{
-			block->methods.push_back(parse_method_declaration());
+			// GG, can either be a keyword for a method declaration, or they could be part of a statement.
+			auto save = save_position();
+			next();
+			bool isAssignment =
+				is_operator("=") || is_operator("*=") || is_operator("/=") || is_operator("%=") || is_operator("+=") ||
+				is_operator("-=") || is_operator("<<=") || is_operator(">>=") || is_operator("&=") || is_operator("^=") ||
+				is_operator("|=");
+			restore_position(save);
+			if (isAssignment)
+			{
+				block->statements.push_back(parse_statement());
+			}
+			else
+			{
+				block->methods.push_back(parse_method_declaration());
+			}
 		}
 		else
 		{

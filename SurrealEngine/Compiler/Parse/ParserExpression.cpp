@@ -363,7 +363,7 @@ int Parser::get_token_precedence()
 	{
 		return 8;
 	}
-	else if (is_operator("^"))
+	else if (is_operator("^") || is_operator("^^"))
 	{
 		return 7;
 	}
@@ -462,6 +462,8 @@ AstBinaryExpression *Parser::create_token_expression()
 		return newNode<AstLogicalAndExpression>();
 	else if (is_operator("^"))
 		return newNode<AstLogicalXorExpression>();
+	else if (is_operator("^^"))
+		return newNode<AstLogicalXorXorExpression>();
 	else if (is_operator("|"))
 		return newNode<AstLogicalOrExpression>();
 	else if (is_operator("&&"))

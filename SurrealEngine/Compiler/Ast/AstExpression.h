@@ -391,6 +391,12 @@ public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
 };
 
+class AstLogicalXorXorExpression : public AstBinaryExpression
+{
+public:
+	void visit(AstExpressionVisitor* visitor) { visitor->expression(this); }
+};
+
 class AstConditionalAndExpression : public AstBinaryExpression
 {
 public:

@@ -768,6 +768,7 @@ const char *Tokenizer::operators[] =
 	"<<=",
 	"<<",
 	"**",
+	"^^",
 	"{",
 	"}",
 	"[",
