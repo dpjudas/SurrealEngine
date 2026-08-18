@@ -4,13 +4,35 @@
 
 AstNode *Parser::parse_class_member()
 {
+	auto pos = save_position();
+	bool is_auto = false;
+	bool is_simulated = false;
+	while (true)
+	{
+		if (!is_auto && is_keyword("auto"))
+		{
+			is_auto = true;
+			next();
+			continue;
+		}
+
+		if (!is_simulated && is_keyword("simulated"))
+		{
+			is_simulated = true;
+			next();
+			continue;
+		}
+		break;
+	}
+	if (is_keyword("state"))
+	{
+		return parse_state_declaration(is_auto, is_simulated);
+	}
+	restore_position(pos);
+
 	if (is_keyword("var") || is_keyword("enum") || is_keyword("struct"))
 	{
 		return parse_field_declaration();
-	}
-	else if (is_keyword("state") || is_keyword("auto"))
-	{
-		return parse_state_declaration();
 	}
 	else if (is_keyword("const"))
 	{
@@ -26,22 +48,8 @@ AstNode *Parser::parse_class_member()
 	}
 }
 
-AstNode* Parser::parse_state_declaration()
+AstNode* Parser::parse_state_declaration(bool is_auto, bool is_simulated)
 {
-	bool is_auto = false;
-	bool is_simulated = false;
-	if (is_keyword("auto"))
-	{
-		is_auto = true;
-		next();
-	}
-
-	if (is_keyword("simulated"))
-	{
-		is_simulated = true;
-		next();
-	}
-
 	if (!is_keyword("state"))
 		throw_parse_exception("state expected");
 	next();

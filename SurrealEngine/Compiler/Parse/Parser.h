@@ -56,7 +56,7 @@ private:
 	AstEnumDeclaration *parse_enum_declaration();
 
 	AstNode *parse_class_member();
-	AstNode* parse_state_declaration();
+	AstNode* parse_state_declaration(bool is_auto, bool is_simulated);
 	AstNode *parse_const_declaration();
 	AstMethodDeclaration*parse_method_declaration();
 	AstNode *parse_field_declaration();
