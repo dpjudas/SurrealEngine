@@ -26,7 +26,9 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, bool wireframe, b
 
 	mat4 objectToWorld = mat4::translate(actor->Location() + actor->PrePivot()) * Coords::Rotation(actor->Rotation()).ToMatrix() * mat4::scale(actor->DrawScale());
 	mat4 meshToWorld = objectToWorld * mesh->meshToObject;
-	mat3 meshNormalToWorld = mat3::transpose(mat3(meshToWorld));
+
+	// Note: using transpose seems to be wrong here
+	mat3 meshNormalToWorld = mat3(Coords::Rotation(actor->Rotation()).ToMatrix() * Coords::Rotation(mesh->RotOrigin).ToMatrix());
 
 	bool needsTranslucentPass = DrawMeshAtLocation(frame, actor, actor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
 
@@ -217,7 +219,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UActor* lightLoca
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyflags & PF_Unlit), !!(polyflags & PF_TwoSided), zoneActor);
+			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(renderflags & PF_Unlit), !!(renderflags & PF_TwoSided), zoneActor);
 			vertices[i].Fog = lightsys->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
@@ -530,7 +532,7 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, UActor* li
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), !!(polyFlags & PF_TwoSided), zoneActor);
+			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(renderflags & PF_Unlit), !!(renderflags & PF_TwoSided), zoneActor);
 			vertices[i].Fog = lightsys->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
@@ -763,7 +765,7 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyflags & PF_Unlit), !!(polyflags & PF_TwoSided), zoneActor);
+			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(renderflags & PF_Unlit), !!(renderflags & PF_TwoSided), zoneActor);
 			vertices[i].Fog = lightsys->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 
@@ -1028,7 +1030,7 @@ bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* 
 
 		for (int i = 0; i < 3; i++)
 		{
-			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(polyFlags & PF_Unlit), !!(polyFlags & PF_TwoSided), zoneActor);
+			vertices[i].Light = lightsys->GetVertexLight(lightLocationActor, vertices[i].Point, normals[i], !!(renderflags & PF_Unlit), !!(renderflags & PF_TwoSided), zoneActor);
 			vertices[i].Fog = lightsys->GetVertexFog(lightLocationActor, vertices[i].Point);
 		}
 

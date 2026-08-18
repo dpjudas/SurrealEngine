@@ -180,7 +180,10 @@ TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coo
 		int count = lmmip.Width * lmmip.Height;
 		for (int i = 0; i < count; i++)
 		{
-			dest[i] = vec4(src[i], 1.0f);
+			dest[i].r = std::min(src[i].r, 1.0f);
+			dest[i].g = std::min(src[i].g, 1.0f);
+			dest[i].b = std::min(src[i].b, 1.0f);
+			dest[i].a = 1.0f;
 		}
 
 		lmtexture->LastUpdate = lastUpdate;
@@ -284,9 +287,9 @@ vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3
 	}
 
 	// Clamp final result and make it all brighter to match lightmaps
-	vec3 color = ambientColor + dynamicLight;
+	vec3 color = (ambientColor + dynamicLight) * 3.0f;
 	color.r = std::min(color.r, 1.0f);
 	color.g = std::min(color.g, 1.0f);
 	color.b = std::min(color.b, 1.0f);
-	return color * 3.0f;
+	return color;
 }
