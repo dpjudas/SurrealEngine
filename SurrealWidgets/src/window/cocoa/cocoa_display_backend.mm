@@ -72,8 +72,7 @@ std::unique_ptr<DisplayWindow> CocoaDisplayBackend::Create(DisplayWindowHost* wi
 
 void CocoaDisplayBackend::ProcessEvents()
 {
-    NSEvent* event = [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES];
-    if (event)
+    while (NSEvent* event = [NSApp nextEventMatchingMask:NSEventMaskAny untilDate:[NSDate distantPast] inMode:NSDefaultRunLoopMode dequeue:YES])
     {
         [NSApp sendEvent:event];
     }
