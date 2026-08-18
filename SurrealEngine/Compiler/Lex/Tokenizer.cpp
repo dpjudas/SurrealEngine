@@ -7,7 +7,7 @@
 #pragma warning(disable: 4267) // warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
 #endif
 
-Tokenizer::Tokenizer(const std::string &data) : data(TextUtil::utf8_to_utf32(preprocess(data)))
+Tokenizer::Tokenizer(const std::string &data) : data(TextUtil::iso8859_1_to_utf32(preprocess(data)))
 {
 }
 

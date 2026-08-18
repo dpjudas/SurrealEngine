@@ -18,7 +18,7 @@ void CompilerCommandlet::OnCommand(DebuggerApp* console, const std::string& args
 
 #if 1
 	if (folder.empty())
-		folder = "C:\\Games\\DeusEx-1112fm-Scripts";
+		folder = "C:\\Games\\UTScript"; // "C:\\Games\\DeusEx-1112fm-Scripts"
 #endif
 
 	if (folder.empty())
@@ -27,7 +27,7 @@ void CompilerCommandlet::OnCommand(DebuggerApp* console, const std::string& args
 		return;
 	}
 
-	for (const auto& entry : fs::recursive_directory_iterator("C:\\Games\\DeusEx-1112fm-Scripts"))
+	for (const auto& entry : fs::recursive_directory_iterator(folder))
 	{
 		if (entry.is_regular_file() && entry.path().extension() == ".uc")
 		{

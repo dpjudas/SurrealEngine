@@ -2,6 +2,18 @@
 #include "Precomp.h"
 #include "TextUtil.h"
 
+std::u32string TextUtil::iso8859_1_to_utf32(const std::string& utf8)
+{
+	std::u32string utf32;
+	utf32.reserve(utf8.length());
+	for (char c : utf8)
+	{
+		uint8_t b = (uint8_t)c;
+		utf32.push_back(b);
+	}
+	return utf32;
+}
+
 std::u32string TextUtil::utf8_to_utf32(const std::string &utf8)
 {
 	uint8_t *utf8Data = (uint8_t*)utf8.data();

@@ -13,6 +13,7 @@ public:
 class TextUtil
 {
 public:
+	static std::u32string iso8859_1_to_utf32(const std::string& utf8);
 	static std::u32string utf8_to_utf32(const std::string &utf8);
 	static std::string utf32_to_utf8(const std::u32string &utf32);
 
