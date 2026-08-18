@@ -235,6 +235,14 @@ void LightSystem::CheckLight(UActor* light)
 	}
 }
 
+static float LightDistanceFalloff(float distsqr)
+{
+	float v = std::sqrt(distsqr + 0.0001f);
+	float v2 = v * v;
+	float v3 = v2 * v;
+	return std::min((1.0f + 2.0f * v3 - 3.0f * v2) / v, 1.0f);
+}
+
 vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, bool twosided, UZoneInfo* zoneActor)
 {
 	// AmbientGlow value 255 is a special pulsating effect used for powerups
@@ -250,9 +258,17 @@ vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3
 			vec3 L = lightLocation - location;
 
 			// Distance falloff
-			float attenuation = std::max(1.0f - length(L) / light->WorldLightRadius(), 0.0f);
-			if (attenuation > 0.0f)
+
+			float invRadius = 1.0f / light->WorldLightRadius();
+			float invRadiusSquared = invRadius * invRadius;
+
+			float distsqr = dot(L, L) * invRadiusSquared;
+			if (distsqr < 1.0f)
+			//float attenuation = std::max(1.0f - length(L) / light->WorldLightRadius(), 0.0f);
+			//if (attenuation > 0.0f)
 			{
+				float attenuation = LightDistanceFalloff(distsqr);
+
 				// Diffuse light contribution
 				float d = dot(normalize(L), normal);
 				attenuation *= twosided ? std::abs(d) : std::max(d, 0.0f);
@@ -264,13 +280,13 @@ vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3
 			}
 		}
 
-		dynamicLight *= actor->ScaleGlow();
+		dynamicLight *= actor->ScaleGlow() * 1.5f;
 	}
 
-	// Clamp final result and double the contribution to match lightmaps
+	// Clamp final result and make it all brighter to match lightmaps
 	vec3 color = ambientColor + dynamicLight;
 	color.r = std::min(color.r, 1.0f);
 	color.g = std::min(color.g, 1.0f);
 	color.b = std::min(color.b, 1.0f);
-	return color * 2.0f;
+	return color * 3.0f;
 }
