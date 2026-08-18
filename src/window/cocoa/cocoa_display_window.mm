@@ -192,7 +192,7 @@ public:
     NSBitmapImageRep* bitmapRep = nil;
     CGImageRef cgImage = nullptr;
     std::map<InputKey, bool> keyState;
-    bool mouseCaptured = false;
+    bool cursorLocked = false;
     RenderAPI renderAPI = RenderAPI::Unspecified;
     std::shared_ptr<CocoaDisplayWindowLifetime> lifetime = std::make_shared<CocoaDisplayWindowLifetime>();
 
@@ -288,6 +288,10 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
         [self removeTrackingArea:trackingArea];
         trackingArea = nil;
     }
+
+#if !__has_feature(objc_arc)
+    [super dealloc];
+#endif
 }
 
 - (BOOL)isOpaque
@@ -302,8 +306,8 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
         trackingArea = nil;
     }
 
-    trackingArea = [[NSTrackingArea alloc] initWithRect:self.bounds
-                                                options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInKeyWindow
+    trackingArea = [[NSTrackingArea alloc] initWithRect:NSZeroRect
+                                                options:NSTrackingMouseEnteredAndExited | NSTrackingMouseMoved | NSTrackingActiveInActiveApp | NSTrackingInVisibleRect
                                                   owner:self
                                                userInfo:nil];
     [self addTrackingArea:trackingArea];
@@ -430,20 +434,25 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
         impl->windowHost->OnWindowMouseLeave();
 }
 
-- (void)mouseMoved:(NSEvent *)theEvent
+- (void)dispatchMouseMove:(NSEvent *)theEvent
 {
     if (impl && impl->windowHost)
     {
-        if (impl->mouseCaptured)
+        if (impl->cursorLocked)
         {
-            impl->windowHost->OnWindowRawMouseMove([theEvent deltaX], [theEvent deltaY]);
+            impl->windowHost->OnWindowRawMouseMove((int)[theEvent deltaX], (int)[theEvent deltaY]);
         }
         else
         {
-            NSPoint p = [theEvent locationInWindow];
-            impl->windowHost->OnWindowMouseMove(Point(p.x, [self frame].size.height - p.y));
+            NSPoint p = [self convertPoint:[theEvent locationInWindow] fromView:nil];
+            impl->windowHost->OnWindowMouseMove(Point(p.x, self.bounds.size.height - p.y));
         }
     }
+}
+
+- (void)mouseMoved:(NSEvent *)theEvent
+{
+    [self dispatchMouseMove:theEvent];
 }
 
 - (void)mouseDown:(NSEvent *)theEvent
@@ -504,22 +513,17 @@ void CocoaDisplayWindowImpl::stopDisplayLink()
 
 - (void)mouseDragged:(NSEvent *)theEvent
 {
-    if (impl && impl->windowHost)
-    {
-        NSPoint p = [theEvent locationInWindow];
-        impl->windowHost->OnWindowMouseMove(Point(p.x, [self frame].size.height - p.y));
-    }
-
+    [self dispatchMouseMove:theEvent];
 }
 
 - (void)rightMouseDragged:(NSEvent *)theEvent
 {
-    if (impl && impl->windowHost)
-    {
-        NSPoint p = [theEvent locationInWindow];
-        impl->windowHost->OnWindowMouseMove(Point(p.x, [self frame].size.height - p.y));
-    }
+    [self dispatchMouseMove:theEvent];
+}
 
+- (void)otherMouseDragged:(NSEvent *)theEvent
+{
+    [self dispatchMouseMove:theEvent];
 }
 
 - (void)scrollWheel:(NSEvent *)theEvent
@@ -813,6 +817,13 @@ CocoaDisplayWindow::~CocoaDisplayWindow()
     impl->lifetime->alive = false;
     impl->windowHost = nullptr;
 
+    if (impl->cursorLocked)
+    {
+        impl->cursorLocked = false;
+        CGAssociateMouseAndMouseCursorPosition(true);
+        [NSCursor unhide];
+    }
+
     if (impl->window)
     {
         ZWidgetView* view = (ZWidgetView*)[impl->window contentView];
@@ -1008,32 +1019,30 @@ void CocoaDisplayWindow::UnlockKeyboard() {}
 
 void CocoaDisplayWindow::LockCursor()
 {
-    if (impl->window)
+    if (impl->window && !impl->cursorLocked)
     {
+        impl->cursorLocked = true;
         CGAssociateMouseAndMouseCursorPosition(false);
-        // Hide cursor when locked
         [NSCursor hide];
     }
 }
 
 void CocoaDisplayWindow::UnlockCursor()
 {
-    if (impl->window)
+    if (impl->window && impl->cursorLocked)
     {
+        impl->cursorLocked = false;
         CGAssociateMouseAndMouseCursorPosition(true);
-        // Show cursor when unlocked
         [NSCursor unhide];
     }
 }
 
 void CocoaDisplayWindow::CaptureMouse()
 {
-    impl->mouseCaptured = true;
 }
 
 void CocoaDisplayWindow::ReleaseMouseCapture()
 {
-    impl->mouseCaptured = false;
 }
 
 void CocoaDisplayWindow::Update()
