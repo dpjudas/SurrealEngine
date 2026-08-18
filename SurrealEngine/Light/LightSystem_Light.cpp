@@ -285,6 +285,10 @@ vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3
 
 		dynamicLight *= actor->ScaleGlow() * 1.5f;
 	}
+	else
+	{
+		dynamicLight = vec3(0.5f);
+	}
 
 	// Clamp final result and make it all brighter to match lightmaps
 	vec3 color = (ambientColor + dynamicLight) * 3.0f;
