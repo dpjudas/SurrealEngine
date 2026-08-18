@@ -339,7 +339,7 @@ AstExpression *Parser::parse_binary(int lhs_precedence, AstExpression *lhs, Expr
 
 int Parser::get_token_precedence()
 {
-	if (is_operator("*") || is_operator("/") || is_operator("%"))
+	if (is_operator("*") || is_operator("/") || is_operator("%") || is_operator("**"))
 	{
 		return 13; // highest
 	}
@@ -347,7 +347,7 @@ int Parser::get_token_precedence()
 	{
 		return 12;
 	}
-	else if (is_operator("<<") || is_operator(">>")) // To do: operator >> is split into two > tokens
+	else if (is_operator("<<") || is_operator(">>") || is_operator(">>>")) // To do: operator >> is split into two > tokens
 	{
 		return 11;
 	}
@@ -417,11 +417,22 @@ AstBinaryExpression *Parser::create_token_expression()
 	else if (is_operator(">"))
 	{
 		// operator >> and >>= are split into two > tokens
+		// operator >>> is split into three > tokens
 		auto pos = save_position();
 		next();
 		if (is_operator(">"))
 		{
-			return newNode<AstShiftRightExpression>();
+			auto pos2 = save_position();
+			next();
+			if (is_operator(">"))
+			{
+				return newNode<AstUnsignedShiftRightExpression>();
+			}
+			else
+			{
+				restore_position(pos2);
+				return newNode<AstShiftRightExpression>();
+			}
 		}
 		else if (is_operator(">="))
 		{

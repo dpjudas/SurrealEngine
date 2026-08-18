@@ -313,6 +313,12 @@ public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
 };
 
+class AstUnsignedShiftRightExpression : public AstBinaryExpression
+{
+public:
+	void visit(AstExpressionVisitor* visitor) { visitor->expression(this); }
+};
+
 class AstLessExpression : public AstBinaryExpression
 {
 public:
