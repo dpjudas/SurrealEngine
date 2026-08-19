@@ -21,22 +21,45 @@ void DisassemblyCommandlet::OnCommand(DebuggerApp* console, const std::string& a
 	Frame* frame = console->GetCurrentFrame();
 	if (frame && frame->Func)
 	{
-		int index = 0;
-		for (Expression* expr : frame->Func->Code->Statements)
+		if (args == "function")
 		{
-			if (expr == Frame::StepExpression)
+			for (Expression* expr : frame->Func->Code->Statements)
 			{
-				if (args == "full")
+				PrintPrettyExpression::Print([&](const std::string& text) { console->WriteOutput(text); }, expr);
+				console->WriteOutput(console->NewLine());
+			}
+		}
+		else if (args == "full function")
+		{
+			int index = 0;
+			for (Expression* expr : frame->Func->Code->Statements)
+			{
+				PrintExpression::Print(console, "Statement[" + std::to_string(index) + "]", expr);
+				index++;
+			}
+		}
+		else if (args == "full")
+		{
+			int index = 0;
+			for (Expression* expr : frame->Func->Code->Statements)
+			{
+				if (expr == Frame::StepExpression)
 				{
 					PrintExpression::Print(console, "Statement[" + std::to_string(index) + "]", expr);
 				}
-				else
+				index++;
+			}
+		}
+		else
+		{
+			for (Expression* expr : frame->Func->Code->Statements)
+			{
+				if (expr == Frame::StepExpression)
 				{
 					PrintPrettyExpression::Print([&](const std::string& text) { console->WriteOutput(text); }, expr);
 					console->WriteOutput(console->NewLine());
 				}
 			}
-			index++;
 		}
 	}
 }

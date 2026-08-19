@@ -16,7 +16,7 @@ void CompilerCommandlet::OnCommand(DebuggerApp* console, const std::string& args
 {
 	std::string folder = args;
 
-#if 1
+#if 0
 	if (folder.empty())
 		folder = "C:\\Games\\UTScript"; // "C:\\Games\\DeusEx-1112fm-Scripts"
 #endif
@@ -46,4 +46,5 @@ void CompilerCommandlet::OnCommand(DebuggerApp* console, const std::string& args
 
 void CompilerCommandlet::OnPrintHelp(DebuggerApp* console)
 {
+	console->WriteOutput("cc <path to scripts directory>" + NewLine());
 }
