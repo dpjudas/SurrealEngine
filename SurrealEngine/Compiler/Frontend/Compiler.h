@@ -35,4 +35,6 @@ private:
 	TypeSystem type_system;
 	//std::unique_ptr<CodeGen> codegen;
 	std::vector<CompilerMessage> messages;
+
+	friend class StatementPrinter;
 };
