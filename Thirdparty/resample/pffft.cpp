@@ -76,6 +76,10 @@
 #include <math.h>
 #include <assert.h>
 
+#ifdef COMPILER_MSVC
+#include <malloc.h>
+#endif
+
 #if defined(COMPILER_GCC)
 #  define ALWAYS_INLINE(return_type) inline return_type __attribute__ ((always_inline))
 #  define NEVER_INLINE(return_type) return_type __attribute__ ((noinline))
