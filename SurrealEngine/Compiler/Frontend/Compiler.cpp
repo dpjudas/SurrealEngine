@@ -84,7 +84,17 @@ public:
 	void statement(AstSwitchStatement* node) override
 	{
 		funcDebugInfo->Statements.push_back({ ExprToken::Switch, node->line });
-		// What happens to ExprToken::Case? are they children?
+		for (AstSwitchSection* section : node->sections)
+		{
+			for (AstSwitchLabel* label : section->labels)
+			{
+				funcDebugInfo->Statements.push_back({ ExprToken::Case, label->line });
+			}
+			for (AstStatement* statement : section->statements)
+			{
+				statement->visit(this);
+			}
+		}
 	}
 
 	void statement(AstWhileStatement* node) override
