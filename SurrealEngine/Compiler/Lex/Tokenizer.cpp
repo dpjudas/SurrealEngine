@@ -138,6 +138,12 @@ bool Tokenizer::read_comment()
 		pos += 2;
 		for (; pos != data.size(); pos++)
 		{
+			if (data[pos] == 0x000a)
+			{
+				line_start_pos = pos;
+				line_number++;
+			}
+
 			if (data[pos] == '*' && pos + 1 != data.size() && data[pos + 1] == '/')
 			{
 				pos += 2;

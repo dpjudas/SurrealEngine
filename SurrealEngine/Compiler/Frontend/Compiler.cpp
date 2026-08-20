@@ -37,7 +37,14 @@ public:
 
 	void statement(AstVariableDeclarationStatement* node) override
 	{
-		// To do: does unrealscript have initializers in the variable declarations?
+		if (node->variable_declaration)
+		{
+			for (AstLocalVariableDeclarator* decl : node->variable_declaration->variables)
+			{
+				if (decl->expression)
+					funcDebugInfo->Statements.push_back({ ExprToken::Skip, decl->expression->line });
+			}
+		}
 	}
 
 	void statement(AstBlockStatement* node) override
@@ -97,7 +104,30 @@ public:
 
 	void statement(AstForStatement* node) override
 	{
-		// logInfo(node, "for");
+		if (node->init_variable_declaration)
+		{
+			for (AstLocalVariableDeclarator* decl : node->init_variable_declaration->variables)
+			{
+				if (decl->expression)
+					funcDebugInfo->Statements.push_back({ ExprToken::Skip, decl->expression->line });
+			}
+		}
+		for (AstExpression* expr : node->init_expressions)
+		{
+			funcDebugInfo->Statements.push_back({ ExprToken::Skip, node->line });
+		}
+
+		if (node->condition)
+			funcDebugInfo->Statements.push_back({ ExprToken::JumpIfNot, node->condition->line });
+
+		if (node->statement)
+			node->statement->visit(this);
+
+		for (AstExpression* expr : node->iterator_expressions)
+		{
+			funcDebugInfo->Statements.push_back({ ExprToken::Skip, expr->line });
+		}
+		funcDebugInfo->Statements.push_back({ ExprToken::Jump, node->line });
 	}
 
 	void statement(AstForeachStatement* node) override
