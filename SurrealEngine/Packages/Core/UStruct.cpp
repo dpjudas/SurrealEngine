@@ -7,6 +7,7 @@
 #include "Packages/Core/UFunction.h"
 #include "Packages/Core/UTextBuffer.h"
 #include "Packages/Core/Properties/UBoolProperty.h"
+#include "Compiler/Frontend/Compiler.h"
 
 UStruct::UStruct(NameString name, UClass* cls, ObjectFlags flags) : UField(std::move(name), cls, flags)
 {
@@ -178,6 +179,67 @@ bool UStruct::IsEqual(const void* v1, const void* v2)
 		}
 	}
 	return true;
+}
+
+int UStruct::GetStatementLine(Expression* statement)
+{
+	if (!Code)
+		return -1;
+
+	size_t index = 0;
+	for (Expression* expr : Code->Statements)
+	{
+		if (expr == statement)
+			break;
+		index++;
+	}
+
+	FunctionDebugInfo* debugInfo = GetDebugInfo();
+	if (debugInfo && index < debugInfo->Statements.size())
+		return debugInfo->Statements[index].Line;
+	return -1;
+}
+
+FunctionDebugInfo* UStruct::GetDebugInfo()
+{
+	UTextBuffer* scriptText = nullptr;
+	UStruct* func = this;
+	do
+	{
+		scriptText = func->ScriptText;
+		func = func->StructParent;
+	} while (func && !scriptText);
+	if (!scriptText)
+		return nullptr;
+
+	if (!scriptText->DebugInfo)
+	{
+		Compiler compiler;
+		compiler.add_code(scriptText->Text, scriptText->Name.ToString());
+		if (compiler.compile())
+		{
+			scriptText->DebugInfo = compiler.move_debug_info(0);
+			if (!scriptText->DebugInfo)
+				LogMessage("Compiler did not generate any debug info!");
+		}
+		else
+		{
+			LogMessage("Could not generate debug info due to compile errors:");
+			for (const auto& msg : compiler.get_messages())
+			{
+				LogMessage(msg.to_string());
+			}
+		}
+		if (!scriptText->DebugInfo)
+			scriptText->DebugInfo = std::make_unique<ClassDebugInfo>();
+
+		// To do: validate compiled statements matches code statements
+	}
+
+	auto it = scriptText->DebugInfo->Functions.find(Name);
+	if (it != scriptText->DebugInfo->Functions.end())
+		return &it->second;
+	return nullptr;
 }
 
 #ifdef _DEBUG

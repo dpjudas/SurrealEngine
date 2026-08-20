@@ -20,26 +20,23 @@ void Compiler::add_code(const std::string &code, const std::string &filename)
 	sources.push_back(SourceFile(code, filename));
 }
 
-class StatementPrinter : public AstStatementVisitor
+class StatementDebugInfoBuilder : public AstStatementVisitor
 {
 public:
-	StatementPrinter(Compiler* compiler, int depth) : compiler(compiler), depth(depth)
+	StatementDebugInfoBuilder(FunctionDebugInfo* funcDebugInfo) : funcDebugInfo(funcDebugInfo)
 	{
 	}
 
 	void statement(AstLabeledStatement* node) override
 	{
-		// logInfo(node, "Label");
 	}
 
 	void statement(AstConstantDeclarationStatement* node) override
 	{
-		// logInfo(node, "ConstantDecl");
 	}
 
 	void statement(AstVariableDeclarationStatement* node) override
 	{
-		// logInfo(node, "VariableDecl");
 		// To do: does unrealscript have initializers in the variable declarations?
 	}
 
@@ -53,23 +50,22 @@ public:
 
 	void statement(AstEmptyStatement* node) override
 	{
-		logInfo(node, "Empty");
 	}
 
 	void statement(AstExpressionStatement* node) override
 	{
-		logInfo(node, "Expression");
+		funcDebugInfo->Statements.push_back({ ExprToken::Skip, node->line });
 	}
 
 	void statement(AstIfStatement* node) override
 	{
-		logInfo(node, "Jump If Not");
+		funcDebugInfo->Statements.push_back({ ExprToken::JumpIfNot, node->line });
 		if (node->then_statement)
 		{
 			node->then_statement->visit(this);
 			if (node->else_statement)
 			{
-				logInfo(node, "Jump"); // jump past else
+				funcDebugInfo->Statements.push_back({ ExprToken::Jump, node->line });
 			}
 		}
 		if (node->else_statement)
@@ -80,68 +76,63 @@ public:
 
 	void statement(AstSwitchStatement* node) override
 	{
-		logInfo(node, "Switch");
+		funcDebugInfo->Statements.push_back({ ExprToken::Switch, node->line });
+		// What happens to ExprToken::Case? are they children?
 	}
 
 	void statement(AstWhileStatement* node) override
 	{
-		logInfo(node, "Jump If Not");
+		funcDebugInfo->Statements.push_back({ ExprToken::JumpIfNot, node->line });
 		if (node->statement)
 			node->statement->visit(this);
-		logInfo(node, "Jump");
+		funcDebugInfo->Statements.push_back({ ExprToken::Jump, node->line });
 	}
 
 	void statement(AstDoStatement* node) override
 	{
-		logInfo(node, "do");
+		if (node->statement)
+			node->statement->visit(this);
+		funcDebugInfo->Statements.push_back({ ExprToken::JumpIfNot, node->line });
 	}
 
 	void statement(AstForStatement* node) override
 	{
-		logInfo(node, "for");
+		// logInfo(node, "for");
 	}
 
 	void statement(AstForeachStatement* node) override
 	{
-		logInfo(node, "Iterator");
+		funcDebugInfo->Statements.push_back({ ExprToken::Iterator, node->line });
 		if (node->statement)
 		{
 			node->statement->visit(this);
 		}
-		logInfo(node, "Iterator next");
-		logInfo(node, "Iterator pop");
+		funcDebugInfo->Statements.push_back({ ExprToken::IteratorNext, node->line });
+		funcDebugInfo->Statements.push_back({ ExprToken::IteratorPop, node->line });
 	}
 
 	void statement(AstBreakStatement* node) override
 	{
-		logInfo(node, "Jump");
+		funcDebugInfo->Statements.push_back({ ExprToken::Jump, node->line });
 	}
 
 	void statement(AstContinueStatement* node) override
 	{
-		logInfo(node, "Jump");
+		funcDebugInfo->Statements.push_back({ ExprToken::Jump, node->line });
 	}
 
 	void statement(AstGotoStatement* node) override
 	{
-		logInfo(node, "Jump");
+		funcDebugInfo->Statements.push_back({ ExprToken::Jump, node->line });
 	}
 
 	void statement(AstReturnStatement* node) override
 	{
-		logInfo(node, "Return");
+		funcDebugInfo->Statements.push_back({ ExprToken::Return, node->line });
 	}
 
 private:
-	void logInfo(AstStatement* node, const std::string& text)
-	{
-		std::string spaces;
-		spaces.resize(depth, '\t');
-		compiler->logInfo("line " + std::to_string(node->line) + ": " + spaces + text);
-	}
-
-	Compiler* compiler = nullptr;
-	int depth = 0;
+	FunctionDebugInfo* funcDebugInfo = nullptr;
 };
 
 bool Compiler::compile()
@@ -171,24 +162,28 @@ bool Compiler::compile()
 
 		for (auto& unit : parsed_files)
 		{
+			auto debug_info = std::make_unique<ClassDebugInfo>();
+			debug_info->Name = unit->class_decl->identifier;
+
 			for (AstNode* member : unit->class_decl->members)
 			{
 				if (auto method = dynamic_cast<AstMethodDeclaration*>(member))
 				{
-					if (unit->class_decl->identifier == "Teleporter" && method->identifier == "Touch")
-					{
-						logInfo(unit->class_decl->identifier + "." + method->identifier);
+					FunctionDebugInfo funcDebugInfo;
 
-						StatementPrinter printer(this, 1);
-						if (method->block)
+					StatementDebugInfoBuilder builder(&funcDebugInfo);
+					if (method->block)
+					{
+						for (AstStatement* statement : method->block->statements)
 						{
-							for (AstStatement* statement : method->block->statements)
-							{
-								statement->visit(&printer);
-							}
+							statement->visit(&builder);
 						}
-						return true;
 					}
+
+					if (funcDebugInfo.Statements.empty() || funcDebugInfo.Statements.back().Token != ExprToken::Return)
+						funcDebugInfo.Statements.push_back({ ExprToken::Return, method->line });
+
+					debug_info->Functions[method->identifier] = std::move(funcDebugInfo);
 				}
 				else if (auto field = dynamic_cast<AstFieldDeclaration*>(member))
 				{
@@ -210,6 +205,8 @@ bool Compiler::compile()
 					//logInfo("State: " + state_decl->identifier);
 				}
 			}
+
+			sources_debug_info.push_back(std::move(debug_info));
 		}
 
 #if 0

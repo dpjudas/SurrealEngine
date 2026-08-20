@@ -3,6 +3,7 @@
 #include "ListSourceCommandlet.h"
 #include "DebuggerApp.h"
 #include "VM/Frame.h"
+#include "VM/Bytecode.h"
 #include "Packages/Core/UTextBuffer.h"
 #include <regex>
 
@@ -13,8 +14,14 @@ ListSourceCommandlet::ListSourceCommandlet()
 	SetShortDescription("Show source code");
 }
 
-void ListSourceCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
+void ListSourceCommandlet::PrintLines(DebuggerApp* console, int statementLine)
 {
+	// lines in array starts from zero, lines start from 1
+	statementLine = std::max(statementLine - 1, 0);
+
+	const int tabsize = 4;
+	const int linesToDisplay = 6;
+
 	Frame* frame = console->GetCurrentFrame();
 	if (frame)
 	{
@@ -36,11 +43,7 @@ void ListSourceCommandlet::OnCommand(DebuggerApp* console, const std::string& ar
 				lines.push_back(std::string_view(scriptText->Text).substr(pos, endpos - pos));
 				pos = endpos + 2;
 			}
-			
-			const int tabsize = 4;
-			const int linesToDisplay = 15;
-
-			size_t startLine = std::max((int)frame->Func->Line - 5 + console->ListSourceLineOffset, 0);
+			size_t startLine = std::max(statementLine - 3 + console->ListSourceLineOffset, 0);
 			size_t endLine = std::min(startLine + linesToDisplay, lines.size());
 			for (size_t i = startLine; i < endLine; i++)
 			{
@@ -63,12 +66,29 @@ void ListSourceCommandlet::OnCommand(DebuggerApp* console, const std::string& ar
 					}
 					linepos++;
 				}
-			
-				console->WriteOutput("    " + SyntaxHighlight(line) + NewLine());
-			}
 
-			console->ListSourceLineOffset += linesToDisplay;
+				if (i == statementLine)
+					console->WriteOutput(" -> " + SyntaxHighlight(line) + NewLine());
+				else
+					console->WriteOutput("    " + SyntaxHighlight(line) + NewLine());
+			}
 		}
+	}
+	console->ListSourceLineOffset += linesToDisplay;
+}
+
+void ListSourceCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
+{
+	Frame* frame = console->GetCurrentFrame();
+	if (frame)
+	{
+		int statementLine = -1;
+		if (frame->StatementIndex > 0)
+			statementLine = frame->Func->GetStatementLine(frame->Func->Code->Statements[frame->StatementIndex - 1]);
+		if (statementLine == -1)
+			statementLine = (int)frame->Func->Line;
+
+		PrintLines(console, statementLine);
 	}
 }
 

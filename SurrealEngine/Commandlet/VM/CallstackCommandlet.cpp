@@ -23,12 +23,20 @@ void CallstackCommandlet::OnCommand(DebuggerApp* console, const std::string& arg
 		if (func)
 		{
 			std::string name = frame->GetName();
-			console->WriteOutput("#" + std::to_string(index) + ": " + ColorEscape(96) + name + ResetEscape() + " line " + ColorEscape(96) + std::to_string(func->Line) + ResetEscape());
 
 			if (frame->StatementIndex > 0) // StatementIndex points at the NEXT statement to be executed
 			{
+				Expression* statement = func->Code->Statements[frame->StatementIndex - 1];
+				int line = func->GetStatementLine(statement);
+				if (line == -1)
+					line = func->Line;
+				console->WriteOutput("#" + std::to_string(index) + ": " + ColorEscape(96) + name + ResetEscape() + " line " + ColorEscape(96) + std::to_string(line) + ResetEscape());
 				console->WriteOutput(": ");
-				PrintPrettyExpression::Print([&](const std::string& text) { console->WriteOutput(text); }, func->Code->Statements[frame->StatementIndex - 1]);
+				PrintPrettyExpression::Print([&](const std::string& text) { console->WriteOutput(text); }, statement);
+			}
+			else
+			{
+				console->WriteOutput("#" + std::to_string(index) + ": " + ColorEscape(96) + name + ResetEscape() + " line " + ColorEscape(96) + std::to_string(func->Line) + ResetEscape());
 			}
 
 			console->WriteOutput(NewLine());

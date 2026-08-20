@@ -10,6 +10,9 @@ public:
 	void OnCommand(DebuggerApp* console, const std::string& args) override;
 	void OnPrintHelp(DebuggerApp* console) override;
 
+	static void PrintLines(DebuggerApp* console, int statementLine);
+	static std::string SyntaxHighlight(const std::string& text);
+
 private:
 	struct TextSpan
 	{
@@ -18,7 +21,6 @@ private:
 		int color = 0;
 	};
 
-	std::string SyntaxHighlight(const std::string& text);
-	Array<TextSpan> CreateTextSpans(const std::string& text);
-	void InsertHighlight(Array<TextSpan>& spans, size_t pos, size_t length, int color);
+	static Array<TextSpan> CreateTextSpans(const std::string& text);
+	static void InsertHighlight(Array<TextSpan>& spans, size_t pos, size_t length, int color);
 };

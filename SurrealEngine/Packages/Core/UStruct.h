@@ -7,6 +7,8 @@ class UStruct;
 class UProperty;
 enum class ExprToken : uint8_t;
 class Bytecode;
+class FunctionDebugInfo;
+class Expression;
 
 class UStruct : public UField
 {
@@ -36,6 +38,9 @@ public:
 	size_t StructAlignment = 1;
 	size_t StructSize = 0;
 	Array<UProperty*> Properties;
+
+	int GetStatementLine(Expression* statement);
+	FunctionDebugInfo* GetDebugInfo();
 
 private:
 	ExprToken ReadToken(ObjectStream* stream, int depth);
