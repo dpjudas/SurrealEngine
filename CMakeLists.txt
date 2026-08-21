@@ -815,6 +815,12 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Compiler/Ast/AstStatement.h
 	SurrealEngine/Compiler/Ast/AstStatementVisitor.h
 	SurrealEngine/Compiler/Ast/AstTypeDeclaration.h
+	SurrealEngine/Compiler/Codegen/Codegen.cpp
+	SurrealEngine/Compiler/Codegen/Codegen.h
+	SurrealEngine/Compiler/Codegen/ClassDebugInfoBuilder.cpp
+	SurrealEngine/Compiler/Codegen/ClassDebugInfoBuilder.h
+	SurrealEngine/Compiler/Codegen/FunctionDebugInfoBuilder.cpp
+	SurrealEngine/Compiler/Codegen/FunctionDebugInfoBuilder.h
 	SurrealEngine/Compiler/Frontend/Compiler.cpp
 	SurrealEngine/Compiler/Frontend/Compiler.h
 	SurrealEngine/Compiler/Frontend/CompilerException.h
