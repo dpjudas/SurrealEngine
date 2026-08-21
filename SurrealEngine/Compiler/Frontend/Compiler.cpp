@@ -5,7 +5,7 @@
 #include "Compiler/Lex/Tokenizer.h"
 #include "Compiler/Ast/Ast.h"
 #include "Compiler/Parse/Parser.h"
-//#include "Compiler/Sema/SemanticAnalysis.h"
+#include "Compiler/Sema/SemanticAnalysis.h"
 
 Compiler::Compiler()
 {
@@ -45,10 +45,8 @@ bool Compiler::compile()
 		if (encountered_errors)
 			return false;
 
-#if 0
 		SemanticAnalysis sema(type_system);
 		sema.analyze(parsed_files);
-#endif
 
 		codegen = std::make_unique<CodeGen>(type_system);
 		codegen->codegen(parsed_files);

@@ -2,6 +2,7 @@
 #pragma once
 
 #include <memory>
+#include <set>
 #include "Type.h"
 #include "ValueType.h"
 #include "ReferenceType.h"
@@ -9,7 +10,9 @@
 #include "TypeExpression.h"
 
 class AstName;
+class AstKeywordType;
 class AstIdentifierName;
+class AstNameDeclaration;
 class FunctionMember;
 class ExpressionResult;
 
@@ -39,6 +42,7 @@ public:
 	SingleType *single_type = nullptr;
 	DoubleType *double_type = nullptr;
 	BooleanType *boolean_type = nullptr;
+	StringType* string_type = nullptr;
 
 	ClassType *core_object = nullptr;
 	ClassType *core_string = nullptr;
@@ -116,19 +120,40 @@ public:
 		return parameter;
 	}
 
-	template<typename T, typename... Types>
-	T* newParameterArray(Types&&... args)
-	{
-		allocatedParameterArrays.push_back(std::make_unique<T>(std::forward<Types>(args)...));
-		T* arr = static_cast<T*>(allocatedParameterArrays.back().get());
-		return arr;
-	}
-
 	std::vector<std::unique_ptr<TypeName>> allocatedTypes;
 	std::vector<std::unique_ptr<TypeConstantExpression>> allocatedExpressions;
 	std::vector<std::unique_ptr<MethodFixedParameter>> allocatedFixedParameters;
-	std::vector<std::unique_ptr<MethodParameterArray>> allocatedParameterArrays;
 
 private:
 	int compare_conversion(const ExpressionResult &src, MethodFixedParameter *t1, MethodFixedParameter *t2);
+};
+
+class TypeScope
+{
+public:
+	TypeScope(TypeSystem& ts) : ts(ts) {}
+
+	void push_scope(AstNameDeclaration* ast_name_declaration) {}
+	void pop_scope() {}
+
+	Type* lookup_type(AstName* name) { return nullptr; }
+	Type* lookup_keyword(AstKeywordType* type) { return nullptr; }
+
+	std::vector<TypeName*> scopes;
+
+private:
+	TypeSystem& ts;
+};
+
+class MemberLookup
+{
+public:
+	MemberLookup(TypeSystem& type_system) : type_system(type_system) {}
+
+	void lookup(TypeName* type, const std::string& name) {}
+
+	std::set<TypeName*> members;
+
+private:
+	TypeSystem& type_system;
 };

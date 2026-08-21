@@ -24,6 +24,7 @@ TypeSystem::TypeSystem()
 	single_type = newType<SingleType>(core_package);
 	double_type = newType<DoubleType>(core_package);
 	boolean_type = newType<BooleanType>(core_package);
+	string_type = newType<StringType>(core_package);
 
 	// These are populated by parsing the Core package
 	core_object = nullptr;
@@ -46,6 +47,7 @@ TypeSystem::TypeSystem()
 	core_package->types.push_back(single_type);
 	core_package->types.push_back(double_type);
 	core_package->types.push_back(boolean_type);
+	core_package->types.push_back(string_type);
 
 	root_package->packages.push_back(core_package);
 
@@ -117,12 +119,6 @@ FunctionMember *TypeSystem::find_best_function(const std::vector<FunctionMember 
 		}
 		else
 		{
-			applicable = false;
-		}
-
-		if (c->parameter_array)
-		{
-			// to do: test for expanded form (14.4.2.1 Applicable function member)
 			applicable = false;
 		}
 

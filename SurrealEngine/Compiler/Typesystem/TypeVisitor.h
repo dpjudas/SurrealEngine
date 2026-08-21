@@ -19,6 +19,7 @@ class CharType;
 class SingleType;
 class DoubleType;
 class BooleanType;
+class StringType;
 class StructType;
 class EnumType;
 class OpenClassType;
@@ -45,6 +46,7 @@ public:
 	virtual void type(SingleType *type) = 0;
 	virtual void type(DoubleType *type) = 0;
 	virtual void type(BooleanType *type) = 0;
+	virtual void type(StringType* type) = 0;
 	virtual void type(StructType *type) = 0;
 	virtual void type(EnumType *type) = 0;
 	virtual void type(OpenClassType *type) = 0;

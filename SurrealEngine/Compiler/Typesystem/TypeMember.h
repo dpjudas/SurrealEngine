@@ -65,17 +65,7 @@ public:
 	std::string name;
 };
 
-class MethodParameterArray
-{
-public:
-	virtual ~MethodParameterArray() = default;
-
-	Type *array_type = nullptr;
-	std::string name;
-};
-
 class MethodFixedParameter;
-class MethodParameterArray;
 class TypeSystem;
 
 class FunctionMember : public TypeMember
@@ -88,14 +78,27 @@ public:
 
 	Type *type = nullptr;
 	std::vector<MethodFixedParameter *> parameters;
-	MethodParameterArray *parameter_array = nullptr;
 };
 
 class MethodTypeMember : public FunctionMember
 {
 public:
-	MethodTypeMember(TypeName *parent, const std::string &name, bool is_static, bool is_abstract, bool is_virtual, bool is_override, Type *return_type)
-		: FunctionMember(parent, name, return_type), is_static(is_static), is_abstract(is_abstract), is_virtual(is_virtual), is_override(is_override) { }
+	MethodTypeMember(TypeName *parent, const std::string &name, bool is_static, bool is_event, bool is_native, bool is_exec, bool is_singular, bool is_simulated, bool is_final, bool is_latent, bool is_iterator, bool is_operator, bool is_preoperator, bool is_postoperator, Type *return_type)
+		: FunctionMember(parent, name, return_type), 
+		is_static(is_static),
+		is_event(is_event),
+		is_native(is_native),
+		is_exec(is_exec),
+		is_singular(is_singular),
+		is_simulated(is_simulated),
+		is_final(is_final),
+		is_latent(is_latent),
+		is_iterator(is_iterator),
+		is_operator(is_operator),
+		is_preoperator(is_preoperator),
+		is_postoperator(is_postoperator)
+	{
+	}
 
 	std::string get_mangled_name()
 	{
@@ -113,10 +116,18 @@ public:
 		return mangled_name;
 	}
 
-	bool is_static;
-	bool is_abstract;
-	bool is_virtual;
-	bool is_override;
+	bool is_static = false;
+	bool is_event = false;
+	bool is_native = false;
+	bool is_exec = false;
+	bool is_singular = false;
+	bool is_simulated = false;
+	bool is_final = false;
+	bool is_latent = false;
+	bool is_iterator = false;
+	bool is_operator = false;
+	bool is_preoperator = false;
+	bool is_postoperator = false;
 
 	void visit(TypeMemberVisitor *visitor)
 	{
@@ -131,7 +142,6 @@ public:
 
 	Type *type = nullptr;
 	std::vector<MethodFixedParameter *> parameters;
-	MethodParameterArray *parameter_array = nullptr;
 
 	void visit(TypeMemberVisitor *visitor)
 	{

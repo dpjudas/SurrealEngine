@@ -146,6 +146,17 @@ public:
 	}
 };
 
+class StringType : public ValueType
+{
+public:
+	StringType(TypeName* parent) : ValueType(parent, "String") {}
+
+	void visit(TypeVisitor* visitor)
+	{
+		visitor->type(this);
+	}
+};
+
 /////////////////////////////////////////////////////////////////////////////
 
 class StructType : public ValueType

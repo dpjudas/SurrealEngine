@@ -33,16 +33,13 @@ public:
 	std::string str;
 };
 
-enum class ExpressionClass // 14.1 Expression classifications
+enum class ExpressionClass
 {
 	value,
 	variable,
-	type_name, // type or namespace
-	property,
+	type,
 	indexer,
-	event,
 	method_group,
-	anonymous_method,
 	nothing
 };
 
@@ -173,6 +170,12 @@ public:
 	void visit(TypeConstantExpressionVisitor* visitor) override { visitor->expression(this); }
 };
 
+class TypeExponentiationExpression : public TypeBinaryExpression
+{
+public:
+	void visit(TypeConstantExpressionVisitor* visitor) override { visitor->expression(this); }
+};
+
 class TypeDivisionExpression : public TypeBinaryExpression
 {
 public:
@@ -197,6 +200,30 @@ public:
 	void visit(TypeConstantExpressionVisitor* visitor) override { visitor->expression(this); }
 };
 
+class TypeStringConcatExpression : public TypeBinaryExpression
+{
+public:
+	void visit(TypeConstantExpressionVisitor* visitor) override { visitor->expression(this); }
+};
+
+class TypeStringSpaceConcatExpression : public TypeBinaryExpression
+{
+public:
+	void visit(TypeConstantExpressionVisitor* visitor) override { visitor->expression(this); }
+};
+
+class TypeDotProductExpression : public TypeBinaryExpression
+{
+public:
+	void visit(TypeConstantExpressionVisitor* visitor) override { visitor->expression(this); }
+};
+
+class TypeCrossProductExpression : public TypeBinaryExpression
+{
+public:
+	void visit(TypeConstantExpressionVisitor* visitor) override { visitor->expression(this); }
+};
+
 class TypeShiftLeftExpression : public TypeBinaryExpression
 {
 public:
@@ -204,6 +231,12 @@ public:
 };
 
 class TypeShiftRightExpression : public TypeBinaryExpression
+{
+public:
+	void visit(TypeConstantExpressionVisitor* visitor) override { visitor->expression(this); }
+};
+
+class TypeUnsignedShiftRightExpression : public TypeBinaryExpression
 {
 public:
 	void visit(TypeConstantExpressionVisitor* visitor) override { visitor->expression(this); }
@@ -245,6 +278,12 @@ public:
 	void visit(TypeConstantExpressionVisitor* visitor) override { visitor->expression(this); }
 };
 
+class TypeCaseInsensitiveEqualExpression : public TypeBinaryExpression
+{
+public:
+	void visit(TypeConstantExpressionVisitor* visitor) override { visitor->expression(this); }
+};
+
 class TypeLogicalAndExpression : public TypeBinaryExpression
 {
 public:
@@ -258,6 +297,12 @@ public:
 };
 
 class TypeLogicalXorExpression : public TypeBinaryExpression
+{
+public:
+	void visit(TypeConstantExpressionVisitor* visitor) override { visitor->expression(this); }
+};
+
+class TypeLogicalXorXorExpression : public TypeBinaryExpression
 {
 public:
 	void visit(TypeConstantExpressionVisitor* visitor) override { visitor->expression(this); }

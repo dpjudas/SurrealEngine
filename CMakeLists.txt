@@ -839,6 +839,28 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Compiler/Parse/ParserName.cpp
 	SurrealEngine/Compiler/Parse/ParserStatement.cpp
 	SurrealEngine/Compiler/Parse/ParserTypeDeclaration.cpp
+	SurrealEngine/Compiler/Sema/ConstResolver.cpp
+	SurrealEngine/Compiler/Sema/ConstResolver.h
+	SurrealEngine/Compiler/Sema/CreateTypeConstExpression.cpp
+	SurrealEngine/Compiler/Sema/CreateTypeConstExpression.h
+	SurrealEngine/Compiler/Sema/CreateTypeExpressions.cpp
+	SurrealEngine/Compiler/Sema/CreateTypeExpressions.h
+	SurrealEngine/Compiler/Sema/CreateTypeMembers.cpp
+	SurrealEngine/Compiler/Sema/CreateTypeMembers.h
+	SurrealEngine/Compiler/Sema/CreateTypeNames.cpp
+	SurrealEngine/Compiler/Sema/CreateTypeNames.h
+	SurrealEngine/Compiler/Sema/ExpressionSema.cpp
+	SurrealEngine/Compiler/Sema/ExpressionSema.h
+	SurrealEngine/Compiler/Sema/MethodSema.cpp
+	SurrealEngine/Compiler/Sema/MethodSema.h
+	SurrealEngine/Compiler/Sema/ResolveExpressionConstants.cpp
+	SurrealEngine/Compiler/Sema/ResolveExpressionConstants.h
+	SurrealEngine/Compiler/Sema/ResolveTypeConstExpression.cpp
+	SurrealEngine/Compiler/Sema/ResolveTypeConstExpression.h
+	SurrealEngine/Compiler/Sema/SemanticAnalysis.cpp
+	SurrealEngine/Compiler/Sema/SemanticAnalysis.h
+	SurrealEngine/Compiler/Sema/StatementSema.cpp
+	SurrealEngine/Compiler/Sema/StatementSema.h
 	SurrealEngine/Compiler/Typesystem/ReferenceType.h
 	SurrealEngine/Compiler/Typesystem/Type.h
 	SurrealEngine/Compiler/Typesystem/TypeExpression.h
@@ -1039,10 +1061,12 @@ source_group("SurrealEngine\\VM" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}
 source_group("SurrealEngine\\Video" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Video/.+")
 source_group("SurrealEngine\\Compiler" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/.+")
 source_group("SurrealEngine\\Compiler\\Ast" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Ast/.+")
+source_group("SurrealEngine\\Compiler\\Codegen" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Codegen/.+")
 source_group("SurrealEngine\\Compiler\\Frontend" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Frontend/.+")
 source_group("SurrealEngine\\Compiler\\Lex" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Lex/.+")
 source_group("SurrealEngine\\Compiler\\Parse" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Parse/.+")
 source_group("SurrealEngine\\Compiler\\Typesystem" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Typesystem/.+")
+source_group("SurrealEngine\\Compiler\\Sema" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine/Compiler/Sema/.+")
 
 source_group("SurrealVideo" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealVideo/.+")
 source_group("SurrealVideo\\libavcodec" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/SurrealVideo/libavcodec/.+")
