@@ -463,7 +463,7 @@ void WaylandDisplayWindow::CreateBuffers(int32_t width, int32_t height)
 	m_WindowSize = Size(scaled_width, scaled_height);
 
 	if (m_EGLWindow)
-		m_EGLWindow.resize(width, height);
+		m_EGLWindow.resize(scaled_width, scaled_height);
 }
 
 void WaylandDisplayWindow::CreateAppIconBuffers(const std::vector<std::shared_ptr<Image>>& images)
