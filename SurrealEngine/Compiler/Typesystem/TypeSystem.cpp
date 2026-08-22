@@ -59,6 +59,21 @@ TypeSystem::~TypeSystem()
 {
 }
 
+void TypeSystem::setupVectorType()
+{
+	for (Type* t : object->subtypes)
+	{
+		if (t->name == "Vector")
+		{
+			vector_type = dynamic_cast<StructType*>(t);
+		}
+		else if (t->name == "Rotator")
+		{
+			rotator_type = dynamic_cast<StructType*>(t);
+		}
+	}
+}
+
 void TypeSystem::addType(Type* type)
 {
 	types.push_back(type);

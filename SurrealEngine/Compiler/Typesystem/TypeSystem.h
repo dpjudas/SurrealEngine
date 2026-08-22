@@ -23,6 +23,8 @@ public:
 	TypeSystem();
 	~TypeSystem();
 
+	void setupVectorType();
+
 	void addType(Type* type);
 
 	std::vector<Type*> types;
@@ -38,6 +40,8 @@ public:
 	NameType* name_type = nullptr;
 	StringType* string_type = nullptr;
 	ArrayType* array_type = nullptr;
+	StructType* vector_type = nullptr;
+	StructType* rotator_type = nullptr;
 
 	ClassType* object = nullptr;
 	ClassType* classObject = nullptr;

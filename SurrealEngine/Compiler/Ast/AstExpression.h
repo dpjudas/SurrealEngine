@@ -45,6 +45,8 @@ enum class AstLiteralType
 	name,
 	string,
 	none,
+	vector,
+	rotator,
 };
 
 class AstLiteral : public AstExpression

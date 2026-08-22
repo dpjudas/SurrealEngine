@@ -3,6 +3,8 @@
 
 #include "Type.h"
 #include "TypeExpressionVisitor.h"
+#include "Math/vec.h"
+#include "Math/rotator.h"
 
 class ConstantTypeMember;
 class EnumValueTypeMember;
@@ -23,6 +25,8 @@ public:
 		float f32;
 	};
 	std::string str;
+	vec3 vec;
+	Rotator rot;
 };
 
 enum class ExpressionClass
@@ -81,6 +85,8 @@ public:
 		float f32;
 	};
 	std::string str;
+	vec3 vec;
+	Rotator rot;
 };
 
 class TypeConstant : public TypeConstantExpression

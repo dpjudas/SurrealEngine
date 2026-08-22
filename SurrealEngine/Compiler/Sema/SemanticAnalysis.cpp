@@ -5,6 +5,7 @@
 #include "CreateTypeMembers.h"
 #include "CreateTypeExpressions.h"
 #include "MethodSema.h"
+#include "Compiler/Typesystem/TypeSystem.h"
 
 SemanticAnalysis::SemanticAnalysis(TypeSystem& type_system) : _type_system(type_system)
 {
@@ -18,6 +19,8 @@ void SemanticAnalysis::analyze(std::vector<std::shared_ptr<AstCompilationUnit>> 
 	{
 		create_types.exec(asts[i].get());
 	}
+
+	_type_system.setupVectorType();
 
 	ResolveTypeBases resolve_type_bases(type_system());
 	for (size_t i = 0; i < asts.size(); i++)

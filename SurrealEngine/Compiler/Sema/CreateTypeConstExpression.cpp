@@ -26,6 +26,8 @@ void CreateTypeConstExpression::expression(AstLiteral* node)
 	result->type = dynamic_cast<Type*>(node->result.type);
 	result->i32 = node->result.constval.i32;
 	result->str = node->result.constval.str;
+	result->vec = node->result.constval.vec;
+	result->rot = node->result.constval.rot;
 	constexp = result;
 }
 

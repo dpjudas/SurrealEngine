@@ -103,9 +103,34 @@ void ExpressionSema::expression(AstLiteral* node)
 		node->result = { sema.type_system().string_type, ExpressionClass::value };
 		node->result.constval.str = node->value;
 	}
+	else if (node->type == AstLiteralType::name)
+	{
+		node->result = { sema.type_system().name_type, ExpressionClass::value };
+		node->result.constval.str = node->value;
+	}
 	else if (node->type == AstLiteralType::none)
 	{
 		node->result = { sema.type_system().null_type, ExpressionClass::value };
+	}
+	else if (node->type == AstLiteralType::vector)
+	{
+		auto pos1 = node->value.find(',');
+		auto pos2 = node->value.find(',', pos1 + 1);
+		node->result = { sema.type_system().vector_type, ExpressionClass::value };
+		node->result.constval.vec = vec3(
+			(float)std::atof(node->value.substr(0, pos1).c_str()),
+			(float)std::atof(node->value.substr(pos1 + 1, pos2 - pos1 - 1).c_str()),
+			(float)std::atof(node->value.substr(pos2 + 1).c_str()));
+	}
+	else if (node->type == AstLiteralType::rotator)
+	{
+		auto pos1 = node->value.find(',');
+		auto pos2 = node->value.find(',', pos1 + 1);
+		node->result = { sema.type_system().rotator_type, ExpressionClass::value };
+		node->result.constval.rot = Rotator(
+			std::atoi(node->value.substr(0, pos1).c_str()),
+			std::atoi(node->value.substr(pos1 + 1, pos2 - pos1 - 1).c_str()),
+			std::atoi(node->value.substr(pos2 + 1).c_str()));
 	}
 	else
 	{
@@ -128,7 +153,7 @@ void ExpressionSema::expression(AstSimpleName* node)
 		TypeName* scope = *it;
 		MemberLookup lookup(sema.type_system());
 		lookup.lookup(scope, node->identifier);
-		if (lookup.members.size() == 1 && !dynamic_cast<MethodTypeMember*>(*lookup.members.begin()))
+		if (lookup.members.size() == 1 && !dynamic_cast<FunctionMember*>(*lookup.members.begin()))
 		{
 			TypeName* member = *lookup.members.begin();
 			if (FieldTypeMember* field = dynamic_cast<FieldTypeMember*>(member))
@@ -143,7 +168,7 @@ void ExpressionSema::expression(AstSimpleName* node)
 			std::vector<FunctionMember*> method_group;
 			for (TypeName* member : lookup.members)
 			{
-				if (auto method = dynamic_cast<MethodTypeMember*>(member))
+				if (auto method = dynamic_cast<FunctionMember*>(member))
 					method_group.push_back(method);
 			}
 			if (method_group.size() != lookup.members.size())

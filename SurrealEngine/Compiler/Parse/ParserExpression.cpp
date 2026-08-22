@@ -11,7 +11,50 @@ AstExpression *Parser::parse_expression(ExpressionEndCondition end_condition)
 
 AstExpression *Parser::parse_primary()
 {
-	AstExpression *expression = 0;
+	if (is_keyword("vect") || is_keyword("rot"))
+	{
+		auto saved = save_position();
+		bool is_vect = is_keyword("vect");
+		next();
+		if (is_operator("("))
+		{
+			next();
+
+			AstLiteral* literal = newNode<AstLiteral>();
+			for (int i = 0; i < 3; i++)
+			{
+				if (i > 0)
+				{
+					if (!is_operator(","))
+						throw_parse_exception(", expected");
+					next();
+					literal->value += ",";
+				}
+				if (is_operator("-"))
+				{
+					literal->value += "-";
+					next();
+				}
+				if (token.type != Token::type_integer && token.type != Token::type_real)
+					throw_parse_exception("number expected");
+				literal->value += token.value;
+				next();
+			}
+			if (!is_operator(")"))
+				throw_parse_exception(") expected");
+			next();
+
+			literal->type = is_vect ? AstLiteralType::vector : AstLiteralType::rotator;
+			return literal;
+		}
+		else
+		{
+			// rot is also used as a variable!
+			restore_position(saved);
+		}
+	}
+
+	AstExpression* expression = 0;
 
 	if (is_keyword("super"))
 	{
