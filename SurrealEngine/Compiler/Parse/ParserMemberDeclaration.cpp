@@ -402,6 +402,12 @@ AstMethodDeclaration* Parser::parse_method_declaration()
 		{
 			method_decl->return_type = parse_name();
 		}
+		else
+		{
+			AstKeywordType* type = newNode<AstKeywordType>();
+			type->type = "void";
+			method_decl->return_type = type;
+		}
 
 		if (!is_identifier())
 			throw_parse_exception("identifier expected");

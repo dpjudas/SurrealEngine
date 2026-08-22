@@ -12,7 +12,8 @@
 class ParseException : public CompilerException
 {
 public:
-	ParseException(const std::string &message, int line, int column) : CompilerException(message), line(line), column(column) { }
+	ParseException(const std::string &message, int sourceIndex, int line, int column) : CompilerException(message), sourceIndex(sourceIndex), line(line), column(column) {}
+	int sourceIndex;
 	int line;
 	int column;
 };
@@ -27,7 +28,7 @@ public:
 class Parser
 {
 public:
-	Parser(const std::string &source);
+	Parser(const std::string &source, int sourceIndex);
 
 	std::shared_ptr<AstCompilationUnit> parse();
 
@@ -46,6 +47,7 @@ private:
 	{
 		ast->allocatedNodes.push_back(std::make_unique<T>(std::forward<Types>(args)...));
 		T* node = static_cast<T*>(ast->allocatedNodes.back().get());
+		node->sourceIndex = token.sourceIndex;
 		node->line = token.line;
 		node->column = token.column;
 		return node;

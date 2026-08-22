@@ -16,7 +16,7 @@ public:
 class Tokenizer
 {
 public:
-	Tokenizer(const std::string &data);
+	Tokenizer(const std::string &data, int sourceIndex);
 
 	Token next();
 
@@ -75,6 +75,7 @@ private:
 	static std::string preprocess(const std::string& data);
 
 	std::u32string data;
+	int sourceIndex = 0;
 	size_t pos = 0;
 	size_t line_start_pos = 0;
 	size_t line_number = 1;

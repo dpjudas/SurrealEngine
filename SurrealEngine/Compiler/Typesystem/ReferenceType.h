@@ -49,7 +49,7 @@ public:
 class ArrayType : public ReferenceType
 {
 public:
-	ArrayType(TypeName *parent) : ReferenceType(parent, std::string()) { }
+	ArrayType(TypeName *parent) : ReferenceType(parent, "Array") {}
 
 	void visit(TypeVisitor *visitor)
 	{

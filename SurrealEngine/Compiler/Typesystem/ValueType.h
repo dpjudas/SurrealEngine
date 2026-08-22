@@ -57,6 +57,17 @@ public:
 	}
 };
 
+class NameType : public ValueType
+{
+public:
+	NameType(TypeName* parent) : ValueType(parent, "name") {}
+
+	void visit(TypeVisitor* visitor)
+	{
+		visitor->type(this);
+	}
+};
+
 class StringType : public ValueType
 {
 public:

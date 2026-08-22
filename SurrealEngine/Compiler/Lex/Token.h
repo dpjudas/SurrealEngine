@@ -21,10 +21,11 @@ public:
 	};
 
 	Token() = default;
-	Token(Type type, const std::string &value, int line, int column) : type(type), value(value), line(line), column(column) { }
+	Token(Type type, const std::string &value, int sourceIndex, int line, int column) : type(type), value(value), sourceIndex(sourceIndex), line(line), column(column) {}
 
 	Type type = type_eof;
 	std::string value;
+	int sourceIndex = 0;
 	int line = 0;
 	int column = 0;
 };

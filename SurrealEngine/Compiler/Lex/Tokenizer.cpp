@@ -7,7 +7,7 @@
 #pragma warning(disable: 4267) // warning C4267: '=': conversion from 'size_t' to 'int', possible loss of data
 #endif
 
-Tokenizer::Tokenizer(const std::string &data) : data(TextUtil::iso8859_1_to_utf32(preprocess(data)))
+Tokenizer::Tokenizer(const std::string &data, int sourceIndex) : data(TextUtil::iso8859_1_to_utf32(preprocess(data))), sourceIndex(sourceIndex)
 {
 }
 
@@ -33,6 +33,7 @@ Token Tokenizer::next()
 
 	if (pos == data.size())
 	{
+		token.sourceIndex = sourceIndex;
 		token.line = line_number;
 		token.column = pos - line_start_pos;
 		token.type = Token::type_eof;
@@ -55,12 +56,14 @@ Token Tokenizer::next()
 
 		if (pos == data.size())
 		{
+			token.sourceIndex = sourceIndex;
 			token.line = line_number;
 			token.column = pos - line_start_pos;
 			token.type = Token::type_eof;
 		}
 		else if (!read_token(token))
 		{
+			token.sourceIndex = sourceIndex;
 			token.line = line_number;
 			token.column = pos - line_start_pos;
 			token.type = Token::type_error;
@@ -218,6 +221,7 @@ bool Tokenizer::read_identifier(Token &token)
 		while (read_identifier_part_character(character))
 			identifier.push_back(character);
 
+		token.sourceIndex = sourceIndex;
 		token.line = line_number;
 		token.column = start_pos - line_start_pos;
 		token.type = Token::type_identifier;
@@ -288,6 +292,7 @@ bool Tokenizer::read_bool_literal(Token &token)
 				return false;
 			}
 		}
+		token.sourceIndex = sourceIndex;
 		token.line = line_number;
 		token.column = pos - line_start_pos;
 		token.type = Token::type_bool;
@@ -314,6 +319,7 @@ bool Tokenizer::read_bool_literal(Token &token)
 				return false;
 			}
 		}
+		token.sourceIndex = sourceIndex;
 		token.line = line_number;
 		token.column = pos - line_start_pos;
 		token.type = Token::type_bool;
@@ -390,6 +396,7 @@ bool Tokenizer::read_integer_literal(Token &token)
 		pos++;
 	}
 
+	token.sourceIndex = sourceIndex;
 	token.line = line_number;
 	token.column = start_pos - line_start_pos;
 	token.type = Token::type_integer;
@@ -471,6 +478,7 @@ bool Tokenizer::read_real_literal(Token &token)
 		return false;
 	}
 
+	token.sourceIndex = sourceIndex;
 	token.line = line_number;
 	token.column = start_pos - line_start_pos;
 	token.type = Token::type_real;
@@ -508,6 +516,7 @@ bool Tokenizer::read_name_literal(Token &token)
 
 		if (pos == data.size())
 		{
+			token.sourceIndex = sourceIndex;
 			token.line = line_number;
 			token.column = pos - line_start_pos;
 			token.type = Token::type_error;
@@ -517,6 +526,7 @@ bool Tokenizer::read_name_literal(Token &token)
 
 		pos++;
 
+		token.sourceIndex = sourceIndex;
 		token.line = line_number;
 		token.column = start_pos - line_start_pos;
 		token.type = Token::type_name;
@@ -544,6 +554,7 @@ bool Tokenizer::read_string_literal(Token &token)
 			std::string error;
 			if (!read_literal_character(character, error))
 			{
+				token.sourceIndex = sourceIndex;
 				token.line = line_number;
 				token.column = pos - line_start_pos;
 				token.type = Token::type_error;
@@ -556,6 +567,7 @@ bool Tokenizer::read_string_literal(Token &token)
 
 		if (pos == data.size())
 		{
+			token.sourceIndex = sourceIndex;
 			token.line = line_number;
 			token.column = pos - line_start_pos;
 			token.type = Token::type_error;
@@ -565,6 +577,7 @@ bool Tokenizer::read_string_literal(Token &token)
 
 		pos++;
 
+		token.sourceIndex = sourceIndex;
 		token.line = line_number;
 		token.column = start_pos - line_start_pos;
 		token.type = Token::type_string;
@@ -714,6 +727,7 @@ bool Tokenizer::read_none_literal(Token &token)
 				return false;
 			}
 		}
+		token.sourceIndex = sourceIndex;
 		token.line = line_number;
 		token.column = pos - line_start_pos;
 		token.type = Token::type_none;
@@ -738,6 +752,7 @@ bool Tokenizer::read_operator_or_punctuator(Token &token)
 
 		if (operators[i][j] == 0)
 		{
+			token.sourceIndex = sourceIndex;
 			token.line = line_number;
 			token.column = pos - line_start_pos;
 			token.type = Token::type_operator;

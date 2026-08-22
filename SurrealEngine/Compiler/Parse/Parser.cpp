@@ -2,8 +2,7 @@
 #include "Precomp.h"
 #include "Parser.h"
 
-Parser::Parser(const std::string &source)
-	: tokenizer(source)
+Parser::Parser(const std::string &source, int sourceIndex) : tokenizer(source, sourceIndex)
 {
 }
 
@@ -17,6 +16,7 @@ std::shared_ptr<AstCompilationUnit> Parser::parse()
 
 void Parser::set_line_info(AstNode* node)
 {
+	node->sourceIndex = token.sourceIndex;
 	node->line = token.line;
 	node->column = token.column;
 }
@@ -126,5 +126,5 @@ void Parser::restore_position(const SavedParserPos &save)
 
 void Parser::throw_parse_exception(const std::string &message)
 {
-	throw ParseException(message, token.line, token.column);
+	throw ParseException(message, token.sourceIndex, token.line, token.column);
 }

@@ -13,6 +13,7 @@ class SemaException : public CompilerException
 {
 public:
 	SemaException(const std::string& message, AstNode* location);
+	int sourceIndex;
 	int line;
 	int column;
 };

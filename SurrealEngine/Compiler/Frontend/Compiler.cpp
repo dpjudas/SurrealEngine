@@ -31,7 +31,7 @@ bool Compiler::compile()
 		{
 			try
 			{
-				Parser parser(sources[i].code);
+				Parser parser(sources[i].code, (int)i);
 				std::shared_ptr<AstCompilationUnit> ast = parser.parse();
 				parsed_files.push_back(ast);
 			}
@@ -52,7 +52,7 @@ bool Compiler::compile()
 		}
 		catch (SemaException& exception)
 		{
-			messages.push_back(CompilerMessage(CompilerMessage::error, exception.message(), "unknown.uc"/*sources[exception.sourceIndex].filename*/, exception.line));
+			messages.push_back(CompilerMessage(CompilerMessage::error, exception.message(), exception.sourceIndex >= 0 ? sources[exception.sourceIndex].filename : std::string(), exception.line));
 			return false;
 		}
 

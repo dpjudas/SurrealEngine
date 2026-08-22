@@ -21,15 +21,6 @@ void CreateTypeMembers::name(AstClassDeclaration* node)
 	current_class = static_cast<ClassType*>(node->type);
 	current_struct = nullptr;
 
-	if (node->base_type)
-	{
-		Type* base_type = type_scope.lookup_type(node->base_type);
-		if (dynamic_cast<ClassType*>(base_type))
-		{
-			current_class->base = static_cast<ClassType*>(base_type);
-		}
-	}
-
 	node->visit_children(this);
 
 	current_class = last_class;
@@ -66,12 +57,9 @@ void CreateTypeMembers::name(AstEnumValueDeclaration* node)
 
 void CreateTypeMembers::name(AstConstantDeclaration* node)
 {
-	Type* type = type_system.int_type; // What are the types of constants in unrealscript? always integers?
-	// Type* type = type_scope.lookup_type(node->type);
-
 	for (const auto& var_decl : node->declarators)
 	{
-		ConstantTypeMember* member = type_system.newType<ConstantTypeMember>(get_parent(), var_decl->identifier, type);
+		ConstantTypeMember* member = type_system.newType<ConstantTypeMember>(get_parent(), var_decl->identifier, nullptr);
 		var_decl->sema_type = member;
 
 		if (current_class)
@@ -83,7 +71,21 @@ void CreateTypeMembers::name(AstConstantDeclaration* node)
 
 void CreateTypeMembers::name(AstFieldDeclaration* node)
 {
-	Type* type = type_scope.lookup_type(node->type);
+	Type* type;
+	if (node->struct_decl)
+	{
+		node->struct_decl->visit(this);
+		type = node->struct_decl->type;
+	}
+	else if (node->enum_decl)
+	{
+		node->enum_decl->visit(this);
+		type = node->enum_decl->type;
+	}
+	else
+	{
+		type = type_scope.lookup_type(node->type);
+	}
 
 	for (const auto& var_decl : node->declarators)
 	{

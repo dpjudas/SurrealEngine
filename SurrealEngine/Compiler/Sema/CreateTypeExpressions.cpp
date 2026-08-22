@@ -56,6 +56,7 @@ void CreateTypeExpressions::name(AstConstantDeclaration *node)
 	{
 		ConstantTypeMember *type = decl->sema_type;
 		type->expression = create_expression(decl->expression);
+		type->type = dynamic_cast<Type*>(type->expression->result.type);
 	}
 }
 

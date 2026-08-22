@@ -19,6 +19,12 @@ void SemanticAnalysis::analyze(std::vector<std::shared_ptr<AstCompilationUnit>> 
 		create_types.exec(asts[i].get());
 	}
 
+	ResolveTypeBases resolve_type_bases(type_system());
+	for (size_t i = 0; i < asts.size(); i++)
+	{
+		resolve_type_bases.exec(asts[i].get());
+	}
+
 	CreateTypeMembers create_members(type_system());
 	for (size_t i = 0; i < asts.size(); i++)
 	{
@@ -41,7 +47,7 @@ void SemanticAnalysis::analyze(std::vector<std::shared_ptr<AstCompilationUnit>> 
 
 /////////////////////////////////////////////////////////////////////////////
 
-SemaException::SemaException(const std::string& message, AstNode* location) : CompilerException(message), line(location ? location->line : -1), column(location ? location->column : -1)
+SemaException::SemaException(const std::string& message, AstNode* location) : CompilerException(message), sourceIndex(location ? location->sourceIndex : -1), line(location ? location->line : -1), column(location ? location->column : -1)
 {
 }
 
@@ -78,18 +84,24 @@ Type* TypeScope::lookup_type(AstName* name)
 			TypeName* scope = *it;
 			if (auto cls = dynamic_cast<ClassType*>(scope))
 			{
-				for (Type* subtype : cls->subtypes)
+				while (cls)
 				{
-					if (typeName == subtype->name)
+					for (Type* subtype : cls->subtypes)
 					{
-						return subtype;
+						if (typeName == subtype->name)
+						{
+							return subtype;
+						}
 					}
+					cls = cls->base;
 				}
 			}
 		}
 		auto it = ts.nameToType.find(typeName);
 		if (it != ts.nameToType.end())
 			return it->second;
+
+		throw SemaException("Unknown type '" + identifier->name + "'", name);
 	}
 	else if (auto clsName = dynamic_cast<AstClassName*>(name))
 	{

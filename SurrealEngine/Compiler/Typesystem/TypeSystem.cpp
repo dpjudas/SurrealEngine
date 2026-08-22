@@ -11,7 +11,18 @@ TypeSystem::TypeSystem()
 	int_type = newType<IntType>(nullptr);
 	single_type = newType<SingleType>(nullptr);
 	boolean_type = newType<BooleanType>(nullptr);
+	name_type = newType<NameType>(nullptr);
 	string_type = newType<StringType>(nullptr);
+	array_type = newType<ArrayType>(nullptr);
+
+	addType(void_type);
+	addType(byte_type);
+	addType(int_type);
+	addType(single_type);
+	addType(boolean_type);
+	addType(name_type);
+	addType(string_type);
+	addType(array_type);
 
 	// To do: import this from the Core package
 	object = newType<ClassType>(nullptr, "Object", false);
@@ -20,12 +31,13 @@ TypeSystem::TypeSystem()
 	classObject->base = object;
 	addType(classObject);
 
-	addType(void_type);
-	addType(byte_type);
-	addType(int_type);
-	addType(single_type);
-	addType(boolean_type);
-	addType(string_type);
+	// To do: also get these from the package manager
+	for (const char* name : { "Texture", "Sound", "Font", "Animation", "Level", "Mesh", "Model", "Viewport", "Primitive", "Client", "RenderBase", "AudioSubsystem", "Music" })
+	{
+		ClassType* cls = newType<ClassType>(nullptr, name, false);
+		cls->base = object;
+		addType(cls);
+	}
 
 	unary_operator_byte = newType<FunctionMember>(this, byte_type, std::initializer_list<Type*>{ byte_type });
 	unary_operator_int = newType<FunctionMember>(this, int_type, std::initializer_list<Type*>{ int_type });

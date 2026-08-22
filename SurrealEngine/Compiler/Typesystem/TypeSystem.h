@@ -35,7 +35,9 @@ public:
 	IntType* int_type = nullptr;
 	SingleType* single_type = nullptr;
 	BooleanType* boolean_type = nullptr;
+	NameType* name_type = nullptr;
 	StringType* string_type = nullptr;
+	ArrayType* array_type = nullptr;
 
 	ClassType* object = nullptr;
 	ClassType* classObject = nullptr;
