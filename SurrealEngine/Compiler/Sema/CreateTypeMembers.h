@@ -3,6 +3,7 @@
 
 #include "Compiler/Ast/Ast.h"
 #include "Compiler/Typesystem/TypeSystem.h"
+#include "SemanticAnalysis.h"
 
 class CreateTypeMembers : public AstNameVisitor
 {

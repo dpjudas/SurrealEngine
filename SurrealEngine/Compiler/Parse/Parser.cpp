@@ -58,18 +58,10 @@ bool Parser::is_type_keyword() const
 	return
 		is_keyword("bool") ||
 		is_keyword("byte") ||
-		is_keyword("char") ||
-		is_keyword("double") ||
 		is_keyword("float") ||
 		is_keyword("int") ||
-		is_keyword("long") ||
 		is_keyword("object") ||
-		is_keyword("sbyte") ||
-		is_keyword("short") ||
 		is_keyword("string") ||
-		is_keyword("uint") ||
-		is_keyword("ulong") ||
-		is_keyword("ushort") ||
 		is_keyword("void");
 }
 

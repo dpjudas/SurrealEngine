@@ -17,7 +17,7 @@ void ExpressionSema::analyze(AstExpression* expression)
 
 void ExpressionSema::expression(AstArrayCreationExpression* node)
 {
-	throw SemaException("Arrays not supported yet");
+	throw SemaException("Arrays not supported yet", node);
 }
 
 void ExpressionSema::expression(AstLiteral* node)
@@ -109,7 +109,7 @@ void ExpressionSema::expression(AstLiteral* node)
 	}
 	else
 	{
-		throw SemaException("Unknown literal type");
+		throw SemaException("Unknown literal type", node);
 	}
 
 	node->result.constval.is_constant = true;
@@ -147,7 +147,7 @@ void ExpressionSema::expression(AstSimpleName* node)
 					method_group.push_back(method);
 			}
 			if (method_group.size() != lookup.members.size())
-				throw SemaException("Ambiguous member lookup");
+				throw SemaException("Ambiguous member lookup", node);
 			node->result = { name_scope.variables["this"].type, ExpressionClass::method_group };
 			node->result.method_group = method_group;
 			return;
@@ -158,7 +158,7 @@ void ExpressionSema::expression(AstSimpleName* node)
 	name.name = node->identifier;
 	TypeName* type_name = type_scope.lookup_type(&name);
 	if (!type_name)
-		throw SemaException("Unknown identifier or type name");
+		throw SemaException("Unknown identifier or type name", node);
 	node->result = { type_name, ExpressionClass::type };
 }
 
@@ -178,7 +178,7 @@ void ExpressionSema::expression(AstMemberAccess* node)
 	}
 	else
 	{
-		operand = { type_scope.lookup_keyword(node->predefined_type), ExpressionClass::type };
+		throw SemaException("Invalid member access node", node);
 	}
 
 	if (operand.variant == ExpressionClass::type)
@@ -199,7 +199,7 @@ void ExpressionSema::expression(AstMemberAccess* node)
 			//else if (EnumValueTypeMember *enumval = dynamic_cast<EnumValueTypeMember*>(member))
 			//	node->result = { enumval->type, ExpressionClass::value };
 			else
-				throw SemaException("Invalid member reference");
+				throw SemaException("Invalid member reference", node);
 			node->result.member = member;
 			return;
 		}
@@ -212,7 +212,7 @@ void ExpressionSema::expression(AstMemberAccess* node)
 					method_group.push_back(method);
 			}
 			if (method_group.size() != lookup.members.size())
-				throw SemaException("Ambiguous member lookup");
+				throw SemaException("Ambiguous member lookup", node);
 			node->result = { sema.type_system().void_type, ExpressionClass::method_group };
 			node->result.method_group = method_group;
 			return;
@@ -229,7 +229,7 @@ void ExpressionSema::expression(AstMemberAccess* node)
 			if (FieldTypeMember* field = dynamic_cast<FieldTypeMember*>(member))
 				node->result = { field->type, ExpressionClass::variable };
 			else
-				throw SemaException("Invalid member reference");
+				throw SemaException("Invalid member reference", node);
 			node->result.member = member;
 			return;
 		}
@@ -242,13 +242,13 @@ void ExpressionSema::expression(AstMemberAccess* node)
 					method_group.push_back(method);
 			}
 			if (method_group.size() != lookup.members.size())
-				throw SemaException("Ambiguous member lookup");
+				throw SemaException("Ambiguous member lookup", node);
 			node->result = { operand.type, ExpressionClass::method_group };
 			node->result.method_group = method_group;
 			return;
 		}
 	}
-	throw SemaException("Invalid member reference");
+	throw SemaException("Invalid member reference", node);
 }
 
 void ExpressionSema::expression(AstInvocationExpression* node)
@@ -256,7 +256,7 @@ void ExpressionSema::expression(AstInvocationExpression* node)
 	node->expression->visit(this);
 
 	if (node->expression->result.variant != ExpressionClass::method_group)
-		throw SemaException("Method group expected");
+		throw SemaException("Method group expected", node);
 
 	std::vector<ExpressionResult> args;
 	for (size_t i = 0; i < node->args.size(); i++)
@@ -267,14 +267,14 @@ void ExpressionSema::expression(AstInvocationExpression* node)
 
 	FunctionMember* func = sema.type_system().find_best_function(node->expression->result.method_group, args);
 	if (!func)
-		throw SemaException("No suitable overload found");
+		throw SemaException("No suitable overload found", node);
 
 	node->result = { func->type, ExpressionClass::value, func };
 }
 
 void ExpressionSema::expression(AstElementAccess* node)
 {
-	throw SemaException("Arrays not yet supported");
+	throw SemaException("Arrays not yet supported", node);
 #if 0
 	node->expression->visit(this);
 
@@ -393,7 +393,7 @@ void ExpressionSema::expression(AstNewExpression* node)
 
 void ExpressionSema::expression(AstTypeofExpression* node)
 {
-	throw SemaException("typeof not supported");
+	throw SemaException("typeof not supported", node);
 }
 
 void ExpressionSema::expression(AstParenthesizedExpression* node)
@@ -402,7 +402,7 @@ void ExpressionSema::expression(AstParenthesizedExpression* node)
 	node->result = node->expression->result;
 
 	if (node->result.variant == ExpressionClass::type)
-		throw SemaException("type not allowed");
+		throw SemaException("type not allowed", node);
 }
 
 void ExpressionSema::expression(AstSizeofExpression* node)
@@ -412,7 +412,7 @@ void ExpressionSema::expression(AstSizeofExpression* node)
 
 void ExpressionSema::expression(AstAnonymousMethodExpression* node)
 {
-	throw SemaException("anonymous functions not supported");
+	throw SemaException("anonymous functions not supported", node);
 }
 
 void ExpressionSema::expression(AstUnaryPlusExpression* node)
@@ -594,12 +594,12 @@ void ExpressionSema::expression(AstGreaterEqualExpression* node)
 
 void ExpressionSema::expression(AstIsExpression* node)
 {
-	throw SemaException("is keyword not supported");
+	throw SemaException("is keyword not supported", node);
 }
 
 void ExpressionSema::expression(AstAsExpression* node)
 {
-	throw SemaException("as keyword not supported");
+	throw SemaException("as keyword not supported", node);
 }
 
 void ExpressionSema::expression(AstEqualExpression* node)
@@ -683,7 +683,7 @@ void ExpressionSema::expression(AstAssignmentExpression* node)
 	if (node->assignment_type == "=")
 	{
 		if (!sema.type_system().implicit_convert_allowed(node->operand2->result.type, node->operand1->result.type))
-			throw SemaException("No suitable operator found");
+			throw SemaException("No suitable operator found", node);
 
 		node->result = { node->operand1->result.type, ExpressionClass::value };
 	}
@@ -712,7 +712,7 @@ void ExpressionSema::expression(AstAssignmentExpression* node)
 		else if (node->assignment_type == ">>=")
 			func = get_shift_right_overload(node->operand1->result, node->operand2->result);
 		else
-			throw SemaException("Unknown assignment type");
+			throw SemaException("Unknown assignment type", node);
 
 		TypeName* x = node->operand1->result.type;
 		TypeName* y = node->operand2->result.type;
@@ -723,7 +723,7 @@ void ExpressionSema::expression(AstAssignmentExpression* node)
 			convert_allowed = ts.explicit_convert_allowed(func->type, x) && (ts.implicit_convert_allowed(x, y) || node->assignment_type == "<<=" || node->assignment_type == ">>=");
 
 		if (!convert_allowed)
-			throw SemaException("No suitable operator found");
+			throw SemaException("No suitable operator found", node);
 
 		node->result = { func->type, ExpressionClass::value, func };
 	}
@@ -731,7 +731,7 @@ void ExpressionSema::expression(AstAssignmentExpression* node)
 
 void ExpressionSema::expression(AstTrinaryExpression* node)
 {
-	throw SemaException("Trinary operator not implemented");
+	throw SemaException("Trinary operator not implemented", node);
 }
 
 FunctionMember* ExpressionSema::get_increment_overload(const ExpressionResult& a)
@@ -748,7 +748,7 @@ FunctionMember* ExpressionSema::get_increment_overload(const ExpressionResult& a
 
 	FunctionMember* func = ts.find_best_function(candidates, { a });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -766,7 +766,7 @@ FunctionMember* ExpressionSema::get_decrement_overload(const ExpressionResult& a
 
 	FunctionMember* func = ts.find_best_function(candidates, { a });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -781,7 +781,7 @@ FunctionMember* ExpressionSema::get_plus_overload(const ExpressionResult& a)
 
 	FunctionMember* func = ts.find_best_function(candidates, { a });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -796,7 +796,7 @@ FunctionMember* ExpressionSema::get_minus_overload(const ExpressionResult& a)
 
 	FunctionMember* func = ts.find_best_function(candidates, { a });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -810,7 +810,7 @@ FunctionMember* ExpressionSema::get_logical_not_overload(const ExpressionResult&
 
 	FunctionMember* func = ts.find_best_function(candidates, { a });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -826,7 +826,7 @@ FunctionMember* ExpressionSema::get_bitwise_complement_overload(const Expression
 
 	FunctionMember* func = ts.find_best_function(candidates, { a });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -845,7 +845,7 @@ FunctionMember* ExpressionSema::get_addition_overload(const ExpressionResult& a,
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -863,7 +863,7 @@ FunctionMember* ExpressionSema::get_subtraction_overload(const ExpressionResult&
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -878,7 +878,7 @@ FunctionMember* ExpressionSema::get_multiplication_overload(const ExpressionResu
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -893,7 +893,7 @@ FunctionMember* ExpressionSema::get_division_overload(const ExpressionResult& a,
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -908,7 +908,7 @@ FunctionMember* ExpressionSema::get_remainder_overload(const ExpressionResult& a
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -925,7 +925,7 @@ FunctionMember* ExpressionSema::get_logical_and_overload(const ExpressionResult&
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -942,7 +942,7 @@ FunctionMember* ExpressionSema::get_logical_or_overload(const ExpressionResult& 
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -959,7 +959,7 @@ FunctionMember* ExpressionSema::get_logical_xor_overload(const ExpressionResult&
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -973,7 +973,7 @@ FunctionMember* ExpressionSema::get_shift_left_overload(const ExpressionResult& 
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -987,7 +987,7 @@ FunctionMember* ExpressionSema::get_shift_right_overload(const ExpressionResult&
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -1004,7 +1004,7 @@ FunctionMember* ExpressionSema::get_less_overload(const ExpressionResult& a, con
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -1021,7 +1021,7 @@ FunctionMember* ExpressionSema::get_greater_overload(const ExpressionResult& a, 
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -1038,7 +1038,7 @@ FunctionMember* ExpressionSema::get_less_equal_overload(const ExpressionResult& 
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -1055,7 +1055,7 @@ FunctionMember* ExpressionSema::get_greater_equal_overload(const ExpressionResul
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -1075,7 +1075,7 @@ FunctionMember* ExpressionSema::get_equal_overload(const ExpressionResult& a, co
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -1094,7 +1094,7 @@ FunctionMember* ExpressionSema::get_not_equal_overload(const ExpressionResult& a
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (!func)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -1111,7 +1111,7 @@ FunctionMember* ExpressionSema::get_conditional_and_overload(const ExpressionRes
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (func != ts.binary_operator_boolean)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }
 
@@ -1128,6 +1128,6 @@ FunctionMember* ExpressionSema::get_conditional_or_overload(const ExpressionResu
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
 	if (func != ts.binary_operator_boolean)
-		throw SemaException("No suitable operator found");
+		throw SemaException("No suitable operator found", nullptr);
 	return func;
 }

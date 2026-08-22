@@ -27,20 +27,18 @@ void CompilerCommandlet::OnCommand(DebuggerApp* console, const std::string& args
 		return;
 	}
 
+	Compiler cc;
 	for (const auto& entry : fs::recursive_directory_iterator(folder))
 	{
 		if (entry.is_regular_file() && entry.path().extension() == ".uc")
 		{
-			// console->WriteOutput(entry.path().filename().string() + NewLine());
-			Compiler cc;
 			cc.add_code(File::read_all_text(entry.path().string()), entry.path().filename().string());
-			cc.compile();
-
-			for (const CompilerMessage& msg : cc.get_messages())
-			{
-				console->WriteOutput(msg.to_string() + NewLine());
-			}
 		}
+	}
+	cc.compile();
+	for (const CompilerMessage& msg : cc.get_messages())
+	{
+		console->WriteOutput(msg.to_string() + NewLine());
 	}
 }
 

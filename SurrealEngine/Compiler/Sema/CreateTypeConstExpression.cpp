@@ -45,7 +45,7 @@ void CreateTypeConstExpression::expression(AstSimpleName* node)
 	}
 	else
 	{
-		throw SemaException("Name reference in constant expressions must be either a constant or an enum value");
+		throw SemaException("Name reference in constant expressions must be either a constant or an enum value", node);
 	}
 }
 
@@ -70,7 +70,7 @@ void CreateTypeConstExpression::expression(AstMemberAccess* node)
 	}
 	else
 	{
-		throw SemaException("Member reference in constant expressions must be either a constant or an enum value");
+		throw SemaException("Member reference in constant expressions must be either a constant or an enum value", node);
 	}
 }
 
@@ -86,7 +86,7 @@ void CreateTypeConstExpression::expression(AstElementAccess* node)
 
 void CreateTypeConstExpression::expression(AstBaseAccess* node)
 {
-	throw SemaException("base keyword not allowed in constant expressions");
+	throw SemaException("base keyword not allowed in constant expressions", node);
 }
 
 void CreateTypeConstExpression::expression(AstPostIncrementExpression* node)
@@ -109,7 +109,7 @@ void CreateTypeConstExpression::expression(AstNewExpression* node)
 
 void CreateTypeConstExpression::expression(AstTypeofExpression* node)
 {
-	throw SemaException("typeof keyword not allowed in constant expressions");
+	throw SemaException("typeof keyword not allowed in constant expressions", node);
 }
 
 void CreateTypeConstExpression::expression(AstParenthesizedExpression* node)
@@ -122,12 +122,12 @@ void CreateTypeConstExpression::expression(AstParenthesizedExpression* node)
 
 void CreateTypeConstExpression::expression(AstSizeofExpression* node)
 {
-	throw SemaException("unchecked keyword not supported");
+	throw SemaException("unchecked keyword not supported", node);
 }
 
 void CreateTypeConstExpression::expression(AstAnonymousMethodExpression* node)
 {
-	throw SemaException("anonymous method not allowed in constant expressions");
+	throw SemaException("anonymous method not allowed in constant expressions", node);
 }
 
 void CreateTypeConstExpression::expression(AstUnaryPlusExpression* node)
@@ -247,12 +247,12 @@ void CreateTypeConstExpression::expression(AstGreaterEqualExpression* node)
 
 void CreateTypeConstExpression::expression(AstIsExpression* node)
 {
-	throw SemaException("is keyword method not allowed in constant expressions");
+	throw SemaException("is keyword method not allowed in constant expressions", node);
 }
 
 void CreateTypeConstExpression::expression(AstAsExpression* node)
 {
-	throw SemaException("as keyword method not allowed in constant expressions");
+	throw SemaException("as keyword method not allowed in constant expressions", node);
 }
 
 void CreateTypeConstExpression::expression(AstEqualExpression* node)
@@ -302,7 +302,7 @@ void CreateTypeConstExpression::expression(AstConditionalOrExpression* node)
 
 void CreateTypeConstExpression::expression(AstAssignmentExpression* node)
 {
-	throw SemaException("assignments not allowed in constant expressions");
+	throw SemaException("assignments not allowed in constant expressions", node);
 }
 
 void CreateTypeConstExpression::expression(AstTrinaryExpression* node)

@@ -19,14 +19,23 @@ void CreateTypeNames::name(AstClassDeclaration* node)
 	else if (current_struct)
 		parent = current_struct;
 
-	ClassType* type = type_system.newType<ClassType>(parent, node->identifier, node->is_abstract);
+	ClassType* type;
+	if (node->identifier == "Object" && !current_class && !current_struct)
+	{
+		type = type_system.object;
+	}
+	else
+	{
+		type = type_system.newType<ClassType>(parent, node->identifier, node->is_abstract);
+		if (current_class)
+			current_class->subtypes.push_back(type);
+		else if (current_struct)
+			current_struct->subtypes.push_back(type);
+		else
+			type_system.addType(type);
+	}
 
 	node->type = type;
-
-	if (current_class)
-		current_class->subtypes.push_back(type);
-	else if (current_struct)
-		current_struct->subtypes.push_back(type);
 
 	ClassType* last_class = current_class;
 	StructType* last_struct = current_struct;
@@ -56,6 +65,8 @@ void CreateTypeNames::name(AstStructDeclaration* node)
 		current_class->subtypes.push_back(type);
 	else if (current_struct)
 		current_struct->subtypes.push_back(type);
+	else
+		type_system.addType(type);
 
 	ClassType* last_class = current_class;
 	StructType* last_struct = current_struct;
@@ -83,6 +94,8 @@ void CreateTypeNames::name(AstEnumDeclaration* node)
 		current_class->subtypes.push_back(type);
 	else if (current_struct)
 		current_struct->subtypes.push_back(type);
+	else
+		type_system.addType(type);
 
 	current_enum = type;
 	node->visit_children(this);

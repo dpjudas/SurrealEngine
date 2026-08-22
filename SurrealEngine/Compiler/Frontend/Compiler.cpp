@@ -45,8 +45,16 @@ bool Compiler::compile()
 		if (encountered_errors)
 			return false;
 
-		SemanticAnalysis sema(type_system);
-		sema.analyze(parsed_files);
+		try
+		{
+			SemanticAnalysis sema(type_system);
+			sema.analyze(parsed_files);
+		}
+		catch (SemaException& exception)
+		{
+			messages.push_back(CompilerMessage(CompilerMessage::error, exception.message(), "unknown.uc"/*sources[exception.sourceIndex].filename*/, exception.line));
+			return false;
+		}
 
 		codegen = std::make_unique<CodeGen>(type_system);
 		codegen->codegen(parsed_files);

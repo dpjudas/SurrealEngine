@@ -111,7 +111,6 @@ class AstMemberAccess : public AstExpression
 public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
 
-	AstKeywordType *predefined_type = nullptr;
 	AstExpression *expression = nullptr;
 	std::string identifier;
 };

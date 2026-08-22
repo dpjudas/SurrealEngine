@@ -8,7 +8,6 @@
 class TypeName
 {
 public:
-	TypeName(TypeName *parent) : parent(parent) { }
 	TypeName(TypeName *parent, const std::string &name) : parent(parent), name(name) { }
 	virtual ~TypeName() = default;
 
@@ -35,7 +34,6 @@ public:
 class Type : public TypeName
 {
 public:
-	Type(TypeName *parent) : TypeName(parent) { }
 	Type(TypeName *parent, const std::string &name) : TypeName(parent, name) { }
 
 	virtual void visit(TypeVisitor *visitor) = 0;
@@ -44,7 +42,7 @@ public:
 class VoidType : public Type
 {
 public:
-	VoidType(TypeName *parent) : Type(parent, "Void") { }
+	VoidType(TypeName *parent) : Type(parent, "void") { }
 
 	void visit(TypeVisitor *visitor)
 	{
@@ -55,7 +53,7 @@ public:
 class PointerType : public Type
 {
 public:
-	PointerType(TypeName *parent) : Type(parent, "Pointer") { }
+	PointerType(TypeName *parent) : Type(parent, "pointer") { }
 
 	void visit(TypeVisitor *visitor)
 	{

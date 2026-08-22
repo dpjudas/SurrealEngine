@@ -14,7 +14,7 @@ ExpressionConstantValue ConstResolver::convert(const ExpressionResult& src, Type
 ExpressionConstantValue ConstResolver::convert(TypeName* srctype, const ExpressionConstantValue& srcvalue, TypeName* dest)
 {
 	if (!srcvalue.is_constant)
-		throw SemaException("Constant expression expected");
+		throw SemaException("Constant expression expected", nullptr);
 
 	if (srctype == dest) return srcvalue;
 
@@ -53,7 +53,7 @@ ExpressionConstantValue ConstResolver::call_minus_overload(FunctionMember* func,
 	else if (func == ts.unary_operator_single)
 		result.f32 = -v.f32;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -68,7 +68,7 @@ ExpressionConstantValue ConstResolver::call_logical_not_overload(FunctionMember*
 	if (func == ts.unary_operator_boolean)
 		result.i1 = !v.i1;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -83,7 +83,7 @@ ExpressionConstantValue ConstResolver::call_bitwise_complement_overload(Function
 	if (func == ts.unary_operator_int)
 		result.i32 = ~v.i32;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -103,7 +103,7 @@ ExpressionConstantValue ConstResolver::call_addition_overload(FunctionMember* fu
 	else if (func == ts.binary_operator_string)
 		result.str = v1.str + v2.str;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -121,7 +121,7 @@ ExpressionConstantValue ConstResolver::call_subtraction_overload(FunctionMember*
 	else if (func == ts.binary_operator_single)
 		result.f32 = v1.f32 - v2.f32;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -139,7 +139,7 @@ ExpressionConstantValue ConstResolver::call_multiplication_overload(FunctionMemb
 	else if (func == ts.binary_operator_single)
 		result.f32 = v1.f32 * v2.f32;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -157,7 +157,7 @@ ExpressionConstantValue ConstResolver::call_division_overload(FunctionMember* fu
 	else if (func == ts.binary_operator_single)
 		result.f32 = v1.f32 / v2.f32;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -175,7 +175,7 @@ ExpressionConstantValue ConstResolver::call_remainder_overload(FunctionMember* f
 	else if (func == ts.binary_operator_single)
 		result.f32 = std::fmod(v1.f32, v2.f32);
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -193,7 +193,7 @@ ExpressionConstantValue ConstResolver::call_logical_and_overload(FunctionMember*
 	else if (func == ts.compare_operator_boolean)
 		result.i1 = v1.i1 & v2.i1;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -211,7 +211,7 @@ ExpressionConstantValue ConstResolver::call_logical_or_overload(FunctionMember* 
 	else if (func == ts.compare_operator_boolean)
 		result.i1 = v1.i1 | v2.i1;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -229,7 +229,7 @@ ExpressionConstantValue ConstResolver::call_logical_xor_overload(FunctionMember*
 	else if (func == ts.compare_operator_boolean)
 		result.i1 = v1.i1 ^ v2.i1;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -245,7 +245,7 @@ ExpressionConstantValue ConstResolver::call_shift_left_overload(FunctionMember* 
 	if (func == ts.binary_operator_int)
 		result.i32 = v1.i32 << v2.i32;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -261,7 +261,7 @@ ExpressionConstantValue ConstResolver::call_shift_right_overload(FunctionMember*
 	if (func == ts.binary_operator_int)
 		result.i32 = v1.i32 >> v2.i32;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -279,7 +279,7 @@ ExpressionConstantValue ConstResolver::call_less_overload(FunctionMember* func, 
 	else if (func == ts.compare_operator_single)
 		result.i1 = v1.f32 < v2.f32;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -297,7 +297,7 @@ ExpressionConstantValue ConstResolver::call_greater_overload(FunctionMember* fun
 	else if (func == ts.compare_operator_single)
 		result.i1 = v1.f32 > v2.f32;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -315,7 +315,7 @@ ExpressionConstantValue ConstResolver::call_less_equal_overload(FunctionMember* 
 	else if (func == ts.compare_operator_single)
 		result.i1 = v1.f32 <= v2.f32;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -333,7 +333,7 @@ ExpressionConstantValue ConstResolver::call_greater_equal_overload(FunctionMembe
 	else if (func == ts.compare_operator_single)
 		result.i1 = v1.f32 >= v2.f32;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -353,7 +353,7 @@ ExpressionConstantValue ConstResolver::call_equal_overload(FunctionMember* func,
 	else if (func == ts.compare_operator_string)
 		result.i1 = v1.str == v2.str;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -373,7 +373,7 @@ ExpressionConstantValue ConstResolver::call_not_equal_overload(FunctionMember* f
 	else if (func == ts.compare_operator_string)
 		result.i1 = v1.str != v2.str;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -389,7 +389,7 @@ ExpressionConstantValue ConstResolver::call_conditional_and_overload(FunctionMem
 	if (func == ts.binary_operator_boolean)
 		result.i1 = v1.i1 && v2.i1;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }
 
@@ -405,6 +405,6 @@ ExpressionConstantValue ConstResolver::call_conditional_or_overload(FunctionMemb
 	if (func == ts.binary_operator_boolean)
 		result.i1 = v1.i1 || v2.i1;
 	else
-		throw SemaException("Unknown operator overload");
+		throw SemaException("Unknown operator overload", nullptr);
 	return result;
 }

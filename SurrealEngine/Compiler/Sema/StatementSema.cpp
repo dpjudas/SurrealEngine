@@ -23,7 +23,7 @@ void StatementSema::statement(AstLabeledStatement* node)
 
 void StatementSema::statement(AstConstantDeclarationStatement* node)
 {
-	throw SemaException("constant declaration statements not supported");
+	throw SemaException("constant declaration statements not supported", node);
 }
 
 void StatementSema::statement(AstVariableDeclarationStatement* node)
@@ -59,7 +59,7 @@ void StatementSema::statement(AstIfStatement* node)
 
 	auto& ts = sema.type_system();
 	if (!ts.implicit_convert_allowed(node->boolean_expression->result.type, ts.boolean_type))
-		throw SemaException("expression cannot be implicitly cast to bool");
+		throw SemaException("expression cannot be implicitly cast to bool", node);
 
 	node->then_statement->visit(this);
 	if (node->else_statement)
@@ -68,7 +68,7 @@ void StatementSema::statement(AstIfStatement* node)
 
 void StatementSema::statement(AstSwitchStatement* node)
 {
-	throw SemaException("switch statements not implemented");
+	throw SemaException("switch statements not implemented", node);
 }
 
 void StatementSema::statement(AstWhileStatement* node)
@@ -81,7 +81,7 @@ void StatementSema::statement(AstWhileStatement* node)
 
 	auto& ts = sema.type_system();
 	if (!ts.implicit_convert_allowed(node->boolean_expression->result.type, ts.boolean_type))
-		throw SemaException("expression cannot be implicitly cast to bool");
+		throw SemaException("expression cannot be implicitly cast to bool", node);
 
 	loop_level++;
 	node->statement->visit(this);
@@ -102,7 +102,7 @@ void StatementSema::statement(AstDoStatement* node)
 
 	auto& ts = sema.type_system();
 	if (!ts.implicit_convert_allowed(node->boolean_expression->result.type, ts.boolean_type))
-		throw SemaException("expression cannot be implicitly cast to bool");
+		throw SemaException("expression cannot be implicitly cast to bool", node);
 }
 
 void StatementSema::statement(AstForStatement* node)
@@ -126,7 +126,7 @@ void StatementSema::statement(AstForStatement* node)
 
 	auto& ts = sema.type_system();
 	if (!ts.implicit_convert_allowed(node->condition->result.type, ts.boolean_type))
-		throw SemaException("expression cannot be implicitly cast to bool");
+		throw SemaException("expression cannot be implicitly cast to bool", node);
 
 	loop_level++;
 	node->statement->visit(this);
@@ -140,24 +140,24 @@ void StatementSema::statement(AstForStatement* node)
 
 void StatementSema::statement(AstForeachStatement* node)
 {
-	throw SemaException("foreach statements not implemented");
+	throw SemaException("foreach statements not implemented", node);
 }
 
 void StatementSema::statement(AstBreakStatement* node)
 {
 	if (loop_level == 0)
-		throw SemaException("break not allowed outside loops");
+		throw SemaException("break not allowed outside loops", node);
 }
 
 void StatementSema::statement(AstContinueStatement* node)
 {
 	if (loop_level == 0)
-		throw SemaException("continue not allowed outside loops");
+		throw SemaException("continue not allowed outside loops", node);
 }
 
 void StatementSema::statement(AstGotoStatement* node)
 {
-	throw SemaException("goto statements not supported");
+	throw SemaException("goto statements not supported", node);
 }
 
 void StatementSema::statement(AstReturnStatement* node)
@@ -191,7 +191,7 @@ void StatementSema::local_variable_declaration(AstLocalVariableDeclaration* vari
 
 			auto& ts = sema.type_system();
 			if (!ts.implicit_convert_allowed(initial_value->result.type, type))
-				throw SemaException("type conversion not allowed");
+				throw SemaException("type conversion not allowed", initial_value);
 		}
 	}
 }

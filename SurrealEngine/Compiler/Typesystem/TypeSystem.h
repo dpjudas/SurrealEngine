@@ -8,6 +8,7 @@
 #include "ReferenceType.h"
 #include "TypeMember.h"
 #include "TypeExpression.h"
+#include "Package/NameString.h"
 
 class AstName;
 class AstKeywordType;
@@ -22,38 +23,42 @@ public:
 	TypeSystem();
 	~TypeSystem();
 
-	std::vector<Type*> types;
+	void addType(Type* type);
 
-	NullType *null_type = nullptr;
+	std::vector<Type*> types;
+	std::map<NameString, Type*> nameToType;
+
+	NullType* null_type = nullptr;
 	PointerType* pointer_type = nullptr;
-	VoidType *void_type = nullptr;
-	ByteType *byte_type = nullptr;
-	IntType *int_type = nullptr;
-	SingleType *single_type = nullptr;
-	BooleanType *boolean_type = nullptr;
+	VoidType* void_type = nullptr;
+	ByteType* byte_type = nullptr;
+	IntType* int_type = nullptr;
+	SingleType* single_type = nullptr;
+	BooleanType* boolean_type = nullptr;
 	StringType* string_type = nullptr;
 
-	ClassType *object = nullptr;
+	ClassType* object = nullptr;
+	ClassType* classObject = nullptr;
 
-	FunctionMember *unary_operator_byte = nullptr;
-	FunctionMember *unary_operator_int = nullptr;
-	FunctionMember *unary_operator_single = nullptr;
-	FunctionMember *unary_operator_boolean = nullptr;
+	FunctionMember* unary_operator_byte = nullptr;
+	FunctionMember* unary_operator_int = nullptr;
+	FunctionMember* unary_operator_single = nullptr;
+	FunctionMember* unary_operator_boolean = nullptr;
 
-	FunctionMember *binary_operator_int = nullptr;
-	FunctionMember *binary_operator_single = nullptr;
-	FunctionMember *binary_operator_boolean = nullptr;
-	FunctionMember *binary_operator_string = nullptr;
+	FunctionMember* binary_operator_int = nullptr;
+	FunctionMember* binary_operator_single = nullptr;
+	FunctionMember* binary_operator_boolean = nullptr;
+	FunctionMember* binary_operator_string = nullptr;
 
-	FunctionMember *compare_operator_int = nullptr;
-	FunctionMember *compare_operator_single = nullptr;
-	FunctionMember *compare_operator_boolean = nullptr;
-	FunctionMember *compare_operator_string = nullptr;
+	FunctionMember* compare_operator_int = nullptr;
+	FunctionMember* compare_operator_single = nullptr;
+	FunctionMember* compare_operator_boolean = nullptr;
+	FunctionMember* compare_operator_string = nullptr;
 
-	FunctionMember *find_best_function(const std::vector<FunctionMember*> &candidates, const std::vector<ExpressionResult> &args);
+	FunctionMember* find_best_function(const std::vector<FunctionMember*>& candidates, const std::vector<ExpressionResult>& args);
 
-	bool implicit_convert_allowed(TypeName *src, TypeName *dest);
-	bool explicit_convert_allowed(TypeName *src, TypeName *dest);
+	bool implicit_convert_allowed(TypeName* src, TypeName* dest);
+	bool explicit_convert_allowed(TypeName* src, TypeName* dest);
 
 	template<typename T, typename... Types>
 	T* newType(Types&&... args)
@@ -84,35 +89,5 @@ public:
 	std::vector<std::unique_ptr<MethodFixedParameter>> allocatedFixedParameters;
 
 private:
-	int compare_conversion(const ExpressionResult &src, MethodFixedParameter *t1, MethodFixedParameter *t2);
-};
-
-class TypeScope
-{
-public:
-	TypeScope(TypeSystem& ts) : ts(ts) {}
-
-	void push_scope(AstNameDeclaration* ast_name_declaration) {}
-	void pop_scope() {}
-
-	Type* lookup_type(AstName* name) { return nullptr; }
-	Type* lookup_keyword(AstKeywordType* type) { return nullptr; }
-
-	std::vector<TypeName*> scopes;
-
-private:
-	TypeSystem& ts;
-};
-
-class MemberLookup
-{
-public:
-	MemberLookup(TypeSystem& type_system) : type_system(type_system) {}
-
-	void lookup(TypeName* type, const std::string& name) {}
-
-	std::set<TypeName*> members;
-
-private:
-	TypeSystem& type_system;
+	int compare_conversion(const ExpressionResult& src, MethodFixedParameter* t1, MethodFixedParameter* t2);
 };

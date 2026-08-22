@@ -7,7 +7,6 @@
 class ValueType : public Type
 {
 public:
-	ValueType(TypeName *parent) : Type(parent) { }
 	ValueType(TypeName *parent, const std::string &name) : Type(parent, name) { }
 };
 
@@ -17,7 +16,7 @@ public:
 class ByteType : public ValueType
 {
 public:
-	ByteType(TypeName *parent) : ValueType(parent, "Byte") { }
+	ByteType(TypeName *parent) : ValueType(parent, "byte") { }
 
 	void visit(TypeVisitor *visitor)
 	{
@@ -28,7 +27,7 @@ public:
 class IntType : public ValueType
 {
 public:
-	IntType(TypeName *parent) : ValueType(parent, "Int") { }
+	IntType(TypeName *parent) : ValueType(parent, "int") { }
 
 	void visit(TypeVisitor *visitor)
 	{
@@ -39,7 +38,7 @@ public:
 class SingleType : public ValueType
 {
 public:
-	SingleType(TypeName *parent) : ValueType(parent, "Float") { }
+	SingleType(TypeName *parent) : ValueType(parent, "float") { }
 
 	void visit(TypeVisitor *visitor)
 	{
@@ -50,7 +49,7 @@ public:
 class BooleanType : public ValueType
 {
 public:
-	BooleanType(TypeName *parent) : ValueType(parent, "Boolean") { }
+	BooleanType(TypeName *parent) : ValueType(parent, "bool") { }
 
 	void visit(TypeVisitor *visitor)
 	{
@@ -61,7 +60,7 @@ public:
 class StringType : public ValueType
 {
 public:
-	StringType(TypeName* parent) : ValueType(parent, "String") {}
+	StringType(TypeName* parent) : ValueType(parent, "string") {}
 
 	void visit(TypeVisitor* visitor)
 	{

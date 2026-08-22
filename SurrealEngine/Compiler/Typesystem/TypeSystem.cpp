@@ -13,15 +13,19 @@ TypeSystem::TypeSystem()
 	boolean_type = newType<BooleanType>(nullptr);
 	string_type = newType<StringType>(nullptr);
 
-	// Populated by parsing the Core package
-	object = nullptr;
+	// To do: import this from the Core package
+	object = newType<ClassType>(nullptr, "Object", false);
+	addType(object);
+	classObject = newType<ClassType>(nullptr, "Class", false);
+	classObject->base = object;
+	addType(classObject);
 
-	types.push_back(void_type);
-	types.push_back(byte_type);
-	types.push_back(int_type);
-	types.push_back(single_type);
-	types.push_back(boolean_type);
-	types.push_back(string_type);
+	addType(void_type);
+	addType(byte_type);
+	addType(int_type);
+	addType(single_type);
+	addType(boolean_type);
+	addType(string_type);
 
 	unary_operator_byte = newType<FunctionMember>(this, byte_type, std::initializer_list<Type*>{ byte_type });
 	unary_operator_int = newType<FunctionMember>(this, int_type, std::initializer_list<Type*>{ int_type });
@@ -41,6 +45,13 @@ TypeSystem::TypeSystem()
 
 TypeSystem::~TypeSystem()
 {
+}
+
+void TypeSystem::addType(Type* type)
+{
+	types.push_back(type);
+	if (!type->name.empty())
+		nameToType[type->name] = type;
 }
 
 FunctionMember *TypeSystem::find_best_function(const std::vector<FunctionMember *> &candidates, const std::vector<ExpressionResult> &args)
