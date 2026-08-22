@@ -66,7 +66,7 @@ void CreateTypeMembers::name(AstEnumValueDeclaration* node)
 
 void CreateTypeMembers::name(AstConstantDeclaration* node)
 {
-	Type* type = type_system.int32_type; // What are the types of constants in unrealscript? always integers?
+	Type* type = type_system.int_type; // What are the types of constants in unrealscript? always integers?
 	// Type* type = type_scope.lookup_type(node->type);
 
 	for (const auto& var_decl : node->declarators)

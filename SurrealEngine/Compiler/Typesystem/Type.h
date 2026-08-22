@@ -41,25 +41,6 @@ public:
 	virtual void visit(TypeVisitor *visitor) = 0;
 };
 
-class TypePackage : public TypeName
-{
-public:
-	TypePackage(TypeName *parent) : TypeName(parent) { }
-	TypePackage(TypeName *parent, const std::string &name) : TypeName(parent, name) { }
-
-	void visit(TypeVisitor *visitor)
-	{
-		for (size_t i = 0; i < packages.size(); i++)
-			packages[i]->visit(visitor);
-
-		for (size_t i = 0; i < types.size(); i++)
-			types[i]->visit(visitor);
-	}
-
-	std::vector<TypePackage *> packages;
-	std::vector<Type *> types;
-};
-
 class VoidType : public Type
 {
 public:
@@ -71,10 +52,10 @@ public:
 	}
 };
 
-class NativeHandleType : public Type
+class PointerType : public Type
 {
 public:
-	NativeHandleType(TypeName *parent) : Type(parent, "NativeHandle") { }
+	PointerType(TypeName *parent) : Type(parent, "Pointer") { }
 
 	void visit(TypeVisitor *visitor)
 	{

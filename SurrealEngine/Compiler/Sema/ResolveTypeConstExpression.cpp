@@ -15,7 +15,7 @@ void ResolveTypeConstExpression::analyze(TypeConstantExpression* expression)
 void ResolveTypeConstExpression::expression(TypeLiteral* node)
 {
 	node->result.type = dynamic_cast<Type*>(node->type);
-	node->result.constval.u64 = node->u64;
+	node->result.constval.i32 = node->i32;
 	node->result.constval.str = node->str;
 	node->result.constval.is_constant = true;
 }

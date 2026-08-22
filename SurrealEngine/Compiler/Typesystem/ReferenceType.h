@@ -70,16 +70,3 @@ public:
 		visitor->type(this);
 	}
 };
-
-class BoxedType : public ReferenceType
-{
-public:
-	BoxedType(TypeName *parent) : ReferenceType(parent, std::string()), type() { }
-
-	void visit(TypeVisitor *visitor)
-	{
-		visitor->type(this);
-	}
-
-	ValueType *type;
-};

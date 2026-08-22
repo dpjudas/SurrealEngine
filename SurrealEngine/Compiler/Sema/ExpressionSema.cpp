@@ -59,7 +59,7 @@ void ExpressionSema::expression(AstLiteral* node)
 			}
 		}
 
-		if (value > 0x7fff'ffff'ffff'ffffULL || (unsigned_suffix && long_suffix))
+		/*if (value > 0x7fff'ffff'ffff'ffffULL || (unsigned_suffix && long_suffix))
 		{
 			node->result = { sema.type_system().uint64_type, ExpressionClass::value };
 			node->result.constval.u64 = value;
@@ -71,12 +71,12 @@ void ExpressionSema::expression(AstLiteral* node)
 		}
 		else if (value > 0x7fff'ffffULL || unsigned_suffix)
 		{
-			node->result = { sema.type_system().uint32_type, ExpressionClass::value };
+			node->result = { sema.type_system().uint_type, ExpressionClass::value };
 			node->result.constval.u32 = (uint32_t)value;
 		}
-		else
+		else */
 		{
-			node->result = { sema.type_system().int32_type, ExpressionClass::value };
+			node->result = { sema.type_system().int_type, ExpressionClass::value };
 			node->result.constval.i32 = (int32_t)value;
 		}
 	}
@@ -85,12 +85,12 @@ void ExpressionSema::expression(AstLiteral* node)
 		if (node->value.back() == 'f')
 		{
 			node->result = { sema.type_system().single_type, ExpressionClass::value };
-			node->result.constval.f32 = (float)atof(node->value.substr(0, node->value.size() - 1).c_str());
+			node->result.constval.f32 = (float)std::atof(node->value.substr(0, node->value.size() - 1).c_str());
 		}
 		else
 		{
-			node->result = { sema.type_system().double_type, ExpressionClass::value };
-			node->result.constval.f64 = atof(node->value.c_str());
+			node->result = { sema.type_system().single_type, ExpressionClass::value };
+			node->result.constval.f32 = (float)std::atof(node->value.c_str());
 		}
 	}
 	else if (node->type == AstLiteralType::boolean)
@@ -407,7 +407,7 @@ void ExpressionSema::expression(AstParenthesizedExpression* node)
 
 void ExpressionSema::expression(AstSizeofExpression* node)
 {
-	node->result = { sema.type_system().int32_type, ExpressionClass::value };
+	node->result = { sema.type_system().int_type, ExpressionClass::value };
 }
 
 void ExpressionSema::expression(AstAnonymousMethodExpression* node)
@@ -739,23 +739,15 @@ FunctionMember* ExpressionSema::get_increment_overload(const ExpressionResult& a
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.unary_operator_sbyte,
 		ts.unary_operator_byte,
-		ts.unary_operator_int16,
-		ts.unary_operator_uint16,
-		ts.unary_operator_int32,
-		ts.unary_operator_uint32,
-		ts.unary_operator_int64,
-		ts.unary_operator_uint64,
-		ts.unary_operator_char,
+		ts.unary_operator_int,
 		ts.unary_operator_single,
-		ts.unary_operator_double
 	};
 
 	//enum // one exists for every enum
 
 	FunctionMember* func = ts.find_best_function(candidates, { a });
-	if (!func || func == ts.unary_operator_error)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -765,23 +757,15 @@ FunctionMember* ExpressionSema::get_decrement_overload(const ExpressionResult& a
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.unary_operator_sbyte,
 		ts.unary_operator_byte,
-		ts.unary_operator_int16,
-		ts.unary_operator_uint16,
-		ts.unary_operator_int32,
-		ts.unary_operator_uint32,
-		ts.unary_operator_int64,
-		ts.unary_operator_uint64,
-		ts.unary_operator_char,
+		ts.unary_operator_int,
 		ts.unary_operator_single,
-		ts.unary_operator_double
 	};
 
 	//enum // one exists for every enum
 
 	FunctionMember* func = ts.find_best_function(candidates, { a });
-	if (!func || func == ts.unary_operator_error)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -791,16 +775,12 @@ FunctionMember* ExpressionSema::get_plus_overload(const ExpressionResult& a)
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.unary_operator_int32,
-		ts.unary_operator_uint32,
-		ts.unary_operator_int64,
-		ts.unary_operator_uint64,
+		ts.unary_operator_int,
 		ts.unary_operator_single,
-		ts.unary_operator_double
 	};
 
 	FunctionMember* func = ts.find_best_function(candidates, { a });
-	if (!func || func == ts.unary_operator_error)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -810,14 +790,12 @@ FunctionMember* ExpressionSema::get_minus_overload(const ExpressionResult& a)
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.unary_operator_int32,
-		ts.unary_operator_int64,
+		ts.unary_operator_int,
 		ts.unary_operator_single,
-		ts.unary_operator_double
 	};
 
 	FunctionMember* func = ts.find_best_function(candidates, { a });
-	if (!func || func == ts.unary_operator_error)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -831,7 +809,7 @@ FunctionMember* ExpressionSema::get_logical_not_overload(const ExpressionResult&
 	};
 
 	FunctionMember* func = ts.find_best_function(candidates, { a });
-	if (!func || func == ts.unary_operator_error)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -841,16 +819,13 @@ FunctionMember* ExpressionSema::get_bitwise_complement_overload(const Expression
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.unary_operator_int32,
-		ts.unary_operator_uint32,
-		ts.unary_operator_int64,
-		ts.unary_operator_uint64
+		ts.unary_operator_int,
 	};
 
 	//enum // one exists for every enum
 
 	FunctionMember* func = ts.find_best_function(candidates, { a });
-	if (!func || func == ts.unary_operator_error)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -860,22 +835,16 @@ FunctionMember* ExpressionSema::get_addition_overload(const ExpressionResult& a,
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.binary_operator_int32,
-		ts.binary_operator_uint32,
-		ts.binary_operator_int64,
-		ts.binary_operator_uint64,
+		ts.binary_operator_int,
 		ts.binary_operator_single,
-		ts.binary_operator_double,
 		ts.binary_operator_string,
-		ts.binary_operator_error1,
-		ts.binary_operator_error2
 	};
 
 	//addition_enum_int, // one exists for every enum and its underlying type
 	//addition_int_enum, // one exists for every enum and its underlying type
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.binary_operator_error1 || func == ts.binary_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -885,21 +854,15 @@ FunctionMember* ExpressionSema::get_subtraction_overload(const ExpressionResult&
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.binary_operator_int32,
-		ts.binary_operator_uint32,
-		ts.binary_operator_int64,
-		ts.binary_operator_uint64,
+		ts.binary_operator_int,
 		ts.binary_operator_single,
-		ts.binary_operator_double,
-		ts.binary_operator_error1,
-		ts.binary_operator_error2
 	};
 
 	//addition_enum_int, // one exists for every enum and its underlying type
 	//addition_int_enum, // one exists for every enum and its underlying type
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.binary_operator_error1 || func == ts.binary_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -909,18 +872,12 @@ FunctionMember* ExpressionSema::get_multiplication_overload(const ExpressionResu
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.binary_operator_int32,
-		ts.binary_operator_uint32,
-		ts.binary_operator_int64,
-		ts.binary_operator_uint64,
+		ts.binary_operator_int,
 		ts.binary_operator_single,
-		ts.binary_operator_double,
-		ts.binary_operator_error1,
-		ts.binary_operator_error2
 	};
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.binary_operator_error1 || func == ts.binary_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -930,18 +887,12 @@ FunctionMember* ExpressionSema::get_division_overload(const ExpressionResult& a,
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.binary_operator_int32,
-		ts.binary_operator_uint32,
-		ts.binary_operator_int64,
-		ts.binary_operator_uint64,
+		ts.binary_operator_int,
 		ts.binary_operator_single,
-		ts.binary_operator_double,
-		ts.binary_operator_error1,
-		ts.binary_operator_error2
 	};
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.binary_operator_error1 || func == ts.binary_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -951,18 +902,12 @@ FunctionMember* ExpressionSema::get_remainder_overload(const ExpressionResult& a
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.binary_operator_int32,
-		ts.binary_operator_uint32,
-		ts.binary_operator_int64,
-		ts.binary_operator_uint64,
+		ts.binary_operator_int,
 		ts.binary_operator_single,
-		ts.binary_operator_double,
-		ts.binary_operator_error1,
-		ts.binary_operator_error2
 	};
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.binary_operator_error1 || func == ts.binary_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -972,19 +917,14 @@ FunctionMember* ExpressionSema::get_logical_and_overload(const ExpressionResult&
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.binary_operator_int32,
-		ts.binary_operator_uint32,
-		ts.binary_operator_int64,
-		ts.binary_operator_uint64,
+		ts.binary_operator_int,
 		ts.binary_operator_boolean,
-		ts.binary_operator_error1,
-		ts.binary_operator_error2
 	};
 
 	//and_enum, // one exists for every enum type, only considered for overload resolution if one of the operands already match
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.binary_operator_error1 || func == ts.binary_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -994,19 +934,14 @@ FunctionMember* ExpressionSema::get_logical_or_overload(const ExpressionResult& 
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.binary_operator_int32,
-		ts.binary_operator_uint32,
-		ts.binary_operator_int64,
-		ts.binary_operator_uint64,
+		ts.binary_operator_int,
 		ts.binary_operator_boolean,
-		ts.binary_operator_error1,
-		ts.binary_operator_error2
 	};
 
 	//and_enum, // one exists for every enum type, only considered for overload resolution if one of the operands already match
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.binary_operator_error1 || func == ts.binary_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -1016,19 +951,14 @@ FunctionMember* ExpressionSema::get_logical_xor_overload(const ExpressionResult&
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.binary_operator_int32,
-		ts.binary_operator_uint32,
-		ts.binary_operator_int64,
-		ts.binary_operator_uint64,
+		ts.binary_operator_int,
 		ts.binary_operator_boolean,
-		ts.binary_operator_error1,
-		ts.binary_operator_error2
 	};
 
 	//and_enum, // one exists for every enum type, only considered for overload resolution if one of the operands already match
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.binary_operator_error1 || func == ts.binary_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -1038,10 +968,7 @@ FunctionMember* ExpressionSema::get_shift_left_overload(const ExpressionResult& 
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.binary_operator_int32,
-		ts.binary_operator_uint32_int32,
-		ts.binary_operator_int64_int32,
-		ts.binary_operator_uint64_int32,
+		ts.binary_operator_int,
 	};
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
@@ -1055,10 +982,7 @@ FunctionMember* ExpressionSema::get_shift_right_overload(const ExpressionResult&
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.binary_operator_int32,
-		ts.binary_operator_uint32_int32,
-		ts.binary_operator_int64_int32,
-		ts.binary_operator_uint64_int32,
+		ts.binary_operator_int,
 	};
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
@@ -1072,20 +996,14 @@ FunctionMember* ExpressionSema::get_less_overload(const ExpressionResult& a, con
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.compare_operator_int32,
-		ts.compare_operator_uint32,
-		ts.compare_operator_int64,
-		ts.compare_operator_uint64,
+		ts.compare_operator_int,
 		ts.compare_operator_single,
-		ts.compare_operator_double,
-		ts.compare_operator_error1,
-		ts.compare_operator_error2
 	};
 
 	//less_enum, // one exists for every enum type, only considered for overload resolution if one of the operands already match
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.compare_operator_error1 || func == ts.compare_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -1095,20 +1013,14 @@ FunctionMember* ExpressionSema::get_greater_overload(const ExpressionResult& a, 
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.compare_operator_int32,
-		ts.compare_operator_uint32,
-		ts.compare_operator_int64,
-		ts.compare_operator_uint64,
+		ts.compare_operator_int,
 		ts.compare_operator_single,
-		ts.compare_operator_double,
-		ts.compare_operator_error1,
-		ts.compare_operator_error2
 	};
 
 	//greater_enum, // one exists for every enum type, only considered for overload resolution if one of the operands already match
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.compare_operator_error1 || func == ts.compare_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -1118,20 +1030,14 @@ FunctionMember* ExpressionSema::get_less_equal_overload(const ExpressionResult& 
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.compare_operator_int32,
-		ts.compare_operator_uint32,
-		ts.compare_operator_int64,
-		ts.compare_operator_uint64,
+		ts.compare_operator_int,
 		ts.compare_operator_single,
-		ts.compare_operator_double,
-		ts.compare_operator_error1,
-		ts.compare_operator_error2
 	};
 
 	//less_equal_enum, // one exists for every enum type, only considered for overload resolution if one of the operands already match
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.compare_operator_error1 || func == ts.compare_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -1141,20 +1047,14 @@ FunctionMember* ExpressionSema::get_greater_equal_overload(const ExpressionResul
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.compare_operator_int32,
-		ts.compare_operator_uint32,
-		ts.compare_operator_int64,
-		ts.compare_operator_uint64,
+		ts.compare_operator_int,
 		ts.compare_operator_single,
-		ts.compare_operator_double,
-		ts.compare_operator_error1,
-		ts.compare_operator_error2
 	};
 
 	//greater_equal_enum, // one exists for every enum type, only considered for overload resolution if one of the operands already match
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.compare_operator_error1 || func == ts.compare_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -1164,23 +1064,17 @@ FunctionMember* ExpressionSema::get_equal_overload(const ExpressionResult& a, co
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.compare_operator_int32,
-		ts.compare_operator_uint32,
-		ts.compare_operator_int64,
-		ts.compare_operator_uint64,
+		ts.compare_operator_int,
 		ts.compare_operator_single,
-		ts.compare_operator_double,
 		ts.compare_operator_boolean,
 		ts.compare_operator_string,
-		ts.compare_operator_error1,
-		ts.compare_operator_error2
 	};
 
 	//equal_enum, // one exists for every enum type, only considered for overload resolution if one of the operands already match
 	//equal_reference, // one exists for every class, special rules for when its applicable
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.compare_operator_error1 || func == ts.compare_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -1190,22 +1084,16 @@ FunctionMember* ExpressionSema::get_not_equal_overload(const ExpressionResult& a
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.compare_operator_int32,
-		ts.compare_operator_uint32,
-		ts.compare_operator_int64,
-		ts.compare_operator_uint64,
+		ts.compare_operator_int,
 		ts.compare_operator_single,
-		ts.compare_operator_double,
 		ts.compare_operator_string,
-		ts.compare_operator_error1,
-		ts.compare_operator_error2
 	};
 
 	//notequal_enum, // one exists for every enum type, only considered for overload resolution if one of the operands already match
 	//notequal_reference, // one exists for every class, special rules for when its applicable
 
 	FunctionMember* func = ts.find_best_function(candidates, { a, b });
-	if (!func || func == ts.compare_operator_error1 || func == ts.compare_operator_error2)
+	if (!func)
 		throw SemaException("No suitable operator found");
 	return func;
 }
@@ -1215,13 +1103,8 @@ FunctionMember* ExpressionSema::get_conditional_and_overload(const ExpressionRes
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.binary_operator_int32,
-		ts.binary_operator_uint32,
-		ts.binary_operator_int64,
-		ts.binary_operator_uint64,
+		ts.binary_operator_int,
 		ts.binary_operator_boolean,
-		ts.binary_operator_error1,
-		ts.binary_operator_error2
 	};
 
 	//and_enum, // one exists for every enum type, only considered for overload resolution if one of the operands already match
@@ -1237,13 +1120,8 @@ FunctionMember* ExpressionSema::get_conditional_or_overload(const ExpressionResu
 	auto& ts = sema.type_system();
 	std::vector<FunctionMember*> candidates =
 	{
-		ts.binary_operator_int32,
-		ts.binary_operator_uint32,
-		ts.binary_operator_int64,
-		ts.binary_operator_uint64,
+		ts.binary_operator_int,
 		ts.binary_operator_boolean,
-		ts.binary_operator_error1,
-		ts.binary_operator_error2
 	};
 
 	//and_enum, // one exists for every enum type, only considered for overload resolution if one of the operands already match

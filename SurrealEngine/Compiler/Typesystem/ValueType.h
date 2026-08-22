@@ -14,17 +14,6 @@ public:
 /////////////////////////////////////////////////////////////////////////////
 // Simple Type:
 
-class SByteType : public ValueType
-{
-public:
-	SByteType(TypeName *parent) : ValueType(parent, "SByte") { }
-
-	void visit(TypeVisitor *visitor)
-	{
-		visitor->type(this);
-	}
-};
-
 class ByteType : public ValueType
 {
 public:
@@ -36,76 +25,10 @@ public:
 	}
 };
 
-class Int16Type : public ValueType
+class IntType : public ValueType
 {
 public:
-	Int16Type(TypeName *parent) : ValueType(parent, "Int16") { }
-
-	void visit(TypeVisitor *visitor)
-	{
-		visitor->type(this);
-	}
-};
-
-class UInt16Type : public ValueType
-{
-public:
-	UInt16Type(TypeName *parent) : ValueType(parent, "UInt16") { }
-
-	void visit(TypeVisitor *visitor)
-	{
-		visitor->type(this);
-	}
-};
-
-class Int32Type : public ValueType
-{
-public:
-	Int32Type(TypeName *parent) : ValueType(parent, "Int32") { }
-
-	void visit(TypeVisitor *visitor)
-	{
-		visitor->type(this);
-	}
-};
-
-class UInt32Type : public ValueType
-{
-public:
-	UInt32Type(TypeName *parent) : ValueType(parent, "UInt32") { }
-
-	void visit(TypeVisitor *visitor)
-	{
-		visitor->type(this);
-	}
-};
-
-class Int64Type : public ValueType
-{
-public:
-	Int64Type(TypeName *parent) : ValueType(parent, "Int64") { }
-
-	void visit(TypeVisitor *visitor)
-	{
-		visitor->type(this);
-	}
-};
-
-class UInt64Type : public ValueType
-{
-public:
-	UInt64Type(TypeName *parent) : ValueType(parent, "UInt64") { }
-
-	void visit(TypeVisitor *visitor)
-	{
-		visitor->type(this);
-	}
-};
-
-class CharType : public ValueType
-{
-public:
-	CharType(TypeName *parent) : ValueType(parent, "Char") { }
+	IntType(TypeName *parent) : ValueType(parent, "Int") { }
 
 	void visit(TypeVisitor *visitor)
 	{
@@ -116,18 +39,7 @@ public:
 class SingleType : public ValueType
 {
 public:
-	SingleType(TypeName *parent) : ValueType(parent, "Single") { }
-
-	void visit(TypeVisitor *visitor)
-	{
-		visitor->type(this);
-	}
-};
-
-class DoubleType : public ValueType
-{
-public:
-	DoubleType(TypeName *parent) : ValueType(parent, "Double") { }
+	SingleType(TypeName *parent) : ValueType(parent, "Float") { }
 
 	void visit(TypeVisitor *visitor)
 	{

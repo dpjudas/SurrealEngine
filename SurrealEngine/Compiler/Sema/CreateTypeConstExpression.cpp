@@ -24,7 +24,7 @@ void CreateTypeConstExpression::expression(AstLiteral* node)
 {
 	auto result = sema.type_system().newExpression<TypeLiteral>();
 	result->type = dynamic_cast<Type*>(node->result.type);
-	result->u64 = node->result.constval.u64;
+	result->i32 = node->result.constval.i32;
 	result->str = node->result.constval.str;
 	constexp = result;
 }
