@@ -107,22 +107,28 @@ FunctionMember *TypeSystem::find_best_function(const std::vector<FunctionMember 
 	for (FunctionMember *c : candidates)
 	{
 		bool applicable = true;
-		if (c->parameters.size() == args.size())
+
+		size_t i = 0;
+		for (MethodFixedParameter *p : c->parameters)
 		{
-			int i = 0;
-			for (MethodFixedParameter *p : c->parameters)
+			if (i < args.size())
 			{
-				const ExpressionResult &arg = args[i++];
-				if (((p->is_out || p->is_ref) && p->type != arg.type) || !implicit_convert_allowed(arg.type, p->type))
+				const ExpressionResult& arg = args[i];
+				if (((p->is_out || p->is_ref) && p->type != arg.type) || !implicit_convert_allowed(arg.type, p->type, p->coerce))
 				{
 					applicable = false;
 					break;
 				}
 			}
-		}
-		else
-		{
-			applicable = false;
+			else
+			{
+				if (!p->is_optional)
+				{
+					applicable = false;
+					break;
+				}
+			}
+			i++;
 		}
 
 		if (applicable)
@@ -153,8 +159,6 @@ FunctionMember *TypeSystem::find_best_function(const std::vector<FunctionMember 
 			return nullptr; // at least one argument has to be better
 		else if (better == 1)
 			best_func = c;
-
-		// To do: this is more complicated for expanded form or for generics (14.4.2.2 Better function member)
 	}
 
 	return best_func;
@@ -162,63 +166,66 @@ FunctionMember *TypeSystem::find_best_function(const std::vector<FunctionMember 
 
 bool TypeSystem::explicit_convert_allowed(TypeName *src, TypeName *dest)
 {
-	if (implicit_convert_allowed(src, dest))
+	if (implicit_convert_allowed(src, dest, false))
 		return true;
 
-	if (src == byte_type)
+	if (dest == string_type || dest == name_type)
 	{
+		return src == string_type || src == name_type || src == byte_type || src == int_type || src == single_type || dynamic_cast<ClassType*>(src) || dynamic_cast<EnumType*>(src);
+	}
+	else if (auto destClass = dynamic_cast<ClassType*>(dest))
+	{
+		auto cls = destClass;
+		while (cls)
+		{
+			if (cls == src)
+				return true;
+			cls = cls->base;
+		}
 		return false;
-	}
-	else if (src == int_type)
-	{
-		return dest == byte_type;
-	}
-	else if (src == single_type)
-	{
-		return dest == byte_type || dest == int_type;
-	}
-	else
-	{
-		/*
-		To do:
-		numeric to enum
-		enum to numeric
-		enum to enum
-		object to ref
-		class to class
-		array to array
-		*/
 	}
 	return false;
 }
 
-bool TypeSystem::implicit_convert_allowed(TypeName *src, TypeName *dest)
+bool TypeSystem::implicit_convert_allowed(TypeName *src, TypeName *dest, bool coerce)
 {
-	if (src == dest) return true;
+	if (coerce)
+		return explicit_convert_allowed(src, dest);
 
-	if (src == byte_type)
+	if (src == dest)
 	{
-		return dest == int_type || dest == single_type;
+		return true;
 	}
-	else if (src == int_type)
+	else if (src == byte_type || src == int_type || dynamic_cast<EnumType*>(src))
 	{
-		return dest == single_type;
+		return dest == byte_type || dest == int_type || dest == single_type || dynamic_cast<EnumType*>(dest);
 	}
 	else if (src == single_type)
 	{
+		return dest == byte_type || dest == int_type || dest == single_type;
+	}
+	else if (auto srcClass = dynamic_cast<ClassType*>(src))
+	{
+		auto cls = srcClass;
+		while (cls)
+		{
+			if (cls == dest)
+				return true;
+			cls = cls->base;
+		}
 		return false;
 	}
-	else
+	else if (auto srcStruct = dynamic_cast<StructType*>(src))
 	{
-		/*
-		To do:
-		ref to object
-		class to class
-		array to array
-		null to ref
-		*/
+		auto cls = srcStruct;
+		while (cls)
+		{
+			if (cls == dest)
+				return true;
+			cls = cls->base;
+		}
+		return false;
 	}
-
 	return false;
 }
 
@@ -228,8 +235,8 @@ int TypeSystem::compare_conversion(const ExpressionResult &src, MethodFixedParam
 	if (src.type == t1->type) return -1;
 	if (src.type == t2->type) return 1;
 
-	bool conv1 = implicit_convert_allowed(t1->type, t2->type);
-	bool conv2 = implicit_convert_allowed(t2->type, t1->type);
+	bool conv1 = implicit_convert_allowed(t1->type, t2->type, false);
+	bool conv2 = implicit_convert_allowed(t2->type, t1->type, false);
 	if (conv1 && !conv2) return -1;
 	if (!conv1 && conv2) return 1;
 	return 0;

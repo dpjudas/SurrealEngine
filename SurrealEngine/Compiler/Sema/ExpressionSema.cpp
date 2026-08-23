@@ -354,7 +354,16 @@ void ExpressionSema::expression(AstBaseAccess* node)
 {
 	ExpressionResult operand = name_scope.variables["this"];
 
-	// To do: convert 'this' type to 'base' type
+	if (auto class_type = dynamic_cast<ClassType*>(operand.type))
+	{
+		if (!class_type->base)
+			throw SemaException("Class has no base class", node);
+		operand.type = class_type->base;
+	}
+	else
+	{
+		throw SemaException("Expression is not in a member function", node);
+	}
 
 	node->result = operand;
 }
@@ -611,7 +620,7 @@ void ExpressionSema::expression(AstAssignmentExpression* node)
 
 	if (node->assignment_type == "=")
 	{
-		if (!sema.type_system().implicit_convert_allowed(node->operand2->result.type, node->operand1->result.type))
+		if (!sema.type_system().implicit_convert_allowed(node->operand2->result.type, node->operand1->result.type, false))
 			throw SemaException("No suitable operator found", node);
 
 		node->result = { node->operand1->result.type, ExpressionClass::value };
@@ -626,9 +635,9 @@ void ExpressionSema::expression(AstAssignmentExpression* node)
 		TypeName* x = node->operand1->result.type;
 		TypeName* y = node->operand2->result.type;
 
-		bool convert_allowed = ts.implicit_convert_allowed(func->type, x);
+		bool convert_allowed = ts.implicit_convert_allowed(func->type, x, false);
 		if (!convert_allowed)
-			convert_allowed = ts.explicit_convert_allowed(func->type, x) && (ts.implicit_convert_allowed(x, y) || node->assignment_type == "<<=" || node->assignment_type == ">>=");
+			convert_allowed = ts.explicit_convert_allowed(func->type, x) && (ts.implicit_convert_allowed(x, y, false) || node->assignment_type == "<<=" || node->assignment_type == ">>=");
 
 		if (!convert_allowed)
 			throw SemaException("No suitable operator found", node);

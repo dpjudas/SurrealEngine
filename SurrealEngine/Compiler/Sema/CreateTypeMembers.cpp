@@ -143,6 +143,9 @@ void CreateTypeMembers::add_parameters(const std::vector<AstMethodParameter*>& a
 			MethodFixedParameter* type_param = type_system.newFixedParameter<MethodFixedParameter>();
 			type_param->is_out = param->is_out;
 			type_param->is_ref = param->is_ref;
+			type_param->is_optional = param->is_optional;
+			type_param->coerce = param->coerce;
+			type_param->skip = param->skip;
 			type_param->type = type_scope.lookup_type(param->type);
 			type_param->name = param->identifier;
 

@@ -58,7 +58,7 @@ void StatementSema::statement(AstIfStatement* node)
 	resolve_constants.analyze(node->boolean_expression);
 
 	auto& ts = sema.type_system();
-	if (!ts.implicit_convert_allowed(node->boolean_expression->result.type, ts.boolean_type))
+	if (!ts.implicit_convert_allowed(node->boolean_expression->result.type, ts.boolean_type, false))
 		throw SemaException("expression cannot be implicitly cast to bool", node);
 
 	node->then_statement->visit(this);
@@ -80,7 +80,7 @@ void StatementSema::statement(AstWhileStatement* node)
 	resolve_constants.analyze(node->boolean_expression);
 
 	auto& ts = sema.type_system();
-	if (!ts.implicit_convert_allowed(node->boolean_expression->result.type, ts.boolean_type))
+	if (!ts.implicit_convert_allowed(node->boolean_expression->result.type, ts.boolean_type, false))
 		throw SemaException("expression cannot be implicitly cast to bool", node);
 
 	loop_level++;
@@ -101,7 +101,7 @@ void StatementSema::statement(AstDoStatement* node)
 	resolve_constants.analyze(node->boolean_expression);
 
 	auto& ts = sema.type_system();
-	if (!ts.implicit_convert_allowed(node->boolean_expression->result.type, ts.boolean_type))
+	if (!ts.implicit_convert_allowed(node->boolean_expression->result.type, ts.boolean_type, false))
 		throw SemaException("expression cannot be implicitly cast to bool", node);
 }
 
@@ -125,7 +125,7 @@ void StatementSema::statement(AstForStatement* node)
 	resolve_constants.analyze(node->condition);
 
 	auto& ts = sema.type_system();
-	if (!ts.implicit_convert_allowed(node->condition->result.type, ts.boolean_type))
+	if (!ts.implicit_convert_allowed(node->condition->result.type, ts.boolean_type, false))
 		throw SemaException("expression cannot be implicitly cast to bool", node);
 
 	loop_level++;
@@ -190,7 +190,7 @@ void StatementSema::local_variable_declaration(AstLocalVariableDeclaration* vari
 			resolve_constants.analyze(initial_value);
 
 			auto& ts = sema.type_system();
-			if (!ts.implicit_convert_allowed(initial_value->result.type, type))
+			if (!ts.implicit_convert_allowed(initial_value->result.type, type, false))
 				throw SemaException("type conversion not allowed", initial_value);
 		}
 	}

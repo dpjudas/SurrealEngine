@@ -61,6 +61,9 @@ public:
 
 	bool is_ref = false;
 	bool is_out = false;
+	bool is_optional = false;
+	bool coerce = false;
+	bool skip = false;
 	Type *type = nullptr;
 	std::string name;
 };

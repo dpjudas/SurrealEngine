@@ -68,7 +68,7 @@ public:
 
 	FunctionMember* find_best_function(const std::vector<FunctionMember*>& candidates, const std::vector<ExpressionResult>& args);
 
-	bool implicit_convert_allowed(TypeName* src, TypeName* dest);
+	bool implicit_convert_allowed(TypeName* src, TypeName* dest, bool coerce);
 	bool explicit_convert_allowed(TypeName* src, TypeName* dest);
 
 	template<typename T, typename... Types>
