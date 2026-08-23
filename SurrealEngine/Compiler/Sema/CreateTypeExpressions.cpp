@@ -68,10 +68,6 @@ void CreateTypeExpressions::name(AstMethodDeclaration *node)
 {
 }
 
-void CreateTypeExpressions::name(AstOperatorDeclaration *node)
-{
-}
-
 void CreateTypeExpressions::name(AstStateDeclaration* node)
 {
 }

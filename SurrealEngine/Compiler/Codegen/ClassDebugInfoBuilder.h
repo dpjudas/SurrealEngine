@@ -18,7 +18,6 @@ public:
 	void name(AstConstantDeclaration* node) override;
 	void name(AstFieldDeclaration* node) override;
 	void name(AstMethodDeclaration* node) override;
-	void name(AstOperatorDeclaration* node) override;
 	void name(AstStateDeclaration* node) override;
 
 private:

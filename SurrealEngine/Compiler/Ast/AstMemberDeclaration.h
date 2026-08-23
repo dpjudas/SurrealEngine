@@ -130,30 +130,6 @@ public:
 	NameScope name_scope;
 };
 
-class OperatorTypeMember;
-
-class AstOperatorDeclaration : public AstNode
-{
-public:
-	void visit(AstNameVisitor *visitor)
-	{
-		visitor->name(this);
-	}
-
-	bool is_public = false;
-	bool is_static = false;
-	bool is_extern = false;
-	std::string operator_type;
-	std::string conversion_type;
-	AstMethodFixedParameter *param1 = nullptr;
-	AstMethodFixedParameter *param2 = nullptr;
-
-	AstBlockStatement *block = nullptr;
-
-	OperatorTypeMember *sema_type = nullptr;
-	NameScope name_scope;
-};
-
 class AstStateDeclaration : public AstNode
 {
 public:

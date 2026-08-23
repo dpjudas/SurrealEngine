@@ -117,20 +117,39 @@ public:
 	std::string identifier;
 };
 
-class AstPostIncrementExpression : public AstExpression
+class AstUnaryExpression : public AstExpression
 {
 public:
-	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
-
-	AstExpression *expression = nullptr;
+	AstExpression* operand = nullptr;
 };
 
-class AstPostDecrementExpression : public AstExpression
+class AstBinaryExpression : public AstExpression
+{
+public:
+	AstExpression* operand1 = nullptr;
+	AstExpression* operand2 = nullptr;
+};
+
+class AstTrinaryExpression : public AstExpression
+{
+public:
+	void visit(AstExpressionVisitor* visitor) { visitor->expression(this); }
+
+	AstExpression* operand1 = nullptr;
+	AstExpression* operand2 = nullptr;
+	AstExpression* operand3 = nullptr;
+};
+
+class AstPostIncrementExpression : public AstUnaryExpression
 {
 public:
 	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
+};
 
-	AstExpression *expression = nullptr;
+class AstPostDecrementExpression : public AstUnaryExpression
+{
+public:
+	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
 };
 
 class AstNewExpression : public AstExpression
@@ -181,29 +200,6 @@ public:
 
 	std::vector<AstAnonymousMethodParameter *> parameters;
 	AstBlockStatement *block = nullptr;
-};
-
-class AstUnaryExpression : public AstExpression
-{
-public:
-	AstExpression *operand = nullptr;
-};
-
-class AstBinaryExpression : public AstExpression
-{
-public:
-	AstExpression *operand1 = nullptr;
-	AstExpression *operand2 = nullptr;
-};
-
-class AstTrinaryExpression : public AstExpression
-{
-public:
-	void visit(AstExpressionVisitor *visitor) { visitor->expression(this); }
-
-	AstExpression *operand1 = nullptr;
-	AstExpression *operand2 = nullptr;
-	AstExpression *operand3 = nullptr;
 };
 
 class AstUnaryPlusExpression : public AstUnaryExpression

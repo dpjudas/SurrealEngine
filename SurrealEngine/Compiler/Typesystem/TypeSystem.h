@@ -24,6 +24,7 @@ public:
 	~TypeSystem();
 
 	void setupVectorType();
+	void setupOperators();
 
 	void addType(Type* type);
 
@@ -45,6 +46,10 @@ public:
 
 	ClassType* object = nullptr;
 	ClassType* classObject = nullptr;
+
+	std::map<std::string, std::vector<FunctionMember*>> preoperators;
+	std::map<std::string, std::vector<FunctionMember*>> postoperators;
+	std::map<std::string, std::vector<FunctionMember*>> operators;
 
 	FunctionMember* unary_operator_byte = nullptr;
 	FunctionMember* unary_operator_int = nullptr;

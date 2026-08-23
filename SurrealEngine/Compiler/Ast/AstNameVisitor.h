@@ -8,7 +8,6 @@ class AstEnumValueDeclaration;
 class AstConstantDeclaration;
 class AstFieldDeclaration;
 class AstMethodDeclaration;
-class AstOperatorDeclaration;
 class AstStateDeclaration;
 
 class AstNameVisitor
@@ -22,6 +21,5 @@ public:
 	virtual void name(AstConstantDeclaration *node) = 0;
 	virtual void name(AstFieldDeclaration *node) = 0;
 	virtual void name(AstMethodDeclaration *node) = 0;
-	virtual void name(AstOperatorDeclaration *node) = 0;
 	virtual void name(AstStateDeclaration* node) = 0;
 };

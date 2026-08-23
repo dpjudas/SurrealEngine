@@ -69,32 +69,11 @@ private:
 	void expression(AstAssignmentExpression* node) override;
 	void expression(AstTrinaryExpression* node) override;
 
-	FunctionMember* get_increment_overload(const ExpressionResult& a);
-	FunctionMember* get_decrement_overload(const ExpressionResult& a);
-	FunctionMember* get_plus_overload(const ExpressionResult& a);
-	FunctionMember* get_minus_overload(const ExpressionResult& a);
-	FunctionMember* get_logical_not_overload(const ExpressionResult& a);
-	FunctionMember* get_bitwise_complement_overload(const ExpressionResult& a);
-
-	FunctionMember* get_addition_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_subtraction_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_multiplication_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_division_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_remainder_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_logical_and_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_logical_or_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_logical_xor_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_shift_left_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_shift_right_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_less_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_greater_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_less_equal_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_greater_equal_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_equal_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_not_equal_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_conditional_and_overload(const ExpressionResult& a, const ExpressionResult& b);
-	FunctionMember* get_conditional_or_overload(const ExpressionResult& a, const ExpressionResult& b);
-
+	void preoperator(const std::string& name, AstUnaryExpression* node);
+	void postoperator(const std::string& name, AstUnaryExpression* node);
+	void unaryoperator(const std::string& name, AstUnaryExpression* node);
+	void binaryoperator(const std::string& name, AstBinaryExpression* node);
+	
 	SemanticAnalysis& sema;
 	NameScope& name_scope;
 	TypeScope& type_scope;

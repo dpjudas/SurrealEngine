@@ -237,7 +237,7 @@ AstExpression *Parser::parse_primary()
 			next();
 
 			AstPostIncrementExpression *incr = newNode<AstPostIncrementExpression>();
-			incr->expression = expression;
+			incr->operand = expression;
 			expression = incr;
 		}
 		else if (is_operator("--"))
@@ -245,7 +245,7 @@ AstExpression *Parser::parse_primary()
 			next();
 
 			AstPostDecrementExpression *decr = newNode<AstPostDecrementExpression>();
-			decr->expression = expression;
+			decr->operand = expression;
 			expression = decr;
 		}
 		else if (is_operator("."))

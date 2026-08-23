@@ -34,6 +34,8 @@ void SemanticAnalysis::analyze(std::vector<std::shared_ptr<AstCompilationUnit>> 
 		create_members.exec(asts[i].get());
 	}
 
+	_type_system.setupOperators();
+
 	CreateTypeExpressions create_expressions(*this);
 	for (size_t i = 0; i < asts.size(); i++)
 	{
@@ -146,12 +148,6 @@ void MemberLookup::lookup(TypeName* type, const std::string& name)
 			{
 				if (typeName == method->name)
 					members.insert(method);
-			}
-
-			for (OperatorTypeMember* operator_ : cls->operators)
-			{
-				if (typeName == operator_->name)
-					members.insert(operator_);
 			}
 
 			for (Type* subtype : cls->subtypes)

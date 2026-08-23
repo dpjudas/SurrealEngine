@@ -74,6 +74,25 @@ void TypeSystem::setupVectorType()
 	}
 }
 
+void TypeSystem::setupOperators()
+{
+	for (MethodTypeMember* member : object->methods)
+	{
+		if (member->is_postoperator)
+		{
+			postoperators[member->name].push_back(member);
+		}
+		if (member->is_preoperator)
+		{
+			preoperators[member->name].push_back(member);
+		}
+		if (member->is_operator)
+		{
+			operators[member->name].push_back(member);
+		}
+	}
+}
+
 void TypeSystem::addType(Type* type)
 {
 	types.push_back(type);

@@ -46,7 +46,7 @@ public:
 	AstIdentifierName* base_type = nullptr;
 
 	// allowed members types:
-	// AstConstantDeclaration, AstFieldDeclaration, AstMethodDeclaration, AstOperatorDeclaration
+	// AstConstantDeclaration, AstFieldDeclaration, AstMethodDeclaration
 	// AstNameDeclaration, AstStructDeclaration, AstStateDeclaration
 	std::vector<AstNode *> members;
 };

@@ -130,10 +130,6 @@ void CreateTypeMembers::name(AstMethodDeclaration* node)
 		current_struct->methods.push_back(member);
 }
 
-void CreateTypeMembers::name(AstOperatorDeclaration* node)
-{
-}
-
 void CreateTypeMembers::name(AstStateDeclaration* node)
 {
 }

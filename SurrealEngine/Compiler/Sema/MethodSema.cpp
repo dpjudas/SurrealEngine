@@ -67,11 +67,6 @@ void MethodSema::name(AstMethodDeclaration* node)
 	}
 }
 
-void MethodSema::name(AstOperatorDeclaration* node)
-{
-	throw SemaException("Operator overloading not supported", node);
-}
-
 void MethodSema::name(AstStateDeclaration* node)
 {
 }

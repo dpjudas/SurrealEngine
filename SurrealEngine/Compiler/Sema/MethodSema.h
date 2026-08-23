@@ -23,7 +23,6 @@ private:
 	void name(AstConstantDeclaration* node) override;
 	void name(AstFieldDeclaration* node) override;
 	void name(AstMethodDeclaration* node) override;
-	void name(AstOperatorDeclaration* node) override;
 	void name(AstStateDeclaration* node) override;
 
 	void add_parameters(NameScope& name_scope, const std::vector<AstMethodParameter*>& parameters = {}, bool is_static = false, Type* value_type = nullptr);

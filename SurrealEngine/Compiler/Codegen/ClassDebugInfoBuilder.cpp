@@ -59,10 +59,6 @@ void ClassDebugInfoBuilder::name(AstFieldDeclaration* node)
 {
 }
 
-void ClassDebugInfoBuilder::name(AstOperatorDeclaration* node)
-{
-}
-
 void ClassDebugInfoBuilder::name(AstStateDeclaration* node)
 {
 }

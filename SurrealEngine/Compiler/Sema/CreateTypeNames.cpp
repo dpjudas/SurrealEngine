@@ -125,10 +125,6 @@ void CreateTypeNames::name(AstMethodDeclaration* node)
 {
 }
 
-void CreateTypeNames::name(AstOperatorDeclaration* node)
-{
-}
-
 void CreateTypeNames::name(AstStateDeclaration* node)
 {
 }
@@ -201,10 +197,6 @@ void ResolveTypeBases::name(AstFieldDeclaration* node)
 }
 
 void ResolveTypeBases::name(AstMethodDeclaration* node)
-{
-}
-
-void ResolveTypeBases::name(AstOperatorDeclaration* node)
 {
 }
 

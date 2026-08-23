@@ -99,8 +99,6 @@ public:
 			fields[i]->visit(visitor);
 		for (size_t i = 0; i < methods.size(); i++)
 			methods[i]->visit(visitor);
-		for (size_t i = 0; i < operators.size(); i++)
-			operators[i]->visit(visitor);
 	}
 
 	std::vector<Type *> subtypes;
@@ -110,7 +108,6 @@ public:
 	std::vector<ConstantTypeMember *> constants;
 	std::vector<FieldTypeMember *> fields;
 	std::vector<MethodTypeMember *> methods;
-	std::vector<OperatorTypeMember *> operators;
 };
 
 class EnumType : public ValueType

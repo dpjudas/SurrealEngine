@@ -49,12 +49,12 @@ void ResolveExpressionConstants::expression(AstBaseAccess* node)
 
 void ResolveExpressionConstants::expression(AstPostIncrementExpression* node)
 {
-	node->expression->visit(this);
+	node->operand->visit(this);
 }
 
 void ResolveExpressionConstants::expression(AstPostDecrementExpression* node)
 {
-	node->expression->visit(this);
+	node->operand->visit(this);
 }
 
 void ResolveExpressionConstants::expression(AstNewExpression* node)

@@ -134,17 +134,3 @@ public:
 		visitor->member(this);
 	}
 };
-
-class OperatorTypeMember : public TypeMember
-{
-public:
-	OperatorTypeMember(TypeName *parent, const std::string &name) : TypeMember(parent, name) { }
-
-	Type *type = nullptr;
-	std::vector<MethodFixedParameter *> parameters;
-
-	void visit(TypeMemberVisitor *visitor)
-	{
-		visitor->member(this);
-	}
-};

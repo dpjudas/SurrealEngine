@@ -93,12 +93,12 @@ void CreateTypeConstExpression::expression(AstBaseAccess* node)
 
 void CreateTypeConstExpression::expression(AstPostIncrementExpression* node)
 {
-	node->expression->visit(this);
+	node->operand->visit(this);
 }
 
 void CreateTypeConstExpression::expression(AstPostDecrementExpression* node)
 {
-	node->expression->visit(this);
+	node->operand->visit(this);
 }
 
 void CreateTypeConstExpression::expression(AstNewExpression* node)
