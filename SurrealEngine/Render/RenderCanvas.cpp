@@ -181,6 +181,9 @@ void RenderSubsystem::DrawTile(UTexture* Tex, float x, float y, float XL, float 
 	texinfo.VSize = Tex->VSize();
 	if (Tex->Palette())
 		texinfo.Palette = (TextureColor*)Tex->Palette()->Colors.data();
+	texinfo.bRealtimeChanged = Tex->TextureModified;
+	if (Tex->TextureModified)
+		Tex->TextureModified = false;
 
 	if (Tex->bMasked())
 		flags |= PF_Masked;
@@ -206,6 +209,9 @@ void RenderSubsystem::DrawTileClipped(UTexture* Tex, float orgX, float orgY, flo
 	texinfo.VSize = Tex->VSize();
 	if (Tex->Palette())
 		texinfo.Palette = (TextureColor*)Tex->Palette()->Colors.data();
+	texinfo.bRealtimeChanged = Tex->TextureModified;
+	if (Tex->TextureModified)
+		Tex->TextureModified = false;
 
 	if (Tex->bMasked())
 		flags |= PF_Masked;
