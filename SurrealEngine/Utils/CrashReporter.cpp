@@ -3,6 +3,7 @@
 #include "CrashReporter.h"
 #include "UTF16.h"
 #include <stdexcept>
+#include <sys/signal.h>
 
 #ifdef WIN32
 #ifdef _MSC_VER
@@ -820,6 +821,179 @@ CrashDumpInfo CrashReporter::GetCrashDumpInfo(const std::string& dumpFilename)
 }
 
 #endif // _MSC_VER
+#elif defined(__APPLE__)
+
+#include <cstring>
+#include <cstdio>
+#include <cerrno>
+#include <ctime>
+#include <sys/sysctl.h>
+#include <sys/syslimits.h>
+#include <signal.h>
+#include <unistd.h>
+
+static const char fatal_err[] = "\n\n* Fatal Error :(\n";
+
+struct SignalInfo
+{
+	int code;
+	const char* name = "";
+};
+
+constexpr SignalInfo signals[] = {
+	{ SIGSEGV, "SIGSEGV" },
+	{ SIGILL, "SIGILL" },
+	{ SIGFPE, "SIGFPE" },
+	{ SIGBUS, "SIGBUS" },
+	{ SIGABRT, "SIGABRT" },
+};
+
+static std::string logFileFullname;
+static std::function<void(const std::string&)> saveLogCallback;
+
+static volatile sig_atomic_t origSignum = 0;
+static volatile sig_atomic_t handlerIsRunning = 0;
+
+static size_t safe_write(int fd, const void* buf, size_t len)
+{
+	size_t ret = 0;
+	while (ret < len)
+	{
+		const ssize_t rem = write(fd, (const char*)buf + ret, len - ret);
+		if (rem == -1)
+		{
+			if (errno == EINTR)
+				continue;
+			break;
+		}
+		ret += rem;
+	}
+	return ret;
+}
+
+static void crash_catcher(int signum, siginfo_t* /*siginfo*/, void* /*context*/)
+{
+	// Prevent hang on deadlock, see below. This will save you from force closing
+	// the app, and preserve the .ips in most cases
+	alarm(2);
+
+	// the same signal should not be sent to the handler twice,
+	// but a different signal could. Also, this path is used by alarm().
+	if (handlerIsRunning != 0)
+	{
+		signal(origSignum, SIG_DFL);
+		raise(origSignum);
+		_exit(1);
+	}
+
+	handlerIsRunning = 1;
+	// store in case of alarm()
+	origSignum = signum;
+
+	safe_write(STDERR_FILENO, fatal_err, sizeof(fatal_err) - 1);
+
+	// the callback is not async safe and may cause a deadlock.
+	// the alarm() call above kills the process after a timeout if a deadlock occurs.
+	saveLogCallback(logFileFullname);
+
+	raise(signum);
+}
+
+static bool isDebuggerPresent()
+{
+	struct kinfo_proc procInfo;
+	std::memset(&procInfo, 0, sizeof(procInfo));
+
+	int mib[4] = { CTL_KERN, KERN_PROC, KERN_PROC_PID, getpid() };
+
+	size_t size = sizeof(procInfo);
+	if (sysctl(mib, std::size(mib), &procInfo, &size, nullptr, 0) == -1)
+	{
+		return false;
+	}
+
+	return (procInfo.kp_proc.p_flag & P_TRACED) != 0;
+}
+
+void CrashReporter::Init(const std::string& reportsDirectory, std::function<void(const std::string& logFilename)> saveLog)
+{
+	// Will not attach if a debugger is present. Note, if a debugger is attached
+	// later the handler will be present and interfere with the debugger
+	if (isDebuggerPresent())
+	{
+		fprintf(stderr, "Debugger detected, crash handler not installed\n");
+		return;
+	}
+
+	// build log file name, same pattern as Windows but with space replace with underscore
+	time_t t = time(nullptr);
+	tm timevalue{};
+	localtime_r(&t, &timevalue);
+	char fileName[64];
+	strftime(fileName, sizeof(fileName), "%Y-%m-%d_%H.%M.%S.log", &timevalue);
+
+	logFileFullname = reportsDirectory;
+	if (!logFileFullname.empty() && logFileFullname.back() != '/')
+		logFileFullname += '/';
+	logFileFullname += fileName;
+
+	saveLogCallback = saveLog;
+
+	// Stack-overflow safe signal stack
+	static char* altstack = new char[SIGSTKSZ];
+	stack_t altss;
+	altss.ss_sp = altstack;
+	altss.ss_flags = 0;
+	altss.ss_size = SIGSTKSZ;
+	if (sigaltstack(&altss, nullptr) == -1)
+	{
+		fprintf(stderr, "Failed to call sigaltstack: %s (errno %d)\n", strerror(errno), errno);
+		return;
+	}
+
+	struct sigaction sa;
+	memset(&sa, 0, sizeof(sa));
+	sa.sa_sigaction = crash_catcher;
+	sa.sa_flags = SA_RESETHAND | SA_NODEFER | SA_SIGINFO | SA_ONSTACK;
+	if (sigemptyset(&sa.sa_mask) == -1)
+	{
+		fprintf(stderr, "Failed to call sigemptyset: %s (errno %d)\n", strerror(errno), errno);
+		return;
+	}
+
+	for (const SignalInfo& signal : signals)
+	{
+		if (sigaction(signal.code, &sa, nullptr) == -1)
+		{
+			fprintf(stderr, "Failed to call sigaction for %s: %s (errno %d)\n", signal.name, strerror(errno), errno);
+			return;
+		}
+	}
+
+	// alarm is not a crash signal so not in the array, register it separately
+	sa.sa_flags = SA_SIGINFO | SA_ONSTACK;
+	if (sigaction(SIGALRM, &sa, nullptr) == -1)
+	{
+		fprintf(stderr, "Failed to call sigaction for SIGALRM: %s (errno %d)\n", strerror(errno), errno);
+		return;
+	}
+	return;
+}
+
+void CrashReporter::HookThread()
+{
+	// Noop on *nix and MacOS. No need to hook into threads
+}
+
+void CrashReporter::Invoke()
+{
+}
+
+CrashDumpInfo CrashReporter::GetCrashDumpInfo(const std::string& dumpFilename)
+{
+	return {};
+}
+
 #else // Linux
 
 void CrashReporter::Init(const std::string& reportsDirectory, std::function<void(const std::string& logFilename)> saveLog)
