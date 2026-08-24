@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "UFireTexture.h"
+#include <cstring>
 
 void UFireTexture::Load(ObjectStream* stream)
 {
