@@ -23,7 +23,9 @@ class SemanticAnalysis
 public:
 	SemanticAnalysis(TypeSystem& type_system);
 
-	void analyze(std::vector<std::shared_ptr<AstCompilationUnit>> asts);
+	int pass_count() const;
+	void analyze_pass(std::shared_ptr<AstCompilationUnit> ast, int pass);
+	void end_pass(int pass);
 
 	TypeSystem& type_system() { return _type_system; }
 

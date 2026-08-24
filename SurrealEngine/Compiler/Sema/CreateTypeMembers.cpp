@@ -21,6 +21,9 @@ void CreateTypeMembers::name(AstClassDeclaration* node)
 	current_class = static_cast<ClassType*>(node->type);
 	current_struct = nullptr;
 
+	//FieldTypeMember* defaultBlock = type_system.newType<FieldTypeMember>(get_parent(), "Default", node->type);
+	//current_class->fields.push_back(defaultBlock);
+
 	node->visit_children(this);
 
 	current_class = last_class;

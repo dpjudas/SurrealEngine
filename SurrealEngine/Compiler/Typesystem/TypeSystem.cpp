@@ -147,7 +147,7 @@ FunctionMember *TypeSystem::find_best_function(const std::vector<FunctionMember 
 		int better = 0; // 0 = same, -1 = best_func is better, 1 = c is better
 		for (size_t j = 0; j < c->parameters.size(); j++)
 		{
-			int compare = compare_conversion(args[j], best_func->parameters[j], c->parameters[j]);
+			int compare = j < args.size() ? compare_conversion(args[j], best_func->parameters[j], c->parameters[j]) : 0;
 			if (better == 0)
 				better = compare;
 

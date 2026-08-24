@@ -245,6 +245,15 @@ void ExpressionSema::expression(AstMemberAccess* node)
 	}
 	else
 	{
+		if (NameString(node->identifier) == "Default")
+		{
+			// To do: deal with class<Foobar> types
+
+			// Default block is same type as the main object (sort of, bit of a hack)
+			node->result = operand;
+			return;
+		}
+
 		MemberLookup lookup(sema.type_system());
 		lookup.lookup(operand.type, node->identifier);
 
@@ -273,12 +282,28 @@ void ExpressionSema::expression(AstMemberAccess* node)
 			return;
 		}
 	}
-	throw SemaException("Invalid member reference", node);
+	throw SemaException("Undeclared identifier '" + node->identifier + "'", node);
 }
 
 void ExpressionSema::expression(AstInvocationExpression* node)
 {
 	node->expression->visit(this);
+
+	if (node->expression->result.variant == ExpressionClass::type)
+	{
+		if (node->args.size() != 1)
+			throw SemaException("Too many arguments for dynamic cast", node);
+
+		// Dynamic casts in unrealscript are function calls with the class name as the function name.
+		// Tbd: would it be better to declare a function with a matching signature?
+
+		auto clsType = dynamic_cast<ClassType*>(node->expression->result.type);
+		if (!clsType)
+			throw SemaException("Invalid type for dynamic cast", node);
+
+		node->result = { clsType, ExpressionClass::value };
+		return;
+	}
 
 	if (node->expression->result.variant != ExpressionClass::method_group)
 		throw SemaException("Method group expected", node);
@@ -286,8 +311,15 @@ void ExpressionSema::expression(AstInvocationExpression* node)
 	std::vector<ExpressionResult> args;
 	for (size_t i = 0; i < node->args.size(); i++)
 	{
-		node->args[i]->expression->visit(this);
-		args.push_back(node->args[i]->expression->result);
+		if (node->args[i]->expression)
+		{
+			node->args[i]->expression->visit(this);
+			args.push_back(node->args[i]->expression->result);
+		}
+		else
+		{
+			args.push_back({ nullptr, ExpressionClass::nothing });
+		}
 	}
 
 	FunctionMember* func = sema.type_system().find_best_function(node->expression->result.method_group, args);

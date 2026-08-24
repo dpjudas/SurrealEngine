@@ -11,43 +11,59 @@ SemanticAnalysis::SemanticAnalysis(TypeSystem& type_system) : _type_system(type_
 {
 }
 
-void SemanticAnalysis::analyze(std::vector<std::shared_ptr<AstCompilationUnit>> asts)
+int SemanticAnalysis::pass_count() const
 {
-#if 0
-	CreateTypeNames create_types(type_system());
-	for (size_t i = 0; i < asts.size(); i++)
+	return 5;
+}
+
+void SemanticAnalysis::analyze_pass(std::shared_ptr<AstCompilationUnit> ast, int pass)
+{
+	switch (pass)
 	{
-		create_types.exec(asts[i].get());
-	}
-
-	_type_system.setupVectorType();
-
-	ResolveTypeBases resolve_type_bases(type_system());
-	for (size_t i = 0; i < asts.size(); i++)
+	case 0:
 	{
-		resolve_type_bases.exec(asts[i].get());
+		CreateTypeNames create_types(type_system());
+		create_types.exec(ast.get());
+		break;
 	}
-
-	CreateTypeMembers create_members(type_system());
-	for (size_t i = 0; i < asts.size(); i++)
+	case 1:
 	{
-		create_members.exec(asts[i].get());
+		ResolveTypeBases resolve_type_bases(type_system());
+		resolve_type_bases.exec(ast.get());
+		break;
 	}
-
-	_type_system.setupOperators();
-
-	CreateTypeExpressions create_expressions(*this);
-	for (size_t i = 0; i < asts.size(); i++)
+	case 2:
 	{
-		create_expressions.exec(asts[i].get());
+		CreateTypeMembers create_members(type_system());
+		create_members.exec(ast.get());
+		break;
 	}
-
-	MethodSema method_sema(*this);
-	for (size_t i = 0; i < asts.size(); i++)
+	case 3:
 	{
-		method_sema.analyze(asts[i].get());
+		CreateTypeExpressions create_expressions(*this);
+		create_expressions.exec(ast.get());
+		break;
 	}
-#endif
+	case 4:
+	{
+		MethodSema method_sema(*this);
+		method_sema.analyze(ast.get());
+		break;
+	}
+	}
+}
+
+void SemanticAnalysis::end_pass(int pass)
+{
+	switch (pass)
+	{
+	case 0:
+		_type_system.setupVectorType();
+		break;
+	case 2:
+		_type_system.setupOperators();
+		break;
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////

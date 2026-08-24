@@ -45,16 +45,35 @@ bool Compiler::compile()
 		if (encountered_errors)
 			return false;
 
-		try
+#if 0
+		SemanticAnalysis sema(type_system);
+		for (int pass = 0, pass_count = sema.pass_count(); pass < pass_count; pass++)
 		{
-			SemanticAnalysis sema(type_system);
-			sema.analyze(parsed_files);
+			for (size_t i = 0; i < parsed_files.size(); i++)
+			{
+				try
+				{
+					sema.analyze_pass(parsed_files[i], pass);
+				}
+				catch (SemaException& exception)
+				{
+					messages.push_back(CompilerMessage(CompilerMessage::error, exception.message(), exception.sourceIndex >= 0 ? sources[exception.sourceIndex].filename : std::string(), exception.line));
+					encountered_errors = true;
+				}
+			}
+			if (encountered_errors)
+				return false;
+			try
+			{
+				sema.end_pass(pass);
+			}
+			catch (SemaException& exception)
+			{
+				messages.push_back(CompilerMessage(CompilerMessage::error, exception.message(), exception.sourceIndex >= 0 ? sources[exception.sourceIndex].filename : std::string(), exception.line));
+				return false;
+			}
 		}
-		catch (SemaException& exception)
-		{
-			messages.push_back(CompilerMessage(CompilerMessage::error, exception.message(), exception.sourceIndex >= 0 ? sources[exception.sourceIndex].filename : std::string(), exception.line));
-			return false;
-		}
+#endif
 
 		codegen = std::make_unique<CodeGen>(type_system);
 		codegen->codegen(parsed_files);
