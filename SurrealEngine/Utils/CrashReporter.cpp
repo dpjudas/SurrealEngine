@@ -3,7 +3,6 @@
 #include "CrashReporter.h"
 #include "UTF16.h"
 #include <stdexcept>
-#include <sys/signal.h>
 
 #ifdef WIN32
 #ifdef _MSC_VER
@@ -827,6 +826,7 @@ CrashDumpInfo CrashReporter::GetCrashDumpInfo(const std::string& dumpFilename)
 #include <cstdio>
 #include <cerrno>
 #include <ctime>
+#include <sys/signal.h>
 #include <sys/sysctl.h>
 #include <sys/syslimits.h>
 #include <signal.h>
