@@ -109,7 +109,7 @@ public:
 	BitfieldBool bRising() { return BoolValue(PropOffsets_FireTexture.bRising); }
 
 private:
-	int RandomByteValue() { return (int)(rand() * 256LL / (RAND_MAX + 1LL)); }
+	int RandomByteValue() { return (int)(((int64_t)rand() * 255 + 127)/RAND_MAX); }
 
 	Array<uint8_t> WorkBuffer;
 	uint8_t FadeTable[4 * 256];

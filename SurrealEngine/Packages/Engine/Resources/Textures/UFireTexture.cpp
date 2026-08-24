@@ -76,6 +76,15 @@ void UFireTexture::UpdateFrame()
 				SetPixel(pixels, x, y, width, height, RandomByteValue());
 				break;
 			}
+			case ESpark::Pulse:
+			case ESpark::Signal:
+			case ESpark::Sparkle:
+			{
+				int x = (spark.X + (RandomByteValue() * spark.ByteA + 128) / 256) % width;
+				int y = (spark.Y + (RandomByteValue() * spark.ByteB + 128) / 256) % height;
+				SetPixel(pixels, x, y, width, height, spark.Heat);
+				break;
+			}
 			case ESpark::Wheel:
 			{
 				if (canEmit)
@@ -236,28 +245,43 @@ void UFireTexture::UpdateFrame()
 			float heatLoss = 1.0f - (255 - CurrentRenderHeat) / 16.0f;
 			for (int i = 0; i < 4 * 256; i++)
 			{
-				FadeTable[i] = (uint8_t)std::round(clamp((i + 0.5f) * 0.25f + heatLoss, 0.0f, 255.0f));
+				FadeTable[i] = (uint8_t)clamp(i * 0.25f + heatLoss, 0.0f, 255.0f);
 			}
 		}
 
 		WorkBuffer.resize(width * height);
 		uint8_t* buffer = WorkBuffer.data();
-		int riseAmount = bRising() ? 1 : 0;
+
+		int rising = bRising() ? 1 : 0;
 		for (int y = 0; y < height; y++)
 		{
 			uint8_t* destLine = buffer + y * width;
-			uint8_t* srcLine = pixels + ((y + riseAmount) % height) * width;
-			uint8_t* nextLine = pixels + ((y + riseAmount + 1) % height) * width;
-			for (int x = 0; x < width; x++)
+			uint8_t* srcLine = pixels + ((y + rising) % height) * width;
+			uint8_t* nextLine = pixels + ((y + rising + 1) % height) * width;
 			{
-				int left = srcLine[x != 0 ? x - 1 : width - 1];
+				int left = srcLine[width - 1];
+				int center = srcLine[0];
+				int right = srcLine[1];
+				int bottom = nextLine[0];
+				destLine[0] = FadeTable[left + center + right + bottom];
+			}
+			for (int x = 1; x < width - 1; x++)
+			{
+				int left = srcLine[x - 1];
 				int center = srcLine[x];
-				int right = srcLine[x != width - 1 ? x + 1 : 0];
+				int right = srcLine[x + 1];
 				int bottom = nextLine[x];
 				destLine[x] = FadeTable[left + center + right + bottom];
 			}
+			{
+				int left = srcLine[width - 2];
+				int center = srcLine[width - 1];
+				int right = srcLine[0];
+				int bottom = nextLine[width - 1];
+				destLine[width - 1] = FadeTable[left + center + right + bottom];
+			}
 		}
-		memcpy(pixels, buffer, width * height);
+		std::memcpy(pixels, buffer, width * height);
 
 		TextureModified = true;
 	}
