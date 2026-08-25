@@ -90,20 +90,33 @@ void UTexture::Save(PackageStreamWriter* stream)
 
 void UTexture::Update(float elapsed)
 {
-	if (MaxFrameRate() <= 0.0f)
+	if (!Primed)
+	{
+		// Fire textures needs to run for a bit before showing them for the first time
+		for (int i = 0, count = PrimeCount(); i < count; i++)
+		{
+			TextureModified = false;
+			UpdateFrame();
+		}
+		PrimeCurrent() = PrimeCount();
+		Primed = true;
+	}
+
+	float maxFrameRate = MaxFrameRate();
+	if (maxFrameRate <= 0.0f)
+		maxFrameRate = 25.0f; // Original game wasn't designed for 240 hz monitors!
+
+	Accumulator() += elapsed;
+
+	float animationSpeed = 1.0f / maxFrameRate;
+	for (int iteration = 0; Accumulator() > animationSpeed; iteration++)
 	{
 		UpdateFrame();
-	}
-	else
-	{
-		Accumulator() += elapsed;
-
-		float animationSpeed = 1.0f / MaxFrameRate();
-		const int max_iterations = 10;
-		for (int iteration = 0; iteration < max_iterations && Accumulator() > animationSpeed; iteration++)
+		Accumulator() -= animationSpeed;
+		if (iteration == 10)
 		{
-			UpdateFrame();
-			Accumulator() -= animationSpeed;
+			Accumulator() = 0.0f;
+			break;
 		}
 	}
 }

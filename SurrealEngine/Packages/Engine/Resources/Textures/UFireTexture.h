@@ -53,10 +53,13 @@ struct Spark
 	union
 	{
 		struct { uint8_t ByteA, ByteB, ByteC, ByteD; };
+		struct { uint8_t A, B, C, Speed; } Pulse;
+		struct { uint8_t A, B, Frequency, Speed; } Signal;
 		struct { uint8_t A, B, C, D; } Burn, OzHasSpoken;
 		struct { uint8_t Angle, TwirlAge, RotSpeed, TwirlRotSpeed; } Wheel;
 		struct { uint8_t SpeedX, SpeedY, C, HeatDecay; } Emit;
-		struct { uint8_t A, B, C, HeatDecay; } Blaze;
+		struct { uint8_t A, B, C, D; } Blaze;
+		struct { uint8_t A, B, Age, D; } BlazeLeftRight;
 		struct { uint8_t A, B, Radius, Frequency; } SphereLightning;
 	};
 };
@@ -64,7 +67,8 @@ struct Spark
 enum class SparkParticleType
 {
 	Twirl,
-	Drift
+	Drift,
+	DriftGravity,
 };
 
 struct SparkParticle
@@ -74,6 +78,7 @@ struct SparkParticle
 	{
 		struct { float X, Y, Angle, RotSpeed; uint8_t Heat, Age; } Twirl;
 		struct { float X, Y, SpeedX, SpeedY; int Heat, HeatDecay; } Drift;
+		struct { float X, Y, SpeedX, SpeedY; uint8_t Heat, Age; } DriftGravity;
 	};
 };
 

@@ -34,6 +34,8 @@ public:
 
 	int FrameCounter = -1;
 
+	bool Primed = false;
+
 	uint32_t PolyFlags()
 	{
 		// UE1 has this as a native uint32_t that is declared in unreal script as bitfield booleans.

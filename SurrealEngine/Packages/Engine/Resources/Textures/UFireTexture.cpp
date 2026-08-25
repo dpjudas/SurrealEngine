@@ -70,20 +70,38 @@ void UFireTexture::UpdateFrame()
 			{
 			default: // Always create some output as otherwise textures might completely disappear
 			case ESpark::Eels: // This is the amp powerup effect
+			case ESpark::Sparkle: // Intro fire effect
+			{
+				int x = (spark.X + (RandomByteValue() * spark.ByteA + 128) / 256) % width;
+				int y = (spark.Y + (RandomByteValue() * spark.ByteB + 128) / 256) % height;
+				SetPixel(pixels, x, y, width, height, spark.Heat);
+				break;
+			}
+			case ESpark::Pulse:
+			{
+				int x = (spark.X + (RandomByteValue() * spark.ByteA + 128) / 256) % width;
+				int y = (spark.Y + (RandomByteValue() * spark.ByteB + 128) / 256) % height;
+				SetPixel(pixels, x, y, width, height, spark.Heat);
+				spark.Heat = spark.Heat + spark.Pulse.Speed;
+				break;
+			}
+			case ESpark::Signal:
+			{
+				int x = (spark.X + (RandomByteValue() * spark.ByteA + 128) / 256) % width;
+				int y = (spark.Y + (RandomByteValue() * spark.ByteB + 128) / 256) % height;
+				if (spark.Heat > spark.Signal.Frequency)
+					SetPixel(pixels, x, y, width, height, spark.Heat);
+				if ((int)spark.Heat + spark.Signal.Speed < 256)
+					spark.Heat = spark.Heat + spark.Signal.Speed;
+				else
+					spark.Heat = RandomByteValue();
+				break;
+			}
 			case ESpark::Burn:
 			{
 				int x = spark.X;
 				int y = spark.Y;
 				SetPixel(pixels, x, y, width, height, RandomByteValue());
-				break;
-			}
-			case ESpark::Pulse:
-			case ESpark::Signal:
-			case ESpark::Sparkle:
-			{
-				int x = (spark.X + (RandomByteValue() * spark.ByteA + 128) / 256) % width;
-				int y = (spark.Y + (RandomByteValue() * spark.ByteB + 128) / 256) % height;
-				SetPixel(pixels, x, y, width, height, spark.Heat);
 				break;
 			}
 			case ESpark::Wheel:
@@ -129,13 +147,13 @@ void UFireTexture::UpdateFrame()
 					particle.Drift.Y = spark.Y + 0.5f;
 					particle.Drift.Heat = spark.Heat;
 					particle.Drift.HeatDecay = 5;
-					particle.Drift.SpeedX = ((int)RandomByteValue() - 128) * (0.5f / 128.0f);
+					particle.Drift.SpeedX = (RandomByteValue() / 255.0f) * 2.0f - 1.0f;
 					particle.Drift.SpeedY = -0.5f;
 					Particles.push_back(particle);
 				}
 				break;
 			}
-			case ESpark::Blaze:
+			case ESpark::Blaze: // Torches (all directions)
 			{
 				if (canEmit && RandomByteValue() < 128)
 				{
@@ -144,9 +162,57 @@ void UFireTexture::UpdateFrame()
 					particle.Drift.X = spark.X + 0.5f;
 					particle.Drift.Y = spark.Y + 0.5f;
 					particle.Drift.Heat = spark.Heat;
-					particle.Drift.HeatDecay = spark.Blaze.HeatDecay;
-					particle.Drift.SpeedX = ((int)RandomByteValue() - 128) * (1.0f / 128.0f);
-					particle.Drift.SpeedY = ((int)RandomByteValue() - 128) * (1.0f / 128.0f);
+					particle.Drift.HeatDecay = 5;
+					particle.Drift.SpeedX = (RandomByteValue() / 255.0f) * 2.0f - 1.0f;
+					particle.Drift.SpeedY = (RandomByteValue() / 255.0f) * 2.0f - 1.0f;
+					Particles.push_back(particle);
+				}
+				break;
+			}
+			case ESpark::BlazeLeft: // Torches (to the left with gravity)
+			{
+				if (canEmit && RandomByteValue() < 64)
+				{
+					SparkParticle particle;
+					particle.Type = SparkParticleType::DriftGravity;
+					particle.DriftGravity.X = spark.X + 0.5f;
+					particle.DriftGravity.Y = spark.Y + 0.5f;
+					particle.DriftGravity.Age = spark.BlazeLeftRight.Age;
+					particle.DriftGravity.Heat = spark.Heat;
+					particle.DriftGravity.SpeedX = -0.5f - RandomByteValue() / 255.0f * 0.5f;
+					particle.DriftGravity.SpeedY = -0.1f;
+					Particles.push_back(particle);
+				}
+				break;
+			}
+			case ESpark::BlazeRight: // Torches (to the right with gravity)
+			{
+				if (canEmit && RandomByteValue() < 64)
+				{
+					SparkParticle particle;
+					particle.Type = SparkParticleType::DriftGravity;
+					particle.DriftGravity.X = spark.X + 0.5f;
+					particle.DriftGravity.Y = spark.Y + 0.5f;
+					particle.DriftGravity.Age = spark.BlazeLeftRight.Age;
+					particle.DriftGravity.Heat = spark.Heat;
+					particle.DriftGravity.SpeedX = 0.5f + RandomByteValue() / 255.0f * 0.5f;
+					particle.DriftGravity.SpeedY = -0.1f;
+					Particles.push_back(particle);
+				}
+				break;
+			}
+			case ESpark::Cone: // Torches (center with gravity)
+			{
+				if (canEmit && RandomByteValue() < 64)
+				{
+					SparkParticle particle;
+					particle.Type = SparkParticleType::DriftGravity;
+					particle.DriftGravity.X = spark.X + 0.5f;
+					particle.DriftGravity.Y = spark.Y + 0.5f;
+					particle.DriftGravity.Age = 50;
+					particle.DriftGravity.Heat = spark.Heat;
+					particle.DriftGravity.SpeedX = (RandomByteValue() / 255.0f) - 0.5f;
+					particle.DriftGravity.SpeedY = 0.0f;
 					Particles.push_back(particle);
 				}
 				break;
@@ -229,6 +295,30 @@ void UFireTexture::UpdateFrame()
 
 					particle.Drift.X += particle.Drift.SpeedX;
 					particle.Drift.Y += particle.Drift.SpeedY;
+				}
+				else
+				{
+					particle = Particles.back();
+					Particles.pop_back();
+				}
+				break;
+			}
+			case SparkParticleType::DriftGravity:
+			{
+				particle.DriftGravity.Age--;
+				if (particle.DriftGravity.Age > 0)
+				{
+					int x = (int)particle.DriftGravity.X;
+					int y = (int)particle.DriftGravity.Y;
+					if (x < 0) x += width; else if (x >= width) x -= width;
+					if (y < 0) y += height; else if (y >= height) y -= height;
+					SetPixel(pixels, x, y, width, height, particle.DriftGravity.Heat);
+
+					float gravity = 0.025f;
+					float terminalVelocity = 1.0f;
+					particle.DriftGravity.X += particle.DriftGravity.SpeedX * 0.5f;
+					particle.DriftGravity.Y += particle.DriftGravity.SpeedY * 0.5f;
+					particle.DriftGravity.SpeedY = std::min(particle.DriftGravity.SpeedY + gravity, terminalVelocity);
 				}
 				else
 				{
