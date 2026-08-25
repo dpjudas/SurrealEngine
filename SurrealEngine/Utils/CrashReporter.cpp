@@ -826,11 +826,25 @@ CrashDumpInfo CrashReporter::GetCrashDumpInfo(const std::string& dumpFilename)
 #include <cstdio>
 #include <cerrno>
 #include <ctime>
+#include <fcntl.h>
 #include <sys/signal.h>
 #include <sys/sysctl.h>
 #include <sys/syslimits.h>
 #include <signal.h>
 #include <unistd.h>
+#include <libproc.h>
+#include <filesystem>
+#include <fstream>
+#include <algorithm>
+#include <chrono>
+#include <vector>
+#include <thread>
+
+#include "Utils/JsonValue.h"
+
+namespace fs = std::filesystem;
+
+#define MACOS_DIAGREPORTS_PATH "Library/Logs/DiagnosticReports"
 
 static const char fatal_err[] = "\n\n* Fatal Error :(\n";
 
@@ -838,6 +852,21 @@ struct SignalInfo
 {
 	int code;
 	const char* name = "";
+};
+
+struct SignalCodeInfo {
+	int signum;
+	int sigcode;
+	const char* name = "";
+};
+
+struct CrashInfo
+{
+	char magic[4] = { 'S', 'E', 'C', 'I'};
+	int32_t signum;
+	int32_t sigcode;
+	int32_t pid;
+	uint64_t faultaddr;
 };
 
 constexpr SignalInfo signals[] = {
@@ -848,11 +877,69 @@ constexpr SignalInfo signals[] = {
 	{ SIGABRT, "SIGABRT" },
 };
 
+constexpr SignalCodeInfo signalCodes[] = {
+	{ SIGILL,   ILL_NOOP,    "not known" },
+	{ SIGILL,   ILL_ILLOPC,  "illegal opcode" },
+	{ SIGILL,   ILL_ILLTRP,  "illegal trap" },
+	{ SIGILL,   ILL_PRVOPC,  "privileged opcode" },
+	{ SIGILL,   ILL_ILLOPN,  "illegal operand" },   // not produced by macOS
+	{ SIGILL,   ILL_ILLADR,  "illegal addressing mode" },   // not produced by macOS
+	{ SIGILL,   ILL_PRVREG,  "privileged register" },   // not produced by macOS
+	{ SIGILL,   ILL_COPROC,  "coprocessor error" },   // not produced by macOS
+	{ SIGILL,   ILL_BADSTK,  "internal stack error" },   // not produced by macOS
+	{ SIGFPE,   FPE_NOOP,    "not known" },
+	{ SIGFPE,   FPE_FLTDIV,  "floating point divide by zero" },
+	{ SIGFPE,   FPE_FLTOVF,  "floating point overflow" },
+	{ SIGFPE,   FPE_FLTUND,  "floating point underflow" },
+	{ SIGFPE,   FPE_FLTRES,  "floating point inexact result" },
+	{ SIGFPE,   FPE_FLTINV,  "invalid floating point operation" },
+	{ SIGFPE,   FPE_FLTSUB,  "subscript out of range" },   // not produced by macOS
+	{ SIGFPE,   FPE_INTDIV,  "integer divide by zero" },
+	{ SIGFPE,   FPE_INTOVF,  "integer overflow" },
+	{ SIGSEGV,  SEGV_NOOP,   "not known" },
+	{ SIGSEGV,  SEGV_MAPERR, "address not mapped to object" },
+	{ SIGSEGV,  SEGV_ACCERR, "invalid permission for mapped object" },
+	{ SIGBUS,   BUS_NOOP,    "not known" },
+	{ SIGBUS,   BUS_ADRALN,  "Invalid address alignment" },
+	{ SIGBUS,   BUS_ADRERR,  "Nonexistent physical address" },   // not produced by macOS
+	{ SIGBUS,   BUS_OBJERR,  "Object-specific HW error" }  // not produced by macOS
+};
+
 static std::string logFileFullname;
 static std::function<void(const std::string&)> saveLogCallback;
 
+static std::string crashInfoFullname;
+static std::string selfExePath;
+static std::string selfExeBaseName;
+
 static volatile sig_atomic_t origSignum = 0;
 static volatile sig_atomic_t handlerIsRunning = 0;
+
+static const char* signalName(int signum)
+{
+	for(size_t i = 0; i < std::size(signals); i++)
+	{
+		if(signals[i].code == signum)
+			return signals[i].name;
+	}
+	return "unknown";
+}
+
+static const char* signalCodeName(int signum, int sigcode)
+{
+	if (sigcode == SI_USER)  return "sent by kill()";
+	if (sigcode == SI_QUEUE) return "sent by sigqueue()";
+
+	for(size_t i = 0; i < std::size(signalCodes); i++)
+	{
+		if(signalCodes[i].signum == signum && signalCodes[i].sigcode == sigcode)
+		{
+			return signalCodes[i].name;
+		}
+	}
+
+	return "unknown";
+}
 
 static size_t safe_write(int fd, const void* buf, size_t len)
 {
@@ -871,7 +958,7 @@ static size_t safe_write(int fd, const void* buf, size_t len)
 	return ret;
 }
 
-static void crash_catcher(int signum, siginfo_t* /*siginfo*/, void* /*context*/)
+static void crash_catcher(int signum, siginfo_t* siginfo, void* /*context*/)
 {
 	// Prevent hang on deadlock, see below. This will save you from force closing
 	// the app, and preserve the .ips in most cases
@@ -892,10 +979,50 @@ static void crash_catcher(int signum, siginfo_t* /*siginfo*/, void* /*context*/)
 
 	safe_write(STDERR_FILENO, fatal_err, sizeof(fatal_err) - 1);
 
+	struct CrashInfo ci = {};
+
+	ci.signum = signum;
+	ci.pid = getpid();
+	if (siginfo) {
+		ci.sigcode = siginfo->si_code;
+
+		// faultaddr semantics differ per signal. It is up to the reader to
+		// interpret it properly
+		ci.faultaddr = (uint64_t)(uintptr_t) siginfo->si_addr;
+	}
+
+	int fd = open(crashInfoFullname.c_str(), O_WRONLY | O_CREAT | O_TRUNC, 0644);
+	bool haveCrashInfo = false;
+	if(fd >= 0) {
+		haveCrashInfo = true;
+		safe_write(fd, &ci, sizeof(ci));
+		close(fd);
+	}
+
 	// the callback is not async safe and may cause a deadlock.
 	// the alarm() call above kills the process after a timeout if a deadlock occurs.
 	saveLogCallback(logFileFullname);
 
+	if(!selfExePath.empty() && haveCrashInfo)
+	{
+		pid_t child = fork();
+		if(child == 0)
+		{
+			// this is running in the new child process.
+			// If execl succeeds, the next line is never reached
+			execl(
+				selfExePath.c_str(),
+				selfExePath.c_str(),
+				"--showcrashreport",
+				crashInfoFullname.c_str(),
+				logFileFullname.c_str(),
+				(char*) nullptr
+			);
+
+			// This is only called if execl() fails
+			_exit(127);
+		}
+	}
 	raise(signum);
 }
 
@@ -929,13 +1056,27 @@ void CrashReporter::Init(const std::string& reportsDirectory, std::function<void
 	time_t t = time(nullptr);
 	tm timevalue{};
 	localtime_r(&t, &timevalue);
-	char fileName[64];
-	strftime(fileName, sizeof(fileName), "%Y-%m-%d_%H.%M.%S.log", &timevalue);
+	char fileBaseName[64];
+	strftime(fileBaseName, sizeof(fileBaseName), "%Y-%m-%d_%H.%M.%S", &timevalue);
 
-	logFileFullname = reportsDirectory;
-	if (!logFileFullname.empty() && logFileFullname.back() != '/')
-		logFileFullname += '/';
-	logFileFullname += fileName;
+	std::string dirPath = reportsDirectory;
+	if (!dirPath.empty() && dirPath.back() != '/')
+		dirPath += '/';
+
+	crashInfoFullname = dirPath + fileBaseName + ".crashinfo";
+	logFileFullname = dirPath + fileBaseName + ".log";
+
+	char pathBuffer[PROC_PIDPATHINFO_MAXSIZE];
+	int len = proc_pidpath(getpid(), pathBuffer, sizeof(pathBuffer));
+	if(len > 0)
+	{
+		selfExePath.assign(pathBuffer, len);
+		selfExeBaseName = fs::path(selfExePath).filename().string() + "-";
+	}
+	else
+	{
+		fprintf(stderr, "Failed to get proc_pidpath(): %s (errno %d). will not be able to relaunch with crash info\n", strerror(errno), errno);
+	}
 
 	saveLogCallback = saveLog;
 
@@ -991,7 +1132,180 @@ void CrashReporter::Invoke()
 
 CrashDumpInfo CrashReporter::GetCrashDumpInfo(const std::string& dumpFilename)
 {
-	return {};
+	// Read magic marker file with pid, signal num, etc from the crash
+	int fd = open(dumpFilename.c_str(), O_RDONLY);
+	CrashInfo ci;
+	if(fd >= 0) {
+		ssize_t ciLen = read(fd, &ci, sizeof(ci));
+		close(fd);
+		if(ciLen != (ssize_t)sizeof(CrashInfo) || memcmp(ci.magic, "SECI", 4) != 0)
+			return {"Crash (no details available)", ""};
+	}
+	else
+	{
+		return {"Crash (no details available)", ""};
+	}
+
+	// Provisional exception message. If .ips is found later, it will be replaced by a better message.
+	char buf[160];
+	snprintf(buf, sizeof(buf), "%s (%s) at 0x%016llx",
+		signalName(ci.signum),
+		signalCodeName(ci.signum, ci.sigcode),
+		(unsigned long long)ci.faultaddr);
+
+	// .ips file are written under ~/Library/Logs/
+	const char* home = getenv("HOME");
+	if(!home) return {buf, ""};
+	fs::path userDiagDir = fs::path(home) / MACOS_DIAGREPORTS_PATH;
+
+	// Init() does not run in --showcrashreport mode, so duplicate calculation of executable file name
+	char pathBuffer[PROC_PIDPATHINFO_MAXSIZE];
+	int len = proc_pidpath(getpid(), pathBuffer, sizeof(pathBuffer));
+	if(len > 0)
+	{
+		selfExePath.assign(pathBuffer, len);
+		selfExeBaseName = fs::path(selfExePath).filename().string() + "-";
+	}
+
+	// .ips files are json
+	fs::path ipsFile;
+	JsonValue ipsPayload;
+
+	try
+	{
+		// .ips files are written automatically by macOS asynchronously so it can take a while before it lands.
+		// poll for up to 60 seconds and if not found skip stack trace and just show basic exception
+
+		// .ips directory will contain all crash report files for the user, including many from the same app so we
+		// have to scan the dir and find the (a) latest one that has the same file base name as the executable,
+		// (b) contains the same PID as in the magic file above
+		bool foundIps = false;
+		auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(60);
+		fprintf(stderr, "Scanning for .ips files in [%s], not hung. Max 60 seconds of wait time\n", userDiagDir.c_str());
+		while(!foundIps && std::chrono::steady_clock::now() < deadline)
+		{
+			std::vector<fs::directory_entry> files;
+			std::error_code ec;
+			auto dirIt = fs::directory_iterator(userDiagDir, ec);
+			if (ec)
+			{
+				fprintf(stderr, "Failed to read .ips file directory [%s]\n", userDiagDir.c_str());
+				return {buf, ""};
+			}
+			for (const auto& e : dirIt)
+			{
+				if (!e.is_regular_file(ec)) continue;
+				if (e.path().extension() != ".ips") continue;
+				if (!(e.path().has_filename() && e.path().filename().string().rfind(selfExeBaseName, 0) == 0)) continue;	// .ips file should have the same base file name as the executable
+
+				// Skip .ips files created before our marker file
+				auto markerTime = fs::last_write_time(dumpFilename, ec);
+				if (e.last_write_time(ec) < markerTime) continue;
+
+				files.push_back(e);
+			}
+
+			std::sort(files.begin(),
+				files.end(),
+				[](const auto& a, const auto& b) { return a.last_write_time() > b.last_write_time(); });
+
+			for (const auto& dirEntry: files)
+			{
+				std::ifstream f(dirEntry.path());
+				std::stringstream ss; ss << f.rdbuf();
+				std::string all = ss.str();
+
+				size_t nl = all.find('\n');
+				if (nl == std::string::npos) continue;          // malformed
+
+				JsonValue header  = JsonValue::parse(all.substr(0, nl));
+				JsonValue payload = JsonValue::parse(all.substr(nl + 1));
+
+				auto it = payload.properties().find("pid");
+				if (it == payload.properties().end())
+					continue;   // pid property not found
+				int pid = it->second.to_int();
+				if(pid == ci.pid)
+				{
+					foundIps = true;
+					ipsFile = dirEntry.path();
+					ipsPayload = payload;
+					break;
+				}
+			}
+
+			if(!foundIps)
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+		}
+
+		const JsonValue& ex = ipsPayload.prop("exception");
+		if(ex.is_undefined())
+		{
+			return {buf, ""};
+		}
+
+		std::string type = ex.prop("type").to_string();
+		std::string subtype = ex.prop("subtype").to_string();
+		std::string signal = ex.prop("signal").to_string();
+
+		std::string exceptionLine = type + " (" + signal + ") - " + subtype;
+
+		const JsonValue& threads = ipsPayload.prop("threads");
+		int faultThread = ipsPayload.prop("faultingThread").to_int(); //TODO: bounds check faultThread
+		if(faultThread < 0 || (size_t)faultThread >= threads.size())
+		{
+			return {exceptionLine, ""};
+		}
+		const JsonValue& frames = threads.at(faultThread).prop("frames");
+		const JsonValue& images = ipsPayload.prop("usedImages");
+
+		std::string callStack;
+
+		// sigTrampoline is where we should start looking in the stack trace.
+		// anything earlier is inside the crash_catcher and not relevant to the fault
+		bool foundSigTramp = false;
+		std::string lastExternalCode;
+		for (size_t i = 0; i < frames.size(); i++)
+		{
+			const JsonValue& frame = frames.at(i);
+			std::string symbol = frame.prop("symbol").to_string();
+			if (symbol == "_sigtramp")
+			{
+				foundSigTramp = true;
+				continue;
+			}
+
+			if (!foundSigTramp)
+			{
+				continue;
+			}
+
+			const JsonValue& image = images.at(frame.prop("imageIndex").to_int());
+			std::string imgName = image.prop("name").to_string();
+			std::string sourceFile = frame.prop("sourceFile").to_string();
+			int sourceLine = frame.prop("sourceLine").to_int();
+
+			if (!symbol.empty()) {
+				if (!sourceFile.empty())
+					callStack += "Called from " + symbol + " at " + sourceFile + ", line " + std::to_string(sourceLine) + "\n";
+				else
+					callStack += "Called from external code [" + symbol + " " + imgName + "]\n";
+			}
+			else
+			{
+				callStack += "Called from external code [" + imgName + "]\n";
+			}
+		}
+
+		return {exceptionLine, callStack};
+	}
+	catch (...)
+	{
+		fprintf(stderr, "Failed to read .ips file [%s]. Stack trace unavailable\n", dumpFilename.c_str());
+		return {buf, "[Stack trace unavailable]"};
+	}
+
+	return {buf, ""};
 }
 
 #else // Linux
