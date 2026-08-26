@@ -38,4 +38,13 @@ public:
 	int channels = 0;
 	void* handle = nullptr;
 	AudioLoopInfo loopInfo;
+
+	Array<uint8_t> lipsyncLetters;
+
+	uint8_t GetLipsyncLetterAt(float seconds);
+
+private:
+	static uint8_t LetterForHz(float hz);
+	static constexpr int LIPSYNC_BLOCK_SIZE = 2048;
+	const Array<uint8_t>& GetLipsyncLetters();
 };

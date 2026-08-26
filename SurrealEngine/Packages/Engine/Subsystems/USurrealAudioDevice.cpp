@@ -7,6 +7,7 @@
 #include "Packages/Engine/UViewport.h"
 #include "Packages/Engine/Actors/UActor.h"
 #include "Packages/Engine/Actors/Pawn/UPlayerPawn.h"
+#include "Packages/Engine/Actors/Pawn/UPawn.h"
 #include "Packages/Engine/Actors/Info/ULevelInfo.h"
 #include "Packages/Engine/Resources/UMusic.h"
 #include "Packages/Engine/Resources/USound.h"
@@ -253,6 +254,55 @@ void USurrealAudioDevice::UpdateAmbience()
 	}
 }
 
+//
+// Deliberately stores no state on PlayingSound. The slot is already packed into Id by
+// NActor::PlaySound as (slot << 1), and this file already decodes it that way for
+// SLOT_Ambient, so SLOT_Talk is recoverable the same way.
+//
+// PropertyOffsets only resolves the lip-sync properties inside its IsDeusEx() branch, so an
+// unset offset doubles as the "this game has no lip sync" test: other games return on the
+// first line and observe no behaviour change at all.
+static bool HasLipSync()
+{
+	return PropOffsets_Pawn.nextPhoneme.DataOffset != ~(size_t)0;
+}
+
+void USurrealAudioDevice::UpdateLipSync(PlayingSound& Playing)
+{
+	if (!HasLipSync() || !Playing.Actor || !engine->LevelInfo)
+		return;
+	if ((Playing.Id & 14) != SLOT_Talk * 2)
+		return;
+
+	UPawn* pawn = UObject::TryCast<UPawn>(Playing.Actor);
+	if (!pawn)
+		return;
+
+	float elapsedTime = engine->LevelInfo->TimeSeconds() - Playing.StartTime;
+	uint8_t letter = Playing.Sound->GetLipsyncLetterAt(elapsedTime);
+
+	if (!letter)
+		return;
+
+	pawn->bIsSpeaking() = true;
+	pawn->nextPhoneme() = std::string(1, letter);
+}
+
+// Called wherever a slot is torn down, so the mouth does not freeze mid-vowel.
+void USurrealAudioDevice::ClearLipSync(PlayingSound& Playing)
+{
+	if (!HasLipSync() || !Playing.Actor)
+		return;
+	if ((Playing.Id & 14) != SLOT_Talk * 2)
+		return;
+
+	if (UPawn* pawn = UObject::TryCast<UPawn>(Playing.Actor))
+	{
+		pawn->bIsSpeaking() = false;
+		pawn->nextPhoneme() = "X";   // X == MouthClosed
+	}
+}
+
 void USurrealAudioDevice::UpdateSounds(const mat4& listener)
 {
 	if (!m_Viewport || !m_Viewport->Actor())
@@ -272,6 +322,8 @@ void USurrealAudioDevice::UpdateSounds(const mat4& listener)
 			// Update the priority
 			Playing.Priority = SoundPriority(m_Viewport, Playing.Location, Playing.Volume, Playing.Radius);
 
+			UpdateLipSync(Playing);
+
 			// Update the sound.
 			if (Playing.IsActive)
 			{
@@ -281,6 +333,7 @@ void USurrealAudioDevice::UpdateSounds(const mat4& listener)
 				}
 				else
 				{
+					ClearLipSync(Playing);
 					PlayingSounds[i] = {};
 				}
 			}
@@ -390,6 +443,7 @@ bool USurrealAudioDevice::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 L
 	// Put the sound on the play-list
 	StopSound(Index);
 	PlayingSounds[Index] = PlayingSound(Actor, Id, Sound, Location, Volume, Radius, Pitch, Priority);
+	PlayingSounds[Index].StartTime = engine->LevelInfo->TimeSeconds();
 
 	return true;
 }
@@ -436,6 +490,7 @@ void USurrealAudioDevice::StopSound(size_t index)
 		Playing.IsActive = false;
 	}
 
+	ClearLipSync(Playing);
 	PlayingSounds[index] = {};
 }
 
