@@ -41,14 +41,6 @@ WaylandDisplayWindow::WaylandDisplayWindow(WaylandDisplayBackend* backend, Displ
 		m_XDGSurface.ack_configure(serial);
 	};
 
-	m_WindowActivationToken = backend->m_XDGActivation.get_activation_token();
-	m_WindowActivationToken.on_done() = [&](const std::string& newActivationToken)
-	{
-		m_ActivationTokenString = newActivationToken;
-	};
-
-	m_WindowActivationToken.set_surface(m_WindowSurface);
-
 	if (m_WidgetType == WidgetType::Popup)
 	{
 		InitializePopup();
@@ -241,6 +233,13 @@ void WaylandDisplayWindow::Hide()
 
 void WaylandDisplayWindow::Activate()
 {
+	m_WindowActivationToken = backend->m_XDGActivation.get_activation_token();
+	m_WindowActivationToken.on_done() = [&](const std::string& newActivationToken)
+	{
+		m_ActivationTokenString = newActivationToken;
+	};
+
+	m_WindowActivationToken.set_surface(m_WindowSurface);
 	m_WindowActivationToken.set_serial(backend->GetKeyboardSerial(), backend->m_waylandSeat);
 	m_WindowActivationToken.commit(); // This will set our token string
 
