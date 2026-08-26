@@ -8,8 +8,9 @@
 #include "Packages/Core/UClass.h"
 #include "RenderDevice/RenderDevice.h"
 #include "Math/hsb.h"
+#include <cstring>
 
-void LightmapBuilder::Setup(UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor)
+void LightmapBuilder::Setup(UModel* model, const Coords& mapCoords, int lightMap)
 {
 	const LightMapIndex& lmindex = model->LightMap[lightMap];
 
@@ -29,7 +30,10 @@ void LightmapBuilder::Setup(UModel* model, const Coords& mapCoords, int lightMap
 		illuminationmap.resize(size);
 
 	CalcWorldLocations(mapCoords, lmindex);
+}
 
+void LightmapBuilder::SetAmbientLight(UZoneInfo* zoneActor)
+{
 	// Initialize lightmap with the ambient color
 
 	vec3 ambientColor = hsbtorgb(zoneActor->AmbientHue(), zoneActor->AmbientSaturation(), zoneActor->AmbientBrightness()); // To do: is this the correct scale?
@@ -42,6 +46,19 @@ void LightmapBuilder::Setup(UModel* model, const Coords& mapCoords, int lightMap
 
 	//bool isSpecialLit = (surface.PolyFlags & PF_SpecialLit) == PF_SpecialLit;
 	//bool isTranslucent = (surface.PolyFlags & PF_Translucent) == PF_Translucent;
+}
+
+void LightmapBuilder::LoadStaticLight(const Array<vec3>& staticLightColors)
+{
+	if (lightcolors.size() < staticLightColors.size())
+		lightcolors.resize(staticLightColors.size());
+	std::memcpy(lightcolors.data(), staticLightColors.data(), staticLightColors.size() * sizeof(vec3));
+}
+
+void LightmapBuilder::SaveStaticLight(Array<vec3>& staticLightColors)
+{
+	staticLightColors.resize(width * height);
+	std::memcpy(staticLightColors.data(), lightcolors.data(), width * height * sizeof(vec3));
 }
 
 void LightmapBuilder::AddStaticLights(UModel* model, int lightMap)

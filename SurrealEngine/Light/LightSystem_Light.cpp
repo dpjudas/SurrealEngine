@@ -101,7 +101,8 @@ TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coo
 
 	// Collect lights for the lightmap and check if they changed
 
-	int lastUpdate = -1;
+	int lastStaticUpdate = -100;
+	int lastDynamicUpdate = -100;
 	TempDynLightList.clear();
 
 	if (!dynamicMover)
@@ -115,7 +116,7 @@ TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coo
 			{
 				UActor* light = lightlist[lightindex];
 				CheckLight(light);
-				lastUpdate = std::max(lastUpdate, light->Light.LastUpdate);
+				lastStaticUpdate = std::max(lastStaticUpdate, light->Light.LastUpdate);
 
 				// Mark the light as visited so the second pass doesn't pick it up
 				light->Light.LightmapCheckCounter = checkCounter;
@@ -133,7 +134,7 @@ TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coo
 				if (!light->bStatic() && !light->bNoDelete() && light->bSpecialLit() == specialLit)
 				{
 					CheckLight(light);
-					lastUpdate = std::max(lastUpdate, light->Light.LastUpdate);
+					lastDynamicUpdate = std::max(lastDynamicUpdate, light->Light.LastUpdate);
 					TempDynLightList.push_back(light);
 				}
 			}
@@ -142,12 +143,12 @@ TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coo
 	else
 	{
 		// To do: ideally we only want to do this if the mover moved
-		lastUpdate = FrameCounter;
+		lastDynamicUpdate = FrameCounter;
 
 		for (UActor* light : dynamicMover->TouchingLights.List)
 		{
 			CheckLight(light);
-			lastUpdate = std::max(lastUpdate, light->Light.LastUpdate);
+			lastDynamicUpdate = std::max(lastDynamicUpdate, light->Light.LastUpdate);
 			TempDynLightList.push_back(light);
 		}
 	}
@@ -156,14 +157,11 @@ TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coo
 
 	bool bRealtimeChanged = false;
 	auto& lmtexture = lmtextures[cacheID];
-	if (!lmtexture || lmtexture->LastUpdate != lastUpdate)
+	if (!lmtexture || lmtexture->LastStaticUpdate != lastStaticUpdate || lmtexture->LastDynamicUpdate != lastDynamicUpdate)
 	{
 		engine->render->Stats.LightmapsUpdated++;
 
-		Builder.Setup(model, coords, lightmapIndex, zoneActor);
-		if (!dynamicMover)
-			Builder.AddStaticLights(model, lightmapIndex);
-		Builder.AddDynamicLights(model, lightmapIndex, TempDynLightList);
+		Builder.Setup(model, coords, lightmapIndex);
 
 		if (!lmtexture || lmtexture->Mip.Width != Builder.Width() || lmtexture->Mip.Height != Builder.Height())
 		{
@@ -173,6 +171,23 @@ TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coo
 			lmtexture->Mip.Height = Builder.Height();
 			lmtexture->Mip.Data.resize((size_t)lmtexture->Mip.Width * lmtexture->Mip.Height * sizeof(vec4));
 		}
+
+		if (dynamicMover)
+		{
+			Builder.SetAmbientLight(zoneActor);
+		}
+		else if (lmtexture->LastStaticUpdate != lastStaticUpdate)
+		{
+			Builder.SetAmbientLight(zoneActor);
+			Builder.AddStaticLights(model, lightmapIndex);
+			Builder.SaveStaticLight(lmtexture->StaticLightColors);
+		}
+		else if (lmtexture->StaticLightColors.size() == Builder.Width() * Builder.Height())
+		{
+			Builder.LoadStaticLight(lmtexture->StaticLightColors);
+		}
+
+		Builder.AddDynamicLights(model, lightmapIndex, TempDynLightList);
 
 		UnrealMipmap& lmmip = lmtexture->Mip;
 		vec4* dest = (vec4*)lmmip.Data.data();
@@ -186,7 +201,8 @@ TextureInfo LightSystem::GetLightmap(UModel* model, int lightmapIndex, const Coo
 			dest[i].a = 1.0f;
 		}
 
-		lmtexture->LastUpdate = lastUpdate;
+		lmtexture->LastStaticUpdate = lastStaticUpdate;
+		lmtexture->LastDynamicUpdate = lastDynamicUpdate;
 		bRealtimeChanged = true;
 	}
 

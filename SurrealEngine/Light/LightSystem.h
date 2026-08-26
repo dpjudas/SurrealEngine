@@ -18,7 +18,9 @@ struct LightmapTexture
 {
 	TextureFormat Format;
 	UnrealMipmap Mip;
-	int LastUpdate = 0;
+	int LastStaticUpdate = -1;
+	int LastDynamicUpdate = -1;
+	Array<vec3> StaticLightColors;
 };
 
 class LightSystem

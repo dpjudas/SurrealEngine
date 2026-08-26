@@ -14,9 +14,13 @@ struct Poly;
 class LightmapBuilder
 {
 public:
-	void Setup(UModel* model, const Coords& mapCoords, int lightMap, UZoneInfo* zoneActor);
+	void Setup(UModel* model, const Coords& mapCoords, int lightMap);
+	void SetAmbientLight(UZoneInfo* zoneActor);
 	void AddStaticLights(UModel* model, int lightMap);
 	void AddDynamicLights(UModel* model, int lightMap, const Array<UActor*>& lights);
+
+	void LoadStaticLight(const Array<vec3>& staticLightColors);
+	void SaveStaticLight(Array<vec3>& staticLightColors);
 
 	int Width() const { return width; }
 	int Height() const { return height; }
