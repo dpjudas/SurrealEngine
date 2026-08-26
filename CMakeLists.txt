@@ -918,6 +918,8 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/miniz/miniz.h
 	Thirdparty/kissfft/kiss_fft.c
 	Thirdparty/kissfft/kiss_fft.h
+	Thirdparty/kissfft/kiss_fftr.c
+	Thirdparty/kissfft/kiss_fftr.h
 )
 
 set(THIRDPARTY_WIN32_SOURCES

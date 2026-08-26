@@ -23,6 +23,7 @@ struct PlayingSound
 	float Volume = 1.0f;
 	float Radius = 1.0f;
 	float Pitch = 1.0f;
+	float StartTime = 0.0f;
 };
 
 class USurrealAudioDevice : public UAudioSubsystem
@@ -75,6 +76,9 @@ private:
 	void StartAmbience();
 	void UpdateAmbience();
 	void UpdateSounds(const mat4& listener);
+
+	void UpdateLipSync(PlayingSound& Playing);
+	void ClearLipSync(PlayingSound& Playing);
 	void UpdateMusic();
 	void StopSound(size_t index);
 
