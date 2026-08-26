@@ -60,7 +60,6 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 
 void LightEffect::NoneEffect(LightEffectArgs* args)
 {
-#if 1
 	const int size = args->size;
 	const float lightLocationX = args->LightLocation.x;
 	const float lightLocationY = args->LightLocation.y;
@@ -143,7 +142,11 @@ void LightEffect::NoneEffect(LightEffectArgs* args)
 		float unitdistsqr = lensqr * invRadiusSquared;
 		if (unitdistsqr < 1.0f)
 		{
+#ifdef USE_SSE2
+			float len = _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(lensqr)));
+#else
 			float len = std::sqrt(lensqr);
+#endif
 			float rcpdist = 1.0f / len;
 			Lx *= rcpdist;
 			Ly *= rcpdist;
@@ -168,30 +171,6 @@ void LightEffect::NoneEffect(LightEffectArgs* args)
 		shadowmap++;
 		result++;
 	}
-#else
-	const int size = args->size;
-	const vec3 lightLocation = args->LightLocation;
-	const vec3 N = args->N;
-	const float invRadiusSquared = args->invRadiusSquared;
-	const vec3* locations = args->locations;
-	const float* shadowmap = args->shadowmap;
-	float* result = args->result;
-	for (int i = 0; i < size; i++)
-	{
-		vec3 L = lightLocation - locations[i];
-		float angleAttenuation = std::abs(dot(normalize(L), N));
-		float distsqr = dot(L, L) * invRadiusSquared;
-		if (distsqr < 1.0f)
-		{
-			float distanceAttenuation = LightDistanceFalloff(distsqr);
-			result[i] = shadowmap[i] * distanceAttenuation * angleAttenuation;
-		}
-		else
-		{
-			result[i] = 0.0f;
-		}
-	}
-#endif
 }
 
 void LightEffect::NonIncidenceEffect(LightEffectArgs* args)
@@ -238,11 +217,18 @@ void LightEffect::SlowWaveEffect(LightEffectArgs* args)
 	for (int i = 0; i < size; i++)
 	{
 		vec3 L = lightLocation - locations[i];
-		float waveAttenuation = 0.6f + 0.4f * Sin(length(L) * 0.04f + timeOffset);
-		float angleAttenuation = std::abs(dot(normalize(L), N));
-		float distsqr = dot(L, L) * invRadiusSquared;
+		float lensqr = dot(L, L);
+		float distsqr = lensqr * invRadiusSquared;
 		if (distsqr < 1.0f)
 		{
+#ifdef USE_SSE2
+			float len = _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(lensqr)));
+#else
+			float len = std::sqrt(lensqr);
+#endif
+			L *= 1.0f / len;
+			float waveAttenuation = 0.6f + 0.4f * Sin(len * 0.04f + timeOffset);
+			float angleAttenuation = std::abs(dot(L, N));
 			float distanceAttenuation = LightDistanceFalloff(distsqr);
 			result[i] = shadowmap[i] * distanceAttenuation * angleAttenuation * waveAttenuation;
 		}
@@ -266,11 +252,18 @@ void LightEffect::FastWaveEffect(LightEffectArgs* args)
 	for (int i = 0; i < size; i++)
 	{
 		vec3 L = lightLocation - locations[i];
-		float waveAttenuation = 0.6f + 0.4f * Sin(length(L) * 0.04f + timeOffset);
-		float angleAttenuation = std::abs(dot(normalize(L), N));
-		float distsqr = dot(L, L) * invRadiusSquared;
+		float lensqr = dot(L, L);
+		float distsqr = lensqr * invRadiusSquared;
 		if (distsqr < 1.0f)
 		{
+#ifdef USE_SSE2
+			float len = _mm_cvtss_f32(_mm_sqrt_ss(_mm_set_ss(lensqr)));
+#else
+			float len = std::sqrt(lensqr);
+#endif
+			L *= 1.0f / len;
+			float waveAttenuation = 0.6f + 0.4f * Sin(len * 0.04f + timeOffset);
+			float angleAttenuation = std::abs(dot(L, N));
 			float distanceAttenuation = LightDistanceFalloff(distsqr);
 			result[i] = shadowmap[i] * distanceAttenuation * angleAttenuation * waveAttenuation;
 		}
@@ -312,21 +305,38 @@ void LightEffect::SpotlightEffect(LightEffectArgs* args)
 	vec3 spotDir = -tmp0;
 	float lightCosOuterAngle = 1.0f - args->light->LightCone() * (1.0f / 255.0f);
 	float lightCosInnerAngle = 1.0f;
-	for (int i = 0; i < size; i++)
+	if (lightCosOuterAngle < 1.0f)
 	{
-		vec3 L = lightLocation - locations[i];
-		float angleAttenuation = std::abs(dot(normalize(L), N));
-
-		float distsqr = dot(L, L) * invRadiusSquared;
-		if (distsqr < 1.0f && lightCosOuterAngle < 1.0f)
+		for (int i = 0; i < size; i++)
 		{
-			float distanceAttenuation = LightDistanceFalloff(distsqr);
-			float cosDir = dot(normalize(L), spotDir);
-			float spotAttenuation = 1.0f - std::min((1.0f - cosDir) / (1.0f - lightCosOuterAngle), 1.0f);
-			spotAttenuation = spotAttenuation * spotAttenuation;
-			result[i] = shadowmap[i] * distanceAttenuation * angleAttenuation * spotAttenuation;
+			vec3 L = lightLocation - locations[i];
+			float lensqr = dot(L, L);
+			float distsqr = lensqr * invRadiusSquared;
+			if (distsqr < 1.0f)
+			{
+#ifdef USE_SSE2
+				float rcplen = _mm_cvtss_f32(_mm_rsqrt_ss(_mm_set_ss(lensqr)));
+#else
+				float rcplen = 1.0f / std::sqrt(lensqr);
+#endif
+				L *= rcplen;
+				float angleAttenuation = std::abs(dot(L, N));
+				float distanceAttenuation = LightDistanceFalloff(distsqr);
+				float cosDir = dot(L, spotDir);
+				float spotAttenuation = 1.0f - std::min((1.0f - cosDir) / (1.0f - lightCosOuterAngle), 1.0f);
+				spotAttenuation = spotAttenuation * spotAttenuation;
+				result[i] = shadowmap[i] * distanceAttenuation * angleAttenuation * spotAttenuation;
+			}
+			else
+			{
+				result[i] = 0.0f;
+			}
 		}
-		else
+
+	}
+	else
+	{
+		for (int i = 0; i < size; i++)
 		{
 			result[i] = 0.0f;
 		}
@@ -362,13 +372,19 @@ void LightEffect::SearchlightEffect(LightEffectArgs* args)
 	for (int i = 0; i < size; i++)
 	{
 		vec3 L = lightLocation - locations[i];
-		float angleAttenuation = std::abs(dot(normalize(L), N));
-
-		float distsqr = dot(L, L) * invRadiusSquared;
+		float lensqr = dot(L, L);
+		float distsqr = lensqr * invRadiusSquared;
 		if (distsqr < 1.0f && lightCosOuterAngle < 1.0f)
 		{
+#ifdef USE_SSE2
+			float rcplen = _mm_cvtss_f32(_mm_rsqrt_ss(_mm_set_ss(lensqr)));
+#else
+			float rcplen = 1.0f / std::sqrt(lensqr);
+#endif
+			L *= rcplen;
+			float angleAttenuation = std::abs(dot(L, N));
 			float distanceAttenuation = LightDistanceFalloff(distsqr);
-			float cosDir = dot(normalize(L), spotDir);
+			float cosDir = dot(L, spotDir);
 			float spotAttenuation = 1.0f - std::min((1.0f - cosDir) / (1.0f - lightCosOuterAngle), 1.0f);
 			spotAttenuation = spotAttenuation * spotAttenuation;
 			result[i] = shadowmap[i] * distanceAttenuation * angleAttenuation * spotAttenuation;
