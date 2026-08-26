@@ -31,7 +31,9 @@ jobs:
             libglib2.0-dev \
             libgl-dev \
             libegl-dev \
-            libx11-dev
+            libx11-dev \
+            libgl1-mesa-dev \
+            libegl1-mesa-dev
       - name: Create Build Environment
         run: cmake -E make_directory ${{runner.workspace}}/build
 
