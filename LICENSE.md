@@ -244,6 +244,19 @@
 	ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION, ARISING OUT OF
 	OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS SOFTWARE.
 
+## License for Thirdparty/kissfft
+
+	Copyright (c) 2003-2010 Mark Borgerding . All rights reserved.
+
+	KISS FFT is provided under:
+
+	SPDX-License-Identifier: BSD-3-Clause
+
+	Being under the terms of the BSD 3-clause "New" or "Revised" License,
+	according with:
+
+	LICENSES/BSD-3-Clause
+
 ## License for Thirdparty/OpenMPT
 
     Copyright (c) 2004-2025, OpenMPT Project Developers and Contributors

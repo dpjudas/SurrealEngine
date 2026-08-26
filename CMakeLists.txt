@@ -916,6 +916,8 @@ set(THIRDPARTY_SOURCES
 	Thirdparty/TinySHA1/TinySHA1.hpp
 	Thirdparty/miniz/miniz.c
 	Thirdparty/miniz/miniz.h
+	Thirdparty/kissfft/kiss_fft.c
+	Thirdparty/kissfft/kiss_fft.h
 )
 
 set(THIRDPARTY_WIN32_SOURCES
@@ -1082,6 +1084,7 @@ source_group("Thirdparty\\dumb\\src\\it" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOU
 source_group("Thirdparty\\dumb\\include" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/.+")
 source_group("Thirdparty\\dumb\\include\\internal" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/dumb/include/internal/.+")
 source_group("Thirdparty\\miniz" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/miniz/.+")
+source_group("Thirdparty\\kissfft" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/Thirdparty/kissfft/.+")
 
 include_directories(SurrealEngine SurrealWidgets/include Thirdparty SurrealGPU/include Thirdparty/openmpt Thirdparty/openal-soft/include Thirdparty/miniz)
 

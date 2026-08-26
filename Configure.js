@@ -897,6 +897,8 @@ var thirdPartySources = [
 	"Thirdparty/TinySHA1/TinySHA1.hpp",
 	"Thirdparty/miniz/miniz.c",
 	"Thirdparty/miniz/miniz.h",
+	"Thirdparty/kissfft/kiss_fft.c",
+	"Thirdparty/kissfft/kiss_fft.h",
 ];
 
 var commonLibs = [
