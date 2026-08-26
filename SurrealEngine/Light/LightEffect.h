@@ -38,4 +38,14 @@ private:
 
 	typedef void (LightEffect::* EffectFunc)(LightEffectArgs* args);
 	static EffectFunc Effects[LE_Unused + 1];
+
+	enum { SinTableSize = 1024, FalloffTableSize = 1024 };
+
+	static void InitTables();
+	static float Sin(float v);
+	static float Cos(float v);
+	static float LightDistanceFalloff(float distsqr);
+	static float CalcLightDistanceFalloff(float distsqr);
+	static bool TablesInitialized;
+	static float SinTable[SinTableSize], CosTable[SinTableSize], FalloffTable[FalloffTableSize];
 };

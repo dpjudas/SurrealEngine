@@ -34,6 +34,8 @@ private:
 
 	void CalcWorldLocations(Coords MapCoords, const LightMapIndex& lmindex);
 
+	void AddLightContribution(UActor* light);
+
 	int width = 0;
 	int height = 0;
 	Array<vec3> lightcolors;

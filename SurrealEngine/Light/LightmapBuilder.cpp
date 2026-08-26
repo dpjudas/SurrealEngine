@@ -10,6 +10,10 @@
 #include "Math/hsb.h"
 #include <cstring>
 
+#ifdef USE_SSE2
+#include <immintrin.h>
+#endif
+
 void LightmapBuilder::Setup(UModel* model, const Coords& mapCoords, int lightMap)
 {
 	const LightMapIndex& lmindex = model->LightMap[lightMap];
@@ -76,18 +80,7 @@ void LightmapBuilder::AddStaticLights(UModel* model, int lightMap)
 			{
 				Shadow.Load(model, lightMap, lightindex);
 				Effect.Run(light, width, height, WorldLocations(), base, WorldNormal(), Shadow.Pixels(), illuminationmap.data());
-
-				vec3 lightcolor = GetLightColor(light);
-				const float* src = illuminationmap.data();
-				vec3* dest = lightcolors.data();
-				for (size_t i = 0; i < count; i++)
-				{
-					vec3 color = src[i] * lightcolor;
-					color.r = std::min(color.r, 1.0f);
-					color.g = std::min(color.g, 1.0f);
-					color.b = std::min(color.b, 1.0f);
-					dest[i] += color;
-				}
+				AddLightContribution(light);
 			}
 		}
 	}
@@ -102,20 +95,73 @@ void LightmapBuilder::AddDynamicLights(UModel* model, int lightMap, const Array<
 		if (light->LightType() != LT_None && light->LightBrightness() > 0)
 		{
 			Effect.Run(light, width, height, WorldLocations(), base, WorldNormal(), Shadow.Pixels(), illuminationmap.data());
-
-			vec3 lightcolor = GetLightColor(light);
-			const float* src = illuminationmap.data();
-			vec3* dest = lightcolors.data();
-			for (size_t i = 0; i < count; i++)
-			{
-				vec3 color = src[i] * lightcolor;
-				color.r = std::min(color.r, 1.0f);
-				color.g = std::min(color.g, 1.0f);
-				color.b = std::min(color.b, 1.0f);
-				dest[i] += color;
-			}
+			AddLightContribution(light);
 		}
 	}
+}
+
+void LightmapBuilder::AddLightContribution(UActor* light)
+{
+#if 1
+	vec3 lightcolor = GetLightColor(light);
+	float lightcolorR = lightcolor.r;
+	float lightcolorG = lightcolor.g;
+	float lightcolorB = lightcolor.b;
+	const float* src = illuminationmap.data();
+	float* dest = (float*)lightcolors.data();
+	int size = width * height;
+
+#ifdef USE_SSE2
+	__m128 mmlightcolor0 = _mm_setr_ps(lightcolorR, lightcolorG, lightcolorB, lightcolorR);
+	__m128 mmlightcolor1 = _mm_setr_ps(lightcolorG, lightcolorB, lightcolorR, lightcolorG);
+	__m128 mmlightcolor2 = _mm_setr_ps(lightcolorB, lightcolorR, lightcolorG, lightcolorB);
+	int sse_size = size / 4 * 4;
+	for (size_t i = 0; i < sse_size; i += 4)
+	{
+		// To do: memory align buffers
+		__m128 s = _mm_loadu_ps(src);
+		__m128 s0 = _mm_shuffle_ps(s, s, _MM_SHUFFLE(1, 0, 0, 0));
+		__m128 s1 = _mm_shuffle_ps(s, s, _MM_SHUFFLE(2, 2, 1, 1));
+		__m128 s2 = _mm_shuffle_ps(s, s, _MM_SHUFFLE(3, 3, 3, 2));
+		__m128 one = _mm_set_ps1(1.0f);
+		_mm_storeu_ps(dest, _mm_min_ps(_mm_add_ps(_mm_loadu_ps(dest), _mm_mul_ps(s0, mmlightcolor0)), one));
+		_mm_storeu_ps(dest + 4, _mm_min_ps(_mm_add_ps(_mm_loadu_ps(dest + 4), _mm_mul_ps(s1, mmlightcolor1)), one));
+		_mm_storeu_ps(dest + 8, _mm_min_ps(_mm_add_ps(_mm_loadu_ps(dest + 8), _mm_mul_ps(s2, mmlightcolor2)), one));
+		src += 4;
+		dest += 3 * 4;
+	}
+#else
+	int sse_size = 0;
+#endif
+	for (size_t i = sse_size; i < size; i++)
+	{
+		float s = *src;
+		float r = s * lightcolorR;
+		float g = s * lightcolorG;
+		float b = s * lightcolorB;
+		r = r <= 1.0f ? r : 1.0f;
+		g = g <= 1.0f ? g : 1.0f;
+		b = b <= 1.0f ? b : 1.0f;
+		dest[0] += r;
+		dest[1] += g;
+		dest[2] += b;
+		src++;
+		dest += 3;
+	}
+#else
+	size_t count = (size_t)width * height;
+	vec3 lightcolor = GetLightColor(light);
+	const float* src = illuminationmap.data();
+	vec3* dest = lightcolors.data();
+	for (size_t i = 0; i < count; i++)
+	{
+		vec3 color = src[i] * lightcolor;
+		color.r = std::min(color.r, 1.0f);
+		color.g = std::min(color.g, 1.0f);
+		color.b = std::min(color.b, 1.0f);
+		dest[i] += color;
+	}
+#endif
 }
 
 vec3 LightmapBuilder::GetLightColor(UActor* light)

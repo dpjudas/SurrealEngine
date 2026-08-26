@@ -29,6 +29,7 @@
 #define BSWAP64(i) i
 
 #if (defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))) || ((defined(__i386__) || defined(__x86_64__) || defined(__e2k__)) && defined(__SSE2__))
+#define USE_SSE2
 #else
 #define NOSSE
 #endif

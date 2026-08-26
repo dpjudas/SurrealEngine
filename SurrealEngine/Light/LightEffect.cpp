@@ -6,6 +6,10 @@
 #include "Packages/Engine/Actors/Info/ULevelInfo.h"
 #include "Math/coords.h"
 
+#ifdef USE_SSE2
+#include <immintrin.h>
+#endif
+
 LightEffect::EffectFunc LightEffect::Effects[LE_Unused + 1] =
 {
 	&LightEffect::NoneEffect, // LE_None
@@ -32,6 +36,9 @@ LightEffect::EffectFunc LightEffect::Effects[LE_Unused + 1] =
 
 void LightEffect::Run(UActor* light, int width, int height, const vec3* locations, vec3 base, vec3 N, const float* shadowmap, float* result)
 {
+	if (!TablesInitialized)
+		InitTables();
+
 	LightEffectArgs args;
 	args.light = light;
 	args.size = width * height;
@@ -51,16 +58,117 @@ void LightEffect::Run(UActor* light, int width, int height, const vec3* location
 		NoneEffect(&args);
 }
 
-static float LightDistanceFalloff(float distsqr)
-{
-	float v = std::sqrt(distsqr + 0.0001f);
-	float v2 = v * v;
-	float v3 = v2 * v;
-	return std::min((1.0f + 2.0f * v3 - 3.0f * v2) / v, 1.0f);
-}
-
 void LightEffect::NoneEffect(LightEffectArgs* args)
 {
+#if 1
+	const int size = args->size;
+	const float lightLocationX = args->LightLocation.x;
+	const float lightLocationY = args->LightLocation.y;
+	const float lightLocationZ = args->LightLocation.z;
+	const float Nx = args->N.x;
+	const float Ny = args->N.y;
+	const float Nz = args->N.z;
+	const float invRadius = args->invRadius;
+	const float invRadiusSquared = args->invRadiusSquared;
+	const float* locations = (float*)args->locations; // vec3
+	const float* shadowmap = args->shadowmap;
+	float* result = args->result;
+
+#ifdef USE_SSE2
+	__m128 mmLightLocationX = _mm_set_ps1(lightLocationX);
+	__m128 mmLightLocationY = _mm_set_ps1(lightLocationY);
+	__m128 mmLightLocationZ = _mm_set_ps1(lightLocationZ);
+	__m128 mmInvRadius = _mm_set_ps1(invRadius);
+	__m128 mmInvRadiusSquared = _mm_set_ps1(invRadiusSquared);
+	__m128 mmNx = _mm_set_ps1(Nx);
+	__m128 mmNy = _mm_set_ps1(Ny);
+	__m128 mmNz = _mm_set_ps1(Nz);
+	int sse_size = size / 4 * 4;
+	for (int i = 0; i < sse_size; i += 4)
+	{
+		// To do: memory align buffers
+		//__m128 locationX = _mm_loadu_ps(locations);
+		//__m128 locationY = _mm_loadu_ps(locations + 4);
+		//__m128 locationZ = _mm_loadu_ps(locations + 8);
+		// To do: transpose this
+		__m128 locationX = _mm_setr_ps(locations[0], locations[3], locations[6], locations[9]);
+		__m128 locationY = _mm_setr_ps(locations[1], locations[4], locations[7], locations[10]);
+		__m128 locationZ = _mm_setr_ps(locations[2], locations[5], locations[8], locations[11]);
+		__m128 Lx = _mm_sub_ps(mmLightLocationX, locationX); // float Lx = lightLocationX - locations[0];
+		__m128 Ly = _mm_sub_ps(mmLightLocationY, locationY); // float Ly = lightLocationY - locations[1];
+		__m128 Lz = _mm_sub_ps(mmLightLocationZ, locationZ); // float Lz = lightLocationZ - locations[2];
+		__m128 lensqr = _mm_add_ps(_mm_add_ps(_mm_mul_ps(Lx, Lx), _mm_mul_ps(Ly, Ly)), _mm_mul_ps(Lz, Lz)); // float lensqr = Lx * Lx + Ly * Ly + Lz * Lz;
+		__m128 unitdistsqr = _mm_mul_ps(lensqr, mmInvRadiusSquared); // float unitdistsqr = lensqr * invRadiusSquared;
+		__m128 cmpdistmask = _mm_cmplt_ps(unitdistsqr, _mm_set_ps1(1.0f)); // if (unitdistsqr < 1.0f)
+		if (_mm_movemask_ps(cmpdistmask) != 0)
+		{
+			__m128 len = _mm_sqrt_ps(lensqr); // float len = std::sqrt(lensqr);
+			__m128 rcpdist = _mm_rcp_ps(len); // float rcpdist = 1.0f / len;
+			Lx = _mm_mul_ps(Lx, rcpdist); // Lx *= rcpdist;
+			Ly = _mm_mul_ps(Ly, rcpdist); // Ly *= rcpdist;
+			Lz = _mm_mul_ps(Lz, rcpdist); // Lz *= rcpdist;
+			__m128 angleAttenuation = _mm_add_ps(_mm_add_ps(_mm_mul_ps(Lx, mmNx), _mm_mul_ps(Ly, mmNy)), _mm_mul_ps(Lz, mmNz)); // float angleAttenuation = Lx * Nx + Ly * Ny + Lz * Nz;
+			__m128 cmpmask = _mm_cmpge_ps(angleAttenuation, _mm_setzero_ps());
+			angleAttenuation = _mm_or_ps(_mm_and_ps(cmpmask, angleAttenuation), _mm_andnot_ps(cmpmask, _mm_sub_ps(_mm_setzero_ps(), angleAttenuation))); // angleAttenuation = angleAttenuation >= 0.0f ? angleAttenuation : -angleAttenuation;
+
+			//float distanceAttenuation = LightDistanceFalloff(unitdistsqr);
+			__m128 v = _mm_mul_ps(len, mmInvRadius); // float v = len * invRadius;
+			__m128 v2 = _mm_mul_ps(v, v); // float v2 = v * v;
+			__m128 v3 = _mm_mul_ps(v2, v); // float v3 = v2 * v;
+			__m128 distanceAttenuation = _mm_div_ps(_mm_sub_ps(_mm_add_ps(_mm_set_ps1(1.0f), _mm_mul_ps(_mm_set_ps1(2.0f), v3)), _mm_mul_ps(_mm_set_ps1(3.0f), v2)), v); // float distanceAttenuation = (1.0f + 2.0f * v3 - 3.0f * v2) / v;
+			distanceAttenuation = _mm_min_ps(distanceAttenuation, _mm_set_ps1(1.0f)); // distanceAttenuation = std::min(distanceAttenuation, 1.0f);
+
+			__m128 value = _mm_mul_ps(_mm_loadu_ps(shadowmap), _mm_mul_ps(distanceAttenuation, angleAttenuation));
+			value = _mm_or_ps(_mm_and_ps(cmpdistmask, value), _mm_andnot_ps(cmpdistmask, _mm_setzero_ps()));
+			_mm_storeu_ps(result, value);
+		}
+		else
+		{
+			_mm_storeu_ps(result, _mm_setzero_ps());
+		}
+		locations += 3 * 4;
+		shadowmap += 4;
+		result += 4;
+	}
+#else
+	int sse_size = 0;
+#endif
+
+	for (int i = sse_size; i < size; i++)
+	{
+		float Lx = lightLocationX - locations[0];
+		float Ly = lightLocationY - locations[1];
+		float Lz = lightLocationZ - locations[2];
+		float lensqr = Lx * Lx + Ly * Ly + Lz * Lz;
+		float unitdistsqr = lensqr * invRadiusSquared;
+		if (unitdistsqr < 1.0f)
+		{
+			float len = std::sqrt(lensqr);
+			float rcpdist = 1.0f / len;
+			Lx *= rcpdist;
+			Ly *= rcpdist;
+			Lz *= rcpdist;
+			float angleAttenuation = Lx * Nx + Ly * Ny + Lz * Nz;
+			angleAttenuation = angleAttenuation >= 0.0f ? angleAttenuation : -angleAttenuation;
+
+			//float distanceAttenuation = LightDistanceFalloff(unitdistsqr);
+			float v = len * invRadius;
+			float v2 = v * v;
+			float v3 = v2 * v;
+			float distanceAttenuation = (1.0f + 2.0f * v3 - 3.0f * v2) / v;
+			distanceAttenuation = distanceAttenuation <= 1.0f ? distanceAttenuation : 1.0f;
+
+			*result = (*shadowmap) * distanceAttenuation * angleAttenuation;
+		}
+		else
+		{
+			*result = 0.0f;
+		}
+		locations += 3;
+		shadowmap++;
+		result++;
+	}
+#else
 	const int size = args->size;
 	const vec3 lightLocation = args->LightLocation;
 	const vec3 N = args->N;
@@ -83,6 +191,7 @@ void LightEffect::NoneEffect(LightEffectArgs* args)
 			result[i] = 0.0f;
 		}
 	}
+#endif
 }
 
 void LightEffect::NonIncidenceEffect(LightEffectArgs* args)
@@ -129,7 +238,7 @@ void LightEffect::SlowWaveEffect(LightEffectArgs* args)
 	for (int i = 0; i < size; i++)
 	{
 		vec3 L = lightLocation - locations[i];
-		float waveAttenuation = 0.6f + 0.4f * std::sin(length(L) * 0.04f + timeOffset);
+		float waveAttenuation = 0.6f + 0.4f * Sin(length(L) * 0.04f + timeOffset);
 		float angleAttenuation = std::abs(dot(normalize(L), N));
 		float distsqr = dot(L, L) * invRadiusSquared;
 		if (distsqr < 1.0f)
@@ -157,7 +266,7 @@ void LightEffect::FastWaveEffect(LightEffectArgs* args)
 	for (int i = 0; i < size; i++)
 	{
 		vec3 L = lightLocation - locations[i];
-		float waveAttenuation = 0.6f + 0.4f * std::sin(length(L) * 0.04f + timeOffset);
+		float waveAttenuation = 0.6f + 0.4f * Sin(length(L) * 0.04f + timeOffset);
 		float angleAttenuation = std::abs(dot(normalize(L), N));
 		float distsqr = dot(L, L) * invRadiusSquared;
 		if (distsqr < 1.0f)
@@ -247,7 +356,7 @@ void LightEffect::SearchlightEffect(LightEffectArgs* args)
 	float spotAngle = turns * (2.0f * 3.14159265359f);
 	float lightCone = 0.5f;
 
-	vec3 spotDir(std::sin(spotAngle), std::cos(spotAngle), 0.0f);
+	vec3 spotDir(Sin(spotAngle), Cos(spotAngle), 0.0f);
 	float lightCosOuterAngle = 1.0f - lightCone * (1.0f / 255.0f);
 	float lightCosInnerAngle = 1.0f;
 	for (int i = 0; i < size; i++)
@@ -282,3 +391,57 @@ void LightEffect::OmniBumpMapEffect(LightEffectArgs* args)
 		result[i] = 0.0f;
 	}
 }
+
+void LightEffect::InitTables()
+{
+	for (int i = 0; i < SinTableSize; i++)
+	{
+		SinTable[i] = (float)std::sin(i * ((2.0 * 3.14159265359) / (float)SinTableSize));
+		CosTable[i] = (float)std::cos(i * ((2.0 * 3.14159265359) / (float)SinTableSize));
+	}
+
+	for (int i = 0; i < FalloffTableSize; i++)
+	{
+		float v = std::sqrt(i + 0.0001f);
+		float v2 = v * v;
+		float v3 = v2 * v;
+		float falloff = std::min((1.0f + 2.0f * v3 - 3.0f * v2) / v, 1.0f);
+		FalloffTable[i] = CalcLightDistanceFalloff(i / (float)FalloffTableSize);
+	}
+
+	TablesInitialized = true;
+}
+
+float LightEffect::Sin(float v)
+{
+	int x = (int)(v * ((SinTableSize >> 1) / 3.14159265359f));
+	x &= SinTableSize - 1;
+	return SinTable[x];
+}
+
+float LightEffect::Cos(float v)
+{
+	int x = (int)(v * ((SinTableSize >> 1) / 3.14159265359f));
+	x &= SinTableSize - 1;
+	return CosTable[x];
+}
+
+float LightEffect::CalcLightDistanceFalloff(float distsqr)
+{
+	float v = std::sqrt(distsqr + 0.0001f);
+	float v2 = v * v;
+	float v3 = v2 * v;
+	return std::min((1.0f + 2.0f * v3 - 3.0f * v2) / v, 1.0f);
+}
+
+float LightEffect::LightDistanceFalloff(float distsqr)
+{
+	int x = (int)(distsqr * ((float)FalloffTableSize - 1.0f));
+	x &= FalloffTableSize - 1;
+	return FalloffTable[x];
+}
+
+bool LightEffect::TablesInitialized;
+float LightEffect::SinTable[SinTableSize];
+float LightEffect::CosTable[SinTableSize];
+float LightEffect::FalloffTable[FalloffTableSize];
