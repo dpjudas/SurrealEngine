@@ -9,6 +9,9 @@
 #ifdef USE_SSE2
 #include <immintrin.h>
 #endif
+#ifdef USE_NEON
+#include <arm_neon.h>
+#endif
 
 LightEffect::EffectFunc LightEffect::Effects[LE_Unused + 1] =
 {

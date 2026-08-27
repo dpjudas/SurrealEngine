@@ -7,6 +7,10 @@
 #include <unordered_map>
 #include <list>
 
+#ifdef USE_SSE2
+#include <immintrin.h>
+#endif
+
 class ULevel;
 class UActor;
 class CollisionHitList;
