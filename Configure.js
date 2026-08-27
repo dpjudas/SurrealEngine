@@ -899,6 +899,8 @@ var thirdPartySources = [
 	"Thirdparty/miniz/miniz.h",
 	"Thirdparty/kissfft/kiss_fft.c",
 	"Thirdparty/kissfft/kiss_fft.h",
+	"Thirdparty/kissfft/kiss_fftr.c",
+	"Thirdparty/kissfft/kiss_fftr.h",
 ];
 
 var commonLibs = [
