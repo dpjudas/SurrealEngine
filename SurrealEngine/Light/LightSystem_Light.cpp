@@ -262,54 +262,49 @@ static float LightDistanceFalloff(float distsqr)
 	return std::min((1.0f + 2.0f * v3 - 3.0f * v2) / v, 1.0f);
 }
 
-vec3 LightSystem::GetVertexLight(UActor* actor, const vec3& location, const vec3& normal, bool unlit, bool twosided, UZoneInfo* zoneActor)
+void LightSystem::InitVertexLight(VertexLight& out, UActor* actor, UZoneInfo* zoneActor)
 {
 	// AmbientGlow value 255 is a special pulsating effect used for powerups
 	float ambientGlow = actor->AmbientGlow() == 255 ? AmbientGlowAmount : actor->AmbientGlow() * (1.0f / 255.0f);
-	vec3 ambientColor = ambientGlow + hsbtorgb(zoneActor->AmbientHue(), zoneActor->AmbientSaturation(), zoneActor->AmbientBrightness());
+	out.AmbientColor = ambientGlow + hsbtorgb(zoneActor->AmbientHue(), zoneActor->AmbientSaturation(), zoneActor->AmbientBrightness());
+	out.ScaleGlow = actor->ScaleGlow() * 1.5f;
 
-	vec3 dynamicLight(0.0f);
-	if (!unlit)
+	int lightIndex = 0;
+	for (UActor* light : actor->TouchingLights.List)
 	{
-		for (UActor* light : actor->TouchingLights.List)
+		out.Lights[lightIndex].Location = light->Location();
+		out.Lights[lightIndex].Color = LightmapBuilder::GetLightColor(light);
+		float invRadius = 1.0f / light->WorldLightRadius();
+		out.Lights[lightIndex].InvRadiusSquared = invRadius * invRadius;
+		lightIndex++;
+		if (lightIndex == VertexLight::MaxLights)
+			break;
+	}
+	out.NumLights = lightIndex;
+
+	out.CameraLocation = engine->CameraLocation;
+
+	int fogIndex = 0;
+	for (UActor* light : FogBalls)
+	{
+		if (light->FogInfo.brightness < 0.0f)
 		{
-			vec3 lightLocation = light->Location();
-			vec3 L = lightLocation - location;
-
-			// Distance falloff
-
-			float invRadius = 1.0f / light->WorldLightRadius();
-			float invRadiusSquared = invRadius * invRadius;
-
-			float distsqr = dot(L, L) * invRadiusSquared;
-			if (distsqr < 1.0f)
-			//float attenuation = std::max(1.0f - length(L) / light->WorldLightRadius(), 0.0f);
-			//if (attenuation > 0.0f)
-			{
-				float attenuation = LightDistanceFalloff(distsqr);
-
-				// Diffuse light contribution
-				float d = dot(normalize(L), normal);
-				attenuation *= twosided ? std::abs(d) : std::max(d, 0.0f);
-				if (attenuation > 0.0f)
-				{
-					vec3 lightcolor = LightmapBuilder::GetLightColor(light);
-					dynamicLight += lightcolor * attenuation;
-				}
-			}
+			light->FogInfo.fogcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
+			light->FogInfo.brightness = light->LightBrightness() * (1.0f / 255.0f) * light->VolumeBrightness() * (1.0f / 64.0f);
+			light->FogInfo.fog = light->VolumeFog() * (1.0f / 255.0f);
+			light->FogInfo.radius = light->WorldVolumetricRadius();
+			light->FogInfo.location = light->Location();
 		}
 
-		dynamicLight *= actor->ScaleGlow() * 1.5f;
-	}
-	else
-	{
-		dynamicLight = vec3(0.5f);
-	}
+		out.FogBalls[fogIndex].fogcolor = light->FogInfo.fogcolor;
+		out.FogBalls[fogIndex].brightness = light->FogInfo.brightness * 5.0f;
+		out.FogBalls[fogIndex].fog = light->FogInfo.fog;
+		out.FogBalls[fogIndex].radius = light->FogInfo.radius;
+		out.FogBalls[fogIndex].lightpos = light->FogInfo.location;
 
-	// Clamp final result and make it all brighter to match lightmaps
-	vec3 color = (ambientColor + dynamicLight) * 3.0f;
-	color.r = std::min(color.r, 1.0f);
-	color.g = std::min(color.g, 1.0f);
-	color.b = std::min(color.b, 1.0f);
-	return color;
+		fogIndex++;
+		if (fogIndex == VertexLight::MaxFogBalls)
+			break;
+	}
+	out.NumFogBalls = fogIndex;
 }
