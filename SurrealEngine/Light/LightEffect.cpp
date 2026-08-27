@@ -129,6 +129,61 @@ void LightEffect::NoneEffect(LightEffectArgs* args)
 		shadowmap += 4;
 		result += 4;
 	}
+#elif defined(USE_NEON)
+	float32x4_t vLx0 = vdupq_n_f32(lightLocationX);
+	float32x4_t vLy0 = vdupq_n_f32(lightLocationY);
+	float32x4_t vLz0 = vdupq_n_f32(lightLocationZ);
+	float32x4_t vNx = vdupq_n_f32(Nx);
+	float32x4_t vNy = vdupq_n_f32(Ny);
+	float32x4_t vNz = vdupq_n_f32(Nz);
+	float32x4_t vInvR = vdupq_n_f32(invRadius);
+	float32x4_t vInvR2 = vdupq_n_f32(invRadiusSquared);
+	float32x4_t one = vdupq_n_f32(1.0f);
+	float32x4_t two = vdupq_n_f32(2.0f);
+	float32x4_t three = vdupq_n_f32(3.0f);
+
+	int sse_size = size / 4 * 4;
+	for (int i = 0; i < sse_size; i += 4)
+	{
+		float32x4x3_t P = vld3q_f32(locations);
+		float32x4_t Lx = vsubq_f32(vLx0, P.val[0]);
+		float32x4_t Ly = vsubq_f32(vLy0, P.val[1]);
+		float32x4_t Lz = vsubq_f32(vLz0, P.val[2]);
+
+		float32x4_t lensqr = vfmaq_f32(vfmaq_f32(vmulq_f32(Lx, Lx), Ly, Ly), Lz, Lz);
+		uint32x4_t inRange = vcltq_f32(vmulq_f32(lensqr, vInvR2), one);
+
+		if (vmaxvq_u32(inRange))
+		{
+			float32x4_t len = vsqrtq_f32(lensqr);
+			float32x4_t rcpdist = vdivq_f32(one, len);
+
+			Lx = vmulq_f32(Lx, rcpdist);
+			Ly = vmulq_f32(Ly, rcpdist);
+			Lz = vmulq_f32(Lz, rcpdist);
+
+			float32x4_t angle = vfmaq_f32(vfmaq_f32(vmulq_f32(Lx, vNx), Ly, vNy), Lz, vNz);
+			angle = vabsq_f32(angle);
+
+			float32x4_t v = vmulq_f32(len, vInvR);
+			float32x4_t v2 = vmulq_f32(v, v);
+			float32x4_t v3 = vmulq_f32(v2, v);
+			float32x4_t num = vsubq_f32(vfmaq_f32(one, two, v3), vmulq_f32(three, v2));
+			float32x4_t dist = vminq_f32(vdivq_f32(num, v), one);
+
+			float32x4_t value = vmulq_f32(vld1q_f32(shadowmap), vmulq_f32(dist, angle));
+			value = vreinterpretq_f32_u32(vandq_u32(vreinterpretq_u32_f32(value), inRange));
+			vst1q_f32(result, value);
+		}
+		else
+		{
+			vst1q_f32(result, vdupq_n_f32(0.0f));
+		}
+
+		locations += 3 * 4;
+		shadowmap += 4;
+		result += 4;
+	}
 #else
 	int sse_size = 0;
 #endif

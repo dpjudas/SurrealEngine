@@ -33,3 +33,9 @@
 #else
 #define NOSSE
 #endif
+
+#if defined(__ARM_NEON) || defined(_M_ARM64)
+#define USE_NEON
+#else
+#define NONEON
+#endif
