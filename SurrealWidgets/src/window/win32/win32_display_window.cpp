@@ -246,22 +246,22 @@ void Win32DisplayWindow::SetWindowIcon(const std::vector<std::shared_ptr<Image>>
 	SendMessage(WindowHandle.hwnd, WM_SETICON, ICON_BIG, (LPARAM)LargeIcon);
 }
 
-void Win32DisplayWindow::SetBorderColor(uint32_t bgra8)
+void Win32DisplayWindow::SetBorderColor(uint32_t rgba8)
 {
-	bgra8 = bgra8 & 0x00ffffff;
-	DwmSetWindowAttribute(WindowHandle.hwnd, 34/*DWMWA_BORDER_COLOR*/, &bgra8, sizeof(uint32_t));
+	rgba8 = rgba8 & 0x00ffffff;
+	DwmSetWindowAttribute(WindowHandle.hwnd, 34/*DWMWA_BORDER_COLOR*/, &rgba8, sizeof(uint32_t));
 }
 
-void Win32DisplayWindow::SetCaptionColor(uint32_t bgra8)
+void Win32DisplayWindow::SetCaptionColor(uint32_t rgba8)
 {
-	bgra8 = bgra8 & 0x00ffffff;
-	DwmSetWindowAttribute(WindowHandle.hwnd, 35/*DWMWA_CAPTION_COLOR*/, &bgra8, sizeof(uint32_t));
+	rgba8 = rgba8 & 0x00ffffff;
+	DwmSetWindowAttribute(WindowHandle.hwnd, 35/*DWMWA_CAPTION_COLOR*/, &rgba8, sizeof(uint32_t));
 }
 
-void Win32DisplayWindow::SetCaptionTextColor(uint32_t bgra8)
+void Win32DisplayWindow::SetCaptionTextColor(uint32_t rgba8)
 {
-	bgra8 = bgra8 & 0x00ffffff;
-	DwmSetWindowAttribute(WindowHandle.hwnd, 36/*DWMWA_TEXT_COLOR*/, &bgra8, sizeof(uint32_t));
+	rgba8 = rgba8 & 0x00ffffff;
+	DwmSetWindowAttribute(WindowHandle.hwnd, 36/*DWMWA_TEXT_COLOR*/, &rgba8, sizeof(uint32_t));
 }
 
 void Win32DisplayWindow::SetClientFrame(const Rect& box)

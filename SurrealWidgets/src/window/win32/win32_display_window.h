@@ -47,9 +47,9 @@ public:
 
 	void PresentBitmap(int width, int height, const uint32_t* pixels) override;
 
-	void SetBorderColor(uint32_t bgra8) override;
-	void SetCaptionColor(uint32_t bgra8) override;
-	void SetCaptionTextColor(uint32_t bgra8) override;
+	void SetBorderColor(uint32_t rgba8) override;
+	void SetCaptionColor(uint32_t rgba8) override;
+	void SetCaptionTextColor(uint32_t rgba8) override;
 
 	std::string GetClipboardText() override;
 	void SetClipboardText(const std::string& text) override;

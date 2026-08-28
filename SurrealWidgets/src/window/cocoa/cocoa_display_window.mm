@@ -1203,9 +1203,9 @@ Point CocoaDisplayWindow::MapToGlobal(const Point& pos) const
     return {};
 }
 
-void CocoaDisplayWindow::SetBorderColor(uint32_t bgra8) {}
-void CocoaDisplayWindow::SetCaptionColor(uint32_t bgra8) {}
-void CocoaDisplayWindow::SetCaptionTextColor(uint32_t bgra8) {}
+void CocoaDisplayWindow::SetBorderColor(uint32_t rgba8) {}
+void CocoaDisplayWindow::SetCaptionColor(uint32_t rgba8) {}
+void CocoaDisplayWindow::SetCaptionTextColor(uint32_t rgba8) {}
 
 void CocoaDisplayWindow::PresentBitmap(int width, int height, const uint32_t* pixels)
 {

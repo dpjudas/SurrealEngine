@@ -352,17 +352,17 @@ void SDL3DisplayWindow::PresentBitmap(int width, int height, const uint32_t* pix
 	SDL_RenderPresent(RendererHandle);
 }
 
-void SDL3DisplayWindow::SetBorderColor(uint32_t bgra8)
+void SDL3DisplayWindow::SetBorderColor(uint32_t rgba8)
 {
 	// SDL doesn't have this
 }
 
-void SDL3DisplayWindow::SetCaptionColor(uint32_t bgra8)
+void SDL3DisplayWindow::SetCaptionColor(uint32_t rgba8)
 {
 	// SDL doesn't have this
 }
 
-void SDL3DisplayWindow::SetCaptionTextColor(uint32_t bgra8)
+void SDL3DisplayWindow::SetCaptionTextColor(uint32_t rgba8)
 {
 	// SDL doesn't have this
 }

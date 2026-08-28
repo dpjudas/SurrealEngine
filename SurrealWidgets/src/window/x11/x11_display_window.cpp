@@ -527,15 +527,15 @@ void X11DisplayWindow::PresentBitmap(int width, int height, const uint32_t* pixe
 	}
 }
 
-void X11DisplayWindow::SetBorderColor(uint32_t bgra8)
+void X11DisplayWindow::SetBorderColor(uint32_t rgba8)
 {
 }
 
-void X11DisplayWindow::SetCaptionColor(uint32_t bgra8)
+void X11DisplayWindow::SetCaptionColor(uint32_t rgba8)
 {
 }
 
-void X11DisplayWindow::SetCaptionTextColor(uint32_t bgra8)
+void X11DisplayWindow::SetCaptionTextColor(uint32_t rgba8)
 {
 }
 

@@ -370,7 +370,7 @@ void Widget::SetWindowBorderColor(const Colorf& color)
 	Widget* w = Window();
 	if (w)
 	{
-		w->DispWindow->SetBorderColor(color.toBgra8());
+		w->DispWindow->SetBorderColor(color.toRgba8());
 		w->DispWindow->Update();
 	}
 }
@@ -380,7 +380,7 @@ void Widget::SetWindowCaptionColor(const Colorf& color)
 	Widget* w = Window();
 	if (w)
 	{
-		w->DispWindow->SetCaptionColor(color.toBgra8());
+		w->DispWindow->SetCaptionColor(color.toRgba8());
 		w->DispWindow->Update();
 	}
 }
@@ -390,7 +390,7 @@ void Widget::SetWindowCaptionTextColor(const Colorf& color)
 	Widget* w = Window();
 	if (w)
 	{
-		w->DispWindow->SetCaptionTextColor(color.toBgra8());
+		w->DispWindow->SetCaptionTextColor(color.toRgba8());
 		w->DispWindow->Update();
 	}
 }
