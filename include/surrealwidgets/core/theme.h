@@ -94,3 +94,9 @@ class LightWidgetTheme : public StylesheetTheme
 public:
 	LightWidgetTheme();
 };
+
+class DustWidgetTheme : public StylesheetTheme
+{
+public:
+	DustWidgetTheme();
+};

@@ -4,7 +4,7 @@
 TreeView::TreeView(Widget* parent) : Widget(parent)
 {
     SetStretching(true);
-    SetStyleClass("listview");
+    SetStyleClass("treeview");
 
     m_Scrollbar = new Scrollbar(this);
     m_Scrollbar->FuncScroll = [this]() { OnScrollbarScroll(); };
@@ -316,7 +316,7 @@ void TreeView::RebuildVisibleNodes()
 
 TreeViewBody::TreeViewBody(TreeView* parent) : Widget(parent), m_TreeView(parent)
 {
-	SetStyleClass("listview-body");
+	SetStyleClass("treeview-body");
 }
 
 double TreeViewBody::GetItemHeight()
@@ -336,7 +336,8 @@ void TreeViewBody::OnPaint(Canvas* canvas)
 	double itemHeight = GetItemHeight();
 
 	Colorf textColor = GetStyleColor("color");
-	Colorf selectionColor = GetStyleColor("selection-color");
+    Colorf selectionBackground = GetStyleColor("selection-background");
+    Colorf selectionColor = GetStyleColor("selection-color");
 	auto font = GetFont();
 
 	double y = -m_TreeView->m_Scrollbar->GetPosition();
@@ -351,9 +352,10 @@ void TreeViewBody::OnPaint(Canvas* canvas)
 	    bool childrenVisible = item->GetChildrenVisible();
 		if (itemY + itemHeight >= 0.0 && itemY < GetHeight())
 		{
-			if (itemIndex == m_TreeView->m_SelectedItem)
+            bool selected = itemIndex == m_TreeView->m_SelectedItem;
+			if (selected)
 			{
-				canvas->fillRect(Rect::xywh(x - 2.0, itemY, w, itemHeight), selectionColor);
+				canvas->fillRect(Rect::xywh(x - 2.0, itemY, w, itemHeight), selectionBackground);
 			}
 			double cx = x;
 			int colCount = (int)std::min(item->m_Columns.size(), m_TreeView->m_Header->GetColumnCount());
@@ -366,11 +368,11 @@ void TreeViewBody::OnPaint(Canvas* canvas)
 			    if (colIndex == 0)
 			    {
 			        if (hasChildren)
-			            canvas->drawText(font, Point(cx, y + 15.0), childrenVisible ? "-" : "+", textColor);
-			        canvas->drawText(font, Point(cx + notchPadding + leftPadding, y + 15.0), item->m_Columns[colIndex], textColor);
+			            canvas->drawText(font, Point(cx, y + 15.0), childrenVisible ? "-" : "+", selected ? selectionColor : textColor);
+			        canvas->drawText(font, Point(cx + notchPadding + leftPadding, y + 15.0), item->m_Columns[colIndex], selected ? selectionColor : textColor);
 			    }
 			    else
-				    canvas->drawText(font, Point(cx, y + 15.0), item->m_Columns[colIndex], textColor);
+				    canvas->drawText(font, Point(cx, y + 15.0), item->m_Columns[colIndex], selected ? selectionColor : textColor);
 				canvas->popClip();
 				cx += colwidth;
 			}
@@ -428,7 +430,7 @@ bool TreeViewBody::OnMouseWheel(const Point& pos, InputKey key)
 
 TreeViewHeader::TreeViewHeader(TreeView* parent) : Widget(parent)
 {
-    SetStyleClass("listview-header");
+    SetStyleClass("treeview-header");
     Clear();
 }
 

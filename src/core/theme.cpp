@@ -205,13 +205,19 @@ WidgetTheme* WidgetTheme::GetTheme()
 
 /////////////////////////////////////////////////////////////////////////////
 
-DarkWidgetTheme::DarkWidgetTheme() : StylesheetTheme(theme_default_stylesheet, "dark")
+DarkWidgetTheme::DarkWidgetTheme() : StylesheetTheme(theme_default_stylesheet, "dust")
 {
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
 LightWidgetTheme::LightWidgetTheme() : StylesheetTheme(theme_default_stylesheet, "light")
+{
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+DustWidgetTheme::DustWidgetTheme() : StylesheetTheme(theme_default_stylesheet, "dust")
 {
 }
 

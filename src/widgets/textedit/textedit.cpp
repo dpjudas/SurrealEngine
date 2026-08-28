@@ -13,8 +13,8 @@ TextEdit::TextEdit(Widget* parent) : Widget(parent)
 {
 	SetStyleClass("textedit");
 
-	selectionBG = GetStyleColor("selection-color");
-	selectionFG = GetStyleColor("color");
+	selectionBG = GetStyleColor("selection-background");
+	selectionFG = GetStyleColor("selection-color");
 
 	timer = new Timer(this);
 	timer->FuncExpired = [this]() { OnTimerExpired(); };

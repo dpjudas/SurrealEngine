@@ -311,6 +311,7 @@ int example(Backend backend, Theme theme)
 		case Theme::Default: WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>()); break;
 		case Theme::Dark:    WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>()); break;
 		case Theme::Light:   WidgetTheme::SetTheme(std::make_unique<LightWidgetTheme>()); break;
+		case Theme::Dust:    WidgetTheme::SetTheme(std::make_unique<DustWidgetTheme>()); break;
 	}
 
 	// just for testing backends

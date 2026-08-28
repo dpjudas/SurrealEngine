@@ -31,6 +31,7 @@ int main(int argc, const char** argv)
 
 		if (s == "light") { theme = Theme::Light; continue; }
 		if (s == "dark") { theme = Theme::Dark;  continue; }
+		if (s == "dust") { theme = Theme::Dust;  continue; }
 
 		if (s == "sdl2") { backend = Backend::SDL2;    continue; }
 		if (s == "x11") { backend = Backend::X11;     continue; }
