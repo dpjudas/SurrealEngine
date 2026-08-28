@@ -87,7 +87,7 @@ enum class Backend
 
 enum class Theme
 {
-	Default, Light, Dark
+	Default, Light, Dark, Dust
 };
 
 class ExampleResourceLoader : public ResourceLoader

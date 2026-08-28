@@ -1098,7 +1098,7 @@ void LineEdit::OnPaint(Canvas* canvas)
 	{
 		// Draw selection box.
 		Rect selection_rect = GetSelectionRect();
-		canvas->fillRect(selection_rect, HasFocus() ? GetStyleColor("selection-color") : GetStyleColor("no-focus-selection-color"));
+		canvas->fillRect(selection_rect, HasFocus() ? GetStyleColor("selection-background") : GetStyleColor("selection-background-nofocus"));
 	}
 
 	// Draw text before selection
@@ -1108,7 +1108,7 @@ void LineEdit::OnPaint(Canvas* canvas)
 	}
 	if (!txt_selected.empty())
 	{
-		canvas->drawText(GetFont(), Point(size_before.width, canvas->verticalTextAlign(GetFont()).baseline), txt_selected, GetStyleColor("color"));
+		canvas->drawText(GetFont(), Point(size_before.width, canvas->verticalTextAlign(GetFont()).baseline), txt_selected, HasFocus() ? GetStyleColor("selection-color") : GetStyleColor("selection-color-nofocus"));
 	}
 	if (!txt_after.empty())
 	{

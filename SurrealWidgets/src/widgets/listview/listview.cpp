@@ -311,6 +311,7 @@ void ListViewBody::OnPaint(Canvas* canvas)
 
 	Colorf textColor = GetStyleColor("color");
 	Colorf selectionColor = GetStyleColor("selection-color");
+	Colorf selectionBackground = GetStyleColor("selection-background");
 	auto font = GetFont();
 
 	double y = -listview->scrollbar->GetPosition();
@@ -321,9 +322,10 @@ void ListViewBody::OnPaint(Canvas* canvas)
 		double itemY = y;
 		if (itemY + itemHeight >= 0.0 && itemY < GetHeight())
 		{
-			if (itemIndex == listview->selectedItem)
+			bool selected = itemIndex == listview->selectedItem;
+			if (selected)
 			{
-				canvas->fillRect(Rect::xywh(x - 2.0, itemY, w, itemHeight), selectionColor);
+				canvas->fillRect(Rect::xywh(x - 2.0, itemY, w, itemHeight), selectionBackground);
 			}
 			double cx = x;
 			int colCount = std::min((int)item->columns.size(), listview->header->GetColumnCount());
@@ -333,7 +335,7 @@ void ListViewBody::OnPaint(Canvas* canvas)
 				if (colIndex + 1 == listview->header->GetColumnCount())
 					colwidth = std::max(w - cx, 0.0);
 				canvas->pushClip(Rect::xywh(cx, itemY, std::max(colwidth - 5.0, 0.0), itemHeight));
-				canvas->drawText(font, Point(cx, y + 15.0), item->columns[colIndex], textColor);
+				canvas->drawText(font, Point(cx, y + 15.0), item->columns[colIndex], selected ? selectionColor : textColor);
 				canvas->popClip();
 				cx += colwidth;
 			}
