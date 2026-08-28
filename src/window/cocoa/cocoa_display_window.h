@@ -50,9 +50,9 @@ public:
     Point MapFromGlobal(const Point& pos) const override;
     Point MapToGlobal(const Point& pos) const override;
 
-    void SetBorderColor(uint32_t bgra8) override;
-    void SetCaptionColor(uint32_t bgra8) override;
-    void SetCaptionTextColor(uint32_t bgra8) override;
+    void SetBorderColor(uint32_t rgba8) override;
+    void SetCaptionColor(uint32_t rgba8) override;
+    void SetCaptionTextColor(uint32_t rgba8) override;
 
     void PresentBitmap(int width, int height, const uint32_t* pixels) override;
 

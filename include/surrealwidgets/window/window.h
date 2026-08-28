@@ -358,9 +358,9 @@ public:
 	virtual Point MapFromGlobal(const Point& pos) const = 0;
 	virtual Point MapToGlobal(const Point& pos) const = 0;
 
-	virtual void SetBorderColor(uint32_t bgra8) = 0;
-	virtual void SetCaptionColor(uint32_t bgra8) = 0;
-	virtual void SetCaptionTextColor(uint32_t bgra8) = 0;
+	virtual void SetBorderColor(uint32_t rgba8) = 0;
+	virtual void SetCaptionColor(uint32_t rgba8) = 0;
+	virtual void SetCaptionTextColor(uint32_t rgba8) = 0;
 
 	virtual void PresentBitmap(int width, int height, const uint32_t* pixels) = 0;
 

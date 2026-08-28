@@ -343,17 +343,17 @@ void WaylandDisplayWindow::PresentBitmap(int width, int height, const uint32_t* 
 	std::memcpy(shared_mem->get_mem(), (void*)pixels, width * height * 4);
 }
 
-void WaylandDisplayWindow::SetBorderColor(uint32_t bgra8)
+void WaylandDisplayWindow::SetBorderColor(uint32_t rgba8)
 {
 
 }
 
-void WaylandDisplayWindow::SetCaptionColor(uint32_t bgra8)
+void WaylandDisplayWindow::SetCaptionColor(uint32_t rgba8)
 {
 
 }
 
-void WaylandDisplayWindow::SetCaptionTextColor(uint32_t bgra8)
+void WaylandDisplayWindow::SetCaptionTextColor(uint32_t rgba8)
 {
 
 }

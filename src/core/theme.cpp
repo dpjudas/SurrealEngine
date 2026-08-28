@@ -205,7 +205,7 @@ WidgetTheme* WidgetTheme::GetTheme()
 
 /////////////////////////////////////////////////////////////////////////////
 
-DarkWidgetTheme::DarkWidgetTheme() : StylesheetTheme(theme_default_stylesheet, "dust")
+DarkWidgetTheme::DarkWidgetTheme() : StylesheetTheme(theme_default_stylesheet, "dark")
 {
 }
 

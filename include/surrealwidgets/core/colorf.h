@@ -41,6 +41,15 @@ public:
 		return (ca << 24) | (cr << 16) | (cg << 8) | cb;
 	}
 
+	uint32_t toRgba8() const
+	{
+		uint32_t cr = (int)(std::max(std::min(r * 255.0f, 255.0f), 0.0f));
+		uint32_t cg = (int)(std::max(std::min(g * 255.0f, 255.0f), 0.0f));
+		uint32_t cb = (int)(std::max(std::min(b * 255.0f, 255.0f), 0.0f));
+		uint32_t ca = (int)(std::max(std::min(a * 255.0f, 255.0f), 0.0f));
+		return (ca << 24) | (cb << 16) | (cg << 8) | cr;
+	}
+
 	bool operator==(const Colorf& v) const { return r == v.r && g == v.g && b == v.b && a == v.a; }
 	bool operator!=(const Colorf& v) const { return r != v.r || g != v.g || b != v.b || a != v.a; }
 
