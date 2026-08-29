@@ -7,6 +7,8 @@
 
 LauncherBanner::LauncherBanner(Widget* parent) : Widget(parent)
 {
+	SetStyleClass("launcher-banner");
+
 	Logo = new ImageBox(this);
 	VersionLabel = new TextLabel(this);
 	VersionLabel->SetTextAlignment(TextLabelAlignment::Right);

@@ -166,6 +166,10 @@ widget {
 	window-caption-text-color: var(--primary-text-500);
 }
 
+launcher-banner {
+	background-color: #252730;
+}
+
 textlabel {
 }
 
