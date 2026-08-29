@@ -267,6 +267,23 @@ listview-header, treeview-header {
 	noncontent-right: 2;
 }
 
+listview-item {
+	border-image-source: url("theme/ListViewItemSelected.png");
+	border-top-width: 2;
+	border-bottom-width: 2;
+	border-left-width: 4;
+	border-right-width: 4;
+	border-top-image-slice: 4;
+	border-bottom-image-slice: 4;
+	border-left-image-slice: 8;
+	border-right-image-slice: 8;
+	border-top-image-width: 2;
+	border-bottom-image-width: 2;
+	border-left-image-width: 4;
+	border-right-image-width: 4;
+	border-center-image-slice: true;
+}
+
 dropdown {
 	noncontent-left: 5;
 	noncontent-top: 5;
