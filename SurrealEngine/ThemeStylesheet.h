@@ -289,13 +289,24 @@ dropdown {
 	noncontent-top: 5;
 	noncontent-right: 5;
 	noncontent-bottom: 5;
-	color: var(--textarea-color);
-	background-color: var(--textarea-bg);
-	border-left-color: var(--secondary-500);
-	border-top-color: var(--secondary-500);
-	border-right-color: var(--secondary-500);
-	border-bottom-color: var(--secondary-500);
-	arrow-color: var(--secondary-text-500);
+	border-image-source: url("theme/TextField.png");
+	arrow-image: url("theme/DropdownTriangle.png");
+	arrow-image-width: 16;
+	arrow-image-height: 16;
+	border-top-width: 2;
+	border-bottom-width: 2;
+	border-left-width: 4;
+	border-right-width: 4;
+	border-top-image-slice: 4;
+	border-bottom-image-slice: 4;
+	border-left-image-slice: 8;
+	border-right-image-slice: 8;
+	border-top-image-width: 2;
+	border-bottom-image-width: 2;
+	border-left-image-width: 4;
+	border-right-image-width: 4;
+	border-center-image-slice: true;
+	color: #000000;
 }
 
 scrollbar {
@@ -353,10 +364,29 @@ tabwidget-stack {
 checkbox-label {
 	checked-image-width: 16;
 	checked-image-height: 16;
+	checked-image: url("theme/CheckBoxTicked.png");
+	checked-align: 0;
+	unchecked-image: url("theme/CheckBox.png");
+	unchecked-align: 0;
+}
+
+checkbox-label:hover {
+	checked-image: url("theme/CheckBoxTickedHover.png");
+	unchecked-image: url("theme/CheckBoxHover.png");
+}
+
+radiobutton-label {
+	checked-image-width: 16;
+	checked-image-height: 16;
 	checked-image: url("theme/RadioButtonTicked.png");
 	checked-align: 0;
 	unchecked-image: url("theme/RadioButton.png");
 	unchecked-align: 0;
+}
+
+radiobutton-label:hover {
+	checked-image: url("theme/RadioButtonTickedHover.png");
+	unchecked-image: url("theme/RadioButtonHover.png");
 }
 
 menubar {

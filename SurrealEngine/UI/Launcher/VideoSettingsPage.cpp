@@ -16,16 +16,12 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	: Widget(parent)
 {
 	RenderDeviceLabel = new TextLabel(this);
-	Vulkan = new CheckboxLabel(this);
-	Vulkan->SetRadioStyle(true);
+	Vulkan = new RadioButtonLabel(&RenderDeviceGroup, this);
 #ifdef WIN32
-	D3D11 = new CheckboxLabel(this);
-	//D3D12 = new CheckboxLabel(this);
-	D3D11->SetRadioStyle(true);
-	//D3D12->SetRadioStyle(true);
+	D3D11 = new RadioButtonLabel(&RenderDeviceGroup, this);
+	//D3D12 = new RadioButtonLabel(&RenderDeviceGroup, this);
 #endif
-	OpenGL = new CheckboxLabel(this);
-	OpenGL->SetRadioStyle(true);
+	OpenGL = new RadioButtonLabel(&RenderDeviceGroup, this);
 
 	AdvancedLabel = new TextLabel(this);
 	UseVSync = new CheckboxLabel(this);
@@ -78,17 +74,6 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	LightModes->AddItem("Normal");
 	LightModes->AddItem("1x blending");
 	LightModes->AddItem("Brighter actors");
-
-
-#ifdef WIN32
-	Vulkan->FuncChanged = [this](bool on) { if (on) { D3D11->SetChecked(false); OpenGL->SetChecked(false); /*D3D12->SetChecked(false);*/ }};
-	D3D11->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); OpenGL->SetChecked(false); /*D3D12->SetChecked(false);*/ }};
-	//D3D12->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); OpenGL->SetChecked(false); D3D11->SetChecked(false); }};
-	OpenGL->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); D3D11->SetChecked(false); /*D3D12->SetChecked(false);*/ }};
-#else
-	Vulkan->FuncChanged = [this](bool on) { if (on) { OpenGL->SetChecked(false); }};
-	OpenGL->FuncChanged = [this](bool on) { if (on) { Vulkan->SetChecked(false); }};
-#endif
 
 	auto& settings = LauncherSettings::Get();
 	Vulkan->SetChecked(settings.RenderDevice.Type == RenderDeviceType::Vulkan);

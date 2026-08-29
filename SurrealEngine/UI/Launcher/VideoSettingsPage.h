@@ -1,6 +1,7 @@
 #pragma once
 
 #include <surrealwidgets/core/widget.h>
+#include <surrealwidgets/widgets/radiobuttonlabel/radiobuttonlabel.h>
 
 class LauncherWindow;
 class ListView;
@@ -24,12 +25,13 @@ private:
 
 	TextLabel* RenderDeviceLabel = nullptr;
 
-	CheckboxLabel* Vulkan = nullptr;
-	CheckboxLabel* OpenGL = nullptr;
+	RadioGroup RenderDeviceGroup;
+	RadioButtonLabel* Vulkan = nullptr;
+	RadioButtonLabel* OpenGL = nullptr;
 
 #ifdef WIN32
-	CheckboxLabel* D3D11 = nullptr;
-	//CheckboxLabel* D3D12 = nullptr;
+	RadioButtonLabel* D3D11 = nullptr;
+	//RadioButtonLabel* D3D12 = nullptr;
 #endif
 
 	TextLabel* AdvancedLabel = nullptr;
