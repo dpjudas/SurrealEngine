@@ -79,6 +79,83 @@ static const char* theme_default_stylesheet = R"xxxx(
 	--tertiary-text-950: #ffffff;
 }
 
+.bordeaux {
+	--textarea-text: #000000;
+	--textarea-bg: #eeeeee;
+
+	--primary-50: #fdbfce;
+	--primary-100: #fa7f9e;
+	--primary-200: #f83f6d;
+	--primary-300: #ec0941;
+	--primary-400: #ac0630;
+	--primary-500: #6a041d;
+	--primary-600: #5a0319;
+	--primary-700: #480314;
+	--primary-800: #36020f;
+	--primary-900: #24010a;
+	--primary-950: #120105;
+
+	--primary-text-50: #000000;
+	--primary-text-100: #ffffff;
+	--primary-text-200: #ffffff;
+	--primary-text-300: #ffffff;
+	--primary-text-400: #ffffff;
+	--primary-text-500: #ffffff;
+	--primary-text-600: #ffffff;
+	--primary-text-700: #ffffff;
+	--primary-text-800: #ffffff;
+	--primary-text-900: #ffffff;
+	--primary-text-950: #ffffff;
+
+	--secondary-50: #fdf3e0;
+	--secondary-100: #fce8c0;
+	--secondary-200: #fadca1;
+	--secondary-300: #f8d181;
+	--secondary-400: #f7c562;
+	--secondary-500: #f5b841;
+	--secondary-600: #f2a711;
+	--secondary-700: #c5870a;
+	--secondary-800: #946508;
+	--secondary-900: #634305;
+	--secondary-950: #312203;
+
+	--secondary-text-50: #000000;
+	--secondary-text-100: #000000;
+	--secondary-text-200: #000000;
+	--secondary-text-300: #000000;
+	--secondary-text-400: #000000;
+	--secondary-text-500: #000000;
+	--secondary-text-600: #000000;
+	--secondary-text-700: #ffffff;
+	--secondary-text-800: #ffffff;
+	--secondary-text-900: #ffffff;
+	--secondary-text-950: #ffffff;
+
+	--tertiary-50: #fdffe2;
+	--tertiary-100: #fbffc5;
+	--tertiary-200: #f9ffa8;
+	--tertiary-300: #f7ff8b;
+	--tertiary-400: #f5ff6f;
+	--tertiary-500: #f4ff52;
+	--tertiary-600: #f0ff1a;
+	--tertiary-700: #d1e000;
+	--tertiary-800: #9da800;
+	--tertiary-900: #697000;
+	--tertiary-950: #343800;
+
+	--tertiary-text-50: #000000;
+	--tertiary-text-100: #000000;
+	--tertiary-text-200: #000000;
+	--tertiary-text-300: #000000;
+	--tertiary-text-400: #000000;
+	--tertiary-text-500: #000000;
+	--tertiary-text-600: #000000;
+	--tertiary-text-700: #000000;
+	--tertiary-text-800: #ffffff;
+	--tertiary-text-900: #ffffff;
+	--tertiary-text-950: #ffffff;
+}
+
 .light, .aero {
 	--textarea-text: #000000;
 	--textarea-bg: #eeeeee;
@@ -276,9 +353,36 @@ pushbutton.aero {
 	border-center-image-slice: true;
 }
 
+pushbutton.bordeaux {
+	background-color: transparent;
+	border-left-color: transparent;
+	border-right-color: transparent;
+	border-top-color: transparent;
+	border-bottom-color: transparent;
+	border-image-source: url("PushButton.png");
+	border-top-width: 2;
+	border-bottom-width: 2;
+	border-left-width: 4;
+	border-right-width: 4;
+	border-top-image-slice: 4;
+	border-bottom-image-slice: 4;
+	border-left-image-slice: 8;
+	border-right-image-slice: 8;
+	border-top-image-width: 2;
+	border-bottom-image-width: 2;
+	border-left-image-width: 4;
+	border-right-image-width: 4;
+	border-center-image-slice: true;
+}
+
 pushbutton:hover {
 	color: var(--secondary-text-400);
 	background-color: var(--secondary-400);
+}
+
+pushbutton.bordeaux:hover {
+	border-image-source: url("PushButtonHover.png");
+	background-color: transparent;
 }
 
 pushbutton.aero:hover {
@@ -288,6 +392,11 @@ pushbutton.aero:hover {
 pushbutton:down {
 	color: var(--secondary-text-300);
 	background-color: var(--secondary-300);
+}
+
+pushbutton.bordeaux:down {
+	border-image-source: url("PushButtonPressed.png");
+	background-color: transparent;
 }
 
 lineedit {
@@ -305,6 +414,28 @@ lineedit {
 	selection-background: var(--tertiary-500);
 	selection-color-nofocus: var(--tertiary-text-400);
 	selection-background-nofocus: var(--tertiary-400);
+}
+
+lineedit.bordeaux {
+	background-color: transparent;
+	border-left-color: transparent;
+	border-right-color: transparent;
+	border-top-color: transparent;
+	border-bottom-color: transparent;
+	border-image-source: url("TextField.png");
+	border-top-width: 2;
+	border-bottom-width: 2;
+	border-left-width: 4;
+	border-right-width: 4;
+	border-top-image-slice: 4;
+	border-bottom-image-slice: 4;
+	border-left-image-slice: 8;
+	border-right-image-slice: 8;
+	border-top-image-width: 2;
+	border-bottom-image-width: 2;
+	border-left-image-width: 4;
+	border-right-image-width: 4;
+	border-center-image-slice: true;
 }
 
 textedit {
@@ -432,6 +563,15 @@ checkbox-label.aero {
 	checked-align: -3;
 	unchecked-image: url("checkbox_unchecked_normal.png");
 	unchecked-align: -3;
+}
+
+checkbox-label.bordeaux {
+	checked-image-width: 16;
+	checked-image-height: 16;
+	checked-image: url("CheckBoxTicked.png");
+	checked-align: 0;
+	unchecked-image: url("CheckBox.png");
+	unchecked-align: 0;
 }
 
 menubar {

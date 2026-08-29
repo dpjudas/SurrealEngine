@@ -33,7 +33,13 @@ Size CheckboxLabel::GetCheckboxSize()
 {
 	if (auto image = GetStyleImage("checked-image"))
 	{
-		return { (double)image->GetWidth(), std::max((double)image->GetHeight(), GetCanvas()->getFontMetrics(GetFont()).height) };
+		double w = GetStyleDouble("checked-image-width");
+		double h = GetStyleDouble("checked-image-height");
+		if (w == 0.0)
+			w = (double)image->GetWidth();
+		if (h == 0.0)
+			h = (double)image->GetHeight();
+		return { w, h };
 	}
 	else
 	{
@@ -74,7 +80,7 @@ void CheckboxLabel::OnPaint(Canvas* canvas)
 	{
 		if (auto image = GetStyleImage("checked-image"))
 		{
-			canvas->drawImage(image, Point(0.0, center - s.height * 0.5 - GetStyleDouble("checked-align")));
+			canvas->drawImage(image, Rect(0.0, center - s.height * 0.5 - GetStyleDouble("checked-align"), s.width, s.height));
 		}
 		else
 		{
@@ -87,7 +93,7 @@ void CheckboxLabel::OnPaint(Canvas* canvas)
 	{
 		if (auto image = GetStyleImage("unchecked-image"))
 		{
-			canvas->drawImage(image, Point(0.0, center - s.height * 0.5 - GetStyleDouble("unchecked-align")));
+			canvas->drawImage(image, Rect(0.0, center - s.height * 0.5 - GetStyleDouble("unchecked-align"), s.width, s.height));
 		}
 		else
 		{

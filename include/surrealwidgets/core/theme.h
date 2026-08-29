@@ -100,3 +100,9 @@ class DustWidgetTheme : public StylesheetTheme
 public:
 	DustWidgetTheme();
 };
+
+class BordeauxWidgetTheme : public StylesheetTheme
+{
+public:
+	BordeauxWidgetTheme();
+};

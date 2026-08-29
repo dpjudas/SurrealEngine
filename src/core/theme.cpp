@@ -223,6 +223,12 @@ DustWidgetTheme::DustWidgetTheme() : StylesheetTheme(theme_default_stylesheet, "
 
 /////////////////////////////////////////////////////////////////////////////
 
+BordeauxWidgetTheme::BordeauxWidgetTheme() : StylesheetTheme(theme_default_stylesheet, "bordeaux")
+{
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
 StylesheetTheme::StylesheetTheme(const std::string& stylesheet, const std::string& usedThemeClass)
 {
 	ThemeStylesheetDocument doc(stylesheet);
