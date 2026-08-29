@@ -581,7 +581,7 @@ tabwidget-stack {
 	noncontent-bottom: 5;
 }
 
-checkbox-label {
+checkbox-label, radiobutton-label {
 	checked-outer-border-color: var(--secondary-500);
 	checked-inner-border-color: var(--bgMain);
 	checked-color: var(--secondary-text-500);
@@ -604,6 +604,24 @@ checkbox-label.bordeaux:hover {
 	checked-image: url("CheckBoxTickedHover.png");
 	checked-align: 0;
 	unchecked-image: url("CheckBoxHover.png");
+	unchecked-align: 0;
+}
+
+radiobutton-label.bordeaux {
+	checked-image-width: 16;
+	checked-image-height: 16;
+	checked-image: url("RadioButtonTicked.png");
+	checked-align: 0;
+	unchecked-image: url("RadioButton.png");
+	unchecked-align: 0;
+}
+
+radiobutton-label.bordeaux:hover {
+	checked-image-width: 16;
+	checked-image-height: 16;
+	checked-image: url("RadioButtonTickedHover.png");
+	checked-align: 0;
+	unchecked-image: url("RadioButtonHover.png");
 	unchecked-align: 0;
 }
 

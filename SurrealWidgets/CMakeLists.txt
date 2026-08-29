@@ -95,6 +95,7 @@ set(SURREALWIDGETS_SOURCES
 	src/widgets/textlabel/textlabel.cpp
 	src/widgets/pushbutton/pushbutton.cpp
 	src/widgets/checkboxlabel/checkboxlabel.cpp
+	src/widgets/radiobuttonlabel/radiobuttonlabel.cpp
 	src/widgets/dropdown/dropdown.cpp
 	src/widgets/listview/listview.cpp
 	src/widgets/treeview/treeview.cpp
@@ -142,6 +143,7 @@ set(SURREALWIDGETS_INCLUDES
 	include/surrealwidgets/widgets/textlabel/textlabel.h
 	include/surrealwidgets/widgets/pushbutton/pushbutton.h
 	include/surrealwidgets/widgets/checkboxlabel/checkboxlabel.h
+	include/surrealwidgets/widgets/radiobuttonlabel/radiobuttonlabel.h
 	include/surrealwidgets/widgets/listview/listview.h
 	include/surrealwidgets/widgets/treeview/treeview.h
 	include/surrealwidgets/widgets/tabwidget/tabwidget.h
@@ -255,6 +257,7 @@ source_group("src\\widgets\\imagebox" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE
 source_group("src\\widgets\\textlabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/textlabel/.+")
 source_group("src\\widgets\\pushbutton" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/pushbutton/.+")
 source_group("src\\widgets\\checkboxlabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/checkboxlabel/.+")
+source_group("src\\widgets\\radiobuttonlabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/radiobuttonlabel/.+")
 source_group("src\\widgets\\dropdown" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/dropdown/.+")
 source_group("src\\widgets\\listview" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/listview/.+")
 source_group("src\\widgets\\tabwidget" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/src/widgets/tabwidget/.+")
@@ -282,6 +285,7 @@ source_group("include\\widgets\\imagebox" REGULAR_EXPRESSION "${CMAKE_CURRENT_SO
 source_group("include\\widgets\\textlabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/widgets/textlabel/.+")
 source_group("include\\widgets\\pushbutton" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/widgets/pushbutton/.+")
 source_group("include\\widgets\\checkboxlabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/widgets/checkboxlabel/.+")
+source_group("include\\widgets\\radiobuttonlabel" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/widgets/radiobuttonlabel/.+")
 source_group("include\\widgets\\listview" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/widgets/listview/.+")
 source_group("include\\widgets\\tabwidget" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/widgets/tabwidget/.+")
 source_group("include\\window" REGULAR_EXPRESSION "${CMAKE_CURRENT_SOURCE_DIR}/include/surrealwidgets/window/.+")
