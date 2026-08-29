@@ -205,25 +205,30 @@ WidgetTheme* WidgetTheme::GetTheme()
 
 /////////////////////////////////////////////////////////////////////////////
 
-DarkWidgetTheme::DarkWidgetTheme() : StylesheetTheme(theme_default_stylesheet, "dark")
+static std::string GetDefaultStylesheet()
+{
+	return std::string(theme_default_stylesheet) + theme_default_stylesheet2;
+}
+
+DarkWidgetTheme::DarkWidgetTheme() : StylesheetTheme(GetDefaultStylesheet(), "dark")
 {
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-LightWidgetTheme::LightWidgetTheme() : StylesheetTheme(theme_default_stylesheet, "light")
+LightWidgetTheme::LightWidgetTheme() : StylesheetTheme(GetDefaultStylesheet(), "light")
 {
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-DustWidgetTheme::DustWidgetTheme() : StylesheetTheme(theme_default_stylesheet, "dust")
+DustWidgetTheme::DustWidgetTheme() : StylesheetTheme(GetDefaultStylesheet(), "dust")
 {
 }
 
 /////////////////////////////////////////////////////////////////////////////
 
-BordeauxWidgetTheme::BordeauxWidgetTheme() : StylesheetTheme(theme_default_stylesheet, "bordeaux")
+BordeauxWidgetTheme::BordeauxWidgetTheme() : StylesheetTheme(GetDefaultStylesheet(), "bordeaux")
 {
 }
 
