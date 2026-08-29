@@ -120,8 +120,8 @@ LauncherWindowTab2::LauncherWindowTab2(Widget parent)
 	SelectLabel = new TextLabel(this);
 	GeneralLabel = new TextLabel(this);
 	ExtrasLabel = new TextLabel(this);
-	FullscreenCheckbox = new CheckboxLabel(this);
-	DisableAutoloadCheckbox = new CheckboxLabel(this);
+	FullscreenRadio = new RadioButtonLabel(&Group, this);
+	DisableAutoloadRadio = new RadioButtonLabel(&Group, this);
 	DontAskAgainCheckbox = new CheckboxLabel(this);
 	LightsCheckbox = new CheckboxLabel(this);
 	BrightmapsCheckbox = new CheckboxLabel(this);
@@ -151,8 +151,8 @@ LauncherWindowTab2::LauncherWindowTab2(Widget parent)
 
 	GeneralLabel->SetText("General");
 	ExtrasLabel->SetText("Extra Graphics");
-	FullscreenCheckbox->SetText("Fullscreen");
-	DisableAutoloadCheckbox->SetText("Disable autoload");
+	FullscreenRadio->SetText("Fullscreen");
+	DisableAutoloadRadio->SetText("Disable autoload");
 	DontAskAgainCheckbox->SetText("Don't ask me again");
 	LightsCheckbox->SetText("Lights");
 	BrightmapsCheckbox->SetText("Brightmaps");
@@ -170,8 +170,8 @@ LauncherWindowTab2::LauncherWindowTab2(Widget parent)
 	layout->AddLayout(line);
 
 	auto leftPanel = new VBoxLayout();
-	leftPanel->AddWidget(FullscreenCheckbox);
-	leftPanel->AddWidget(DisableAutoloadCheckbox);
+	leftPanel->AddWidget(FullscreenRadio);
+	leftPanel->AddWidget(DisableAutoloadRadio);
 	leftPanel->AddWidget(DontAskAgainCheckbox);
 
 	auto rightPanel = new VBoxLayout();

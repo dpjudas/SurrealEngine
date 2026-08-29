@@ -1,12 +1,25 @@
 
-#include "widgets/checkboxlabel/checkboxlabel.h"
+#include "widgets/radiobuttonlabel/radiobuttonlabel.h"
 
-CheckboxLabel::CheckboxLabel(Widget* parent) : Widget(parent)
+RadioButtonLabel::RadioButtonLabel(RadioGroup* group, Widget* parent) : Widget(parent)
 {
-	SetStyleClass("checkbox-label");
+	SetStyleClass("radiobutton-label");
+	SetGroup(group);
 }
 
-void CheckboxLabel::SetText(const std::string& value)
+void RadioButtonLabel::SetGroup(RadioGroup* newGroup)
+{
+	if (group != newGroup)
+	{
+		if (group)
+			std::erase(group->buttons, this);
+		group = newGroup;
+		if (group)
+			group->buttons.push_back(this);
+	}
+}
+
+void RadioButtonLabel::SetText(const std::string& value)
 {
 	if (text != value)
 	{
@@ -15,12 +28,12 @@ void CheckboxLabel::SetText(const std::string& value)
 	}
 }
 
-const std::string& CheckboxLabel::GetText() const
+const std::string& RadioButtonLabel::GetText() const
 {
 	return text;
 }
 
-void CheckboxLabel::SetChecked(bool value)
+void RadioButtonLabel::SetChecked(bool value)
 {
 	if (value != checked)
 	{
@@ -29,7 +42,7 @@ void CheckboxLabel::SetChecked(bool value)
 	}
 }
 
-Size CheckboxLabel::GetCheckboxSize()
+Size RadioButtonLabel::GetRadioButtonSize()
 {
 	if (auto image = GetStyleImage("checked-image"))
 	{
@@ -47,25 +60,25 @@ Size CheckboxLabel::GetCheckboxSize()
 	}
 }
 
-bool CheckboxLabel::GetChecked() const
+bool RadioButtonLabel::GetChecked() const
 {
 	return checked;
 }
 
-double CheckboxLabel::GetPreferredWidth()
+double RadioButtonLabel::GetPreferredWidth()
 {
 	const auto canvas = GetCanvas();
-	return GetCheckboxSize().width + canvas->measureText(GetFont(), text).width + 1.0;
+	return GetRadioButtonSize().width + canvas->measureText(GetFont(), text).width + 1.0;
 }
 
-double CheckboxLabel::GetPreferredHeight()
+double RadioButtonLabel::GetPreferredHeight()
 {
-	return std::max(GetCheckboxSize().height, GetCanvas()->getFontMetrics(GetFont()).height);
+	return std::max(GetRadioButtonSize().height, GetCanvas()->getFontMetrics(GetFont()).height);
 }
 
-void CheckboxLabel::OnPaint(Canvas* canvas)
+void RadioButtonLabel::OnPaint(Canvas* canvas)
 {
-	Size s = GetCheckboxSize();
+	Size s = GetRadioButtonSize();
 
 	FontMetrics metrics = canvas->getFontMetrics(GetFont());
 	double baseline = (GetHeight() - metrics.height) * 0.5 + metrics.ascent;
@@ -105,30 +118,30 @@ void CheckboxLabel::OnPaint(Canvas* canvas)
 	canvas->drawText(GetFont(), Point(s.width + 2.0, baseline), text, GetStyleColor("color"));
 }
 
-bool CheckboxLabel::OnMouseDown(const Point& pos, InputKey key)
+bool RadioButtonLabel::OnMouseDown(const Point& pos, InputKey key)
 {
 	mouseDownActive = true;
 	SetFocus();
 	return true;
 }
 
-bool CheckboxLabel::OnMouseUp(const Point& pos, InputKey key)
+bool RadioButtonLabel::OnMouseUp(const Point& pos, InputKey key)
 {
 	if (mouseDownActive)
 	{
-		Toggle();
+		Click();
 	}
 	mouseDownActive = false;
 	return true;
 }
 
-void CheckboxLabel::OnMouseLeave()
+void RadioButtonLabel::OnMouseLeave()
 {
 	mouseDownActive = false;
 	SetStyleState("");
 }
 
-void CheckboxLabel::OnMouseMove(const Point& Pos)
+void RadioButtonLabel::OnMouseMove(const Point& Pos)
 {
 	if (GetStyleState().empty())
 	{
@@ -136,16 +149,47 @@ void CheckboxLabel::OnMouseMove(const Point& Pos)
 	}
 }
 
-void CheckboxLabel::OnKeyUp(InputKey key)
+void RadioButtonLabel::OnKeyUp(InputKey key)
 {
 	if (key == InputKey::Space)
-		Toggle();
+		Click();
 }
 
-void CheckboxLabel::Toggle()
+void RadioButtonLabel::Click()
 {
-	bool oldchecked = checked;
-	checked = !checked;
-	Update();
-	if (checked != oldchecked && FuncChanged) FuncChanged(checked);
+	if (!checked)
+	{
+		// Change state
+		checked = true;
+		if (group)
+		{
+			for (RadioButtonLabel* button : group->buttons)
+			{
+				if (button != this)
+					button->checked = false;
+			}
+		}
+
+		// Redraw screen
+		Update();
+
+		// Inform callbacks listening
+
+		if (FuncChanged)
+			FuncChanged(checked);
+
+		if (group)
+		{
+			// Tell other buttons they are no longer checked
+			for (RadioButtonLabel* button : group->buttons)
+			{
+				if (button != this && button->FuncChanged)
+					button->FuncChanged(button->checked);
+			}
+
+			// Tell the group 
+			if (group->FuncClicked)
+				group->FuncClicked(this);
+		}
+	}
 }

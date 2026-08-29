@@ -2,18 +2,35 @@
 #pragma once
 
 #include "../../core/widget.h"
+#include <vector>
 
-class CheckboxLabel : public Widget
+class RadioButtonLabel;
+
+class RadioGroup
 {
 public:
-	CheckboxLabel(Widget* parent = nullptr);
+	std::function<void(RadioButtonLabel* button)> FuncClicked;
+
+private:
+	std::vector<RadioButtonLabel*> buttons;
+
+	friend class RadioButtonLabel;
+};
+
+class RadioButtonLabel : public Widget
+{
+public:
+	RadioButtonLabel(RadioGroup* group = nullptr, Widget* parent = nullptr);
+
+	void SetGroup(RadioGroup* group);
 
 	void SetText(const std::string& value);
 	const std::string& GetText() const;
 
 	void SetChecked(bool value);
 	bool GetChecked() const;
-	void Toggle();
+
+	void Click();
 
 	double GetPreferredWidth() override;
 	double GetPreferredHeight() override;
@@ -29,8 +46,9 @@ protected:
 	void OnMouseMove(const Point& pos) override;
 
 private:
-	Size GetCheckboxSize();
+	Size GetRadioButtonSize();
 
+	RadioGroup* group = nullptr;
 	std::string text;
 	bool checked = false;
 	bool mouseDownActive = false;

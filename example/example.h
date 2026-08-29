@@ -16,6 +16,7 @@
 #include <surrealwidgets/widgets/textlabel/textlabel.h>
 #include <surrealwidgets/widgets/pushbutton/pushbutton.h>
 #include <surrealwidgets/widgets/checkboxlabel/checkboxlabel.h>
+#include <surrealwidgets/widgets/radiobuttonlabel/radiobuttonlabel.h>
 #include <surrealwidgets/widgets/lineedit/lineedit.h>
 #include <surrealwidgets/widgets/tabwidget/tabwidget.h>
 #include <surrealwidgets/widgets/dialog/textinputdialog.h>
@@ -39,8 +40,9 @@ private:
 	TextLabel* SelectLabel = nullptr;
 	TextLabel* GeneralLabel = nullptr;
 	TextLabel* ExtrasLabel = nullptr;
-	CheckboxLabel* FullscreenCheckbox = nullptr;
-	CheckboxLabel* DisableAutoloadCheckbox = nullptr;
+	RadioGroup Group;
+	RadioButtonLabel* FullscreenRadio = nullptr;
+	RadioButtonLabel* DisableAutoloadRadio = nullptr;
 	CheckboxLabel* DontAskAgainCheckbox = nullptr;
 	CheckboxLabel* LightsCheckbox = nullptr;
 	CheckboxLabel* BrightmapsCheckbox = nullptr;
