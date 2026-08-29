@@ -12,7 +12,7 @@ Please refer to [Status.md](Docs/Status.md) for the current status of Surreal En
 
 * Original copies of the UE1 games you want to run
 * Windows 10+, macOS 15+ or a modern Linux distro
-* A Direct3D 11 or Vulkan capable graphics card (macOS requires a Metal 2+ GPU)
+* A Direct3D 11, OpenGL 3.2 or Vulkan capable graphics card (macOS requires a Metal 2+ GPU)
 
 ## Building Surreal Engine
 

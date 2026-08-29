@@ -24,22 +24,17 @@ At the time of this writing, SurrealEngine can **detect** the following UE1 game
 
 ## General Engine bugs (affects all games)
 * Movers:
-  - Some buttons are too easy to push, like the ceiling button in Kevlar Suit room in Vortex Rikers.
-  You just need to pass under it while in the original you'd have to bump into it
   - Projectiles pass through some movers
   - It is possible to get stuck on some movers when approached from certain angles
+  - Encroachment stuff isn't implemented, so movers don't crush anything or return back to their previous position.
 * Mirrors/reflections rendering is a bit buggy, especially around the edges of world geometry.
 * Portals:
   - They somewhat work, but might end up "pushing" players/projectiles in unexpected directions.
 * Semisolid brushes are finicky. Usually you'll fall through them as if they weren't there.
-* No dynamic lighting support (Dispersion Pistol projectiles/Flares don't illuminate their surroundings)
-* Bot and Scripted Pawn AI isn't fully functional due to the related native functions not being implemented.
-All they currently do is to sometimes retaliate if attacked, and pick up nearby items.
+* Bot and Scripted Pawn AI while better than before, still isn't fully functional.
 * Bots literally rotate their entire body (feet off the ground) to look up/down in ways they shouldn't be able to.
 * Waving water textures at the end of waterfalls render broken. Easily observable in NyLeve's Falls (Unreal) or DM-ArcaneTemple (UT)
 * Underwater collisions are somewhat buggy, especially on Klingon Honor Guard
-* Player-to-decoration and player-to-other-pawns collisions aren't properly implemented. The player usually gets stuck and if they manage to get free
-they end up dying because SE thinks that they've fallen from a great height.
 * If the player currently has a power-up active that tints the screen (like Invisibility or Energy Amplifier), the tint remains
 (and accumulates if a new power-up of the same type is picked up and activated) until the player switches to a different map.
 * viewclass command crashes with null deref.
@@ -47,14 +42,13 @@ they end up dying because SE thinks that they've fallen from a great height.
 * Sounds may become too loud (e.g. Pulse Rifle secondary fire, minigun firing sound)
 * Inventory from loaded saves do NOT transfer to the next map.
 * Saving packages (.u[xx] files, game saves, etc.) functionality is not fully implemented yet.
-* There is no OpenGL renderer.
 * There is no networking support at all.
 * By design, native mods will never work with SE. Thankfully these kind of mods are extremely rare.
-* **[Linux/ZWidget]** - Wayland backend is somewhat buggy due to Wayland APIs being unpleasant to work with, to name a few things:
+* **[Linux/SurrealWidgets]** - Wayland backend is somewhat buggy due to Wayland APIs being unpleasant to work with, to name a few things:
   - Menus don't properly position themselves.
   - Sometimes menus remain persistent (due to rapidly switching?)
-  - Running any ZWidget app (launcher/SurrealEditor) on GNOME will probably lead to not being able to move the window around, 
-  because ZWidget has no custom window decorations (ZWidget uses server side decorations when they're available)
+  - Running any SurrealWidgets app (launcher/SurrealEditor) on GNOME will probably lead to not being able to move the window around, 
+  because SurrealWidgets has no custom window decorations (as it uses server side decorations when they're available)
 
 ## Unreal (Gold)
 
