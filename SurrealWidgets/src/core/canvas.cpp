@@ -879,14 +879,14 @@ void BitmapCanvas::drawTile(CanvasTexture* tex, float left, float top, float wid
 			uint32_t tx1 = (int)(ufrac1 * 128.0f);
 			uint32_t invtx0 = 128 - tx0;
 			uint32_t invtx1 = 128 - tx1;
-			__m128i txx = _mm_srli_epi16(_mm_add_epi16(_mm_mullo_epi16(_mm_set_epi16(invtx1, tx1, invtx1, tx1, invtx0, tx0, invtx0, tx0), tyy), _mm_set1_epi16(63)), 7);
+			__m128i txx = _mm_srli_epi16(_mm_mullo_epi16(_mm_set_epi16(invtx1, tx1, invtx1, tx1, invtx0, tx0, invtx0, tx0), tyy), 7);
 			__m128i t00 = _mm_shufflehi_epi16(_mm_shufflelo_epi16(txx, _MM_SHUFFLE(3, 3, 3, 3)), _MM_SHUFFLE(3, 3, 3, 3));
 			__m128i spixel00 = _mm_mullo_epi16(t00, _mm_unpacklo_epi8(_mm_set_epi32(0, 0, sline0[sx0[1]], sline0[sx0[0]]), _mm_setzero_si128()));
 			__m128i t10 = _mm_shufflehi_epi16(_mm_shufflelo_epi16(txx, _MM_SHUFFLE(2, 2, 2, 2)), _MM_SHUFFLE(2, 2, 2, 2));
 			__m128i spixel10 = _mm_mullo_epi16(t10, _mm_unpacklo_epi8(_mm_set_epi32(0, 0, sline0[sx1[1]], sline0[sx1[0]]), _mm_setzero_si128()));
 			__m128i t01 = _mm_shufflehi_epi16(_mm_shufflelo_epi16(txx, _MM_SHUFFLE(1, 1, 1, 1)), _MM_SHUFFLE(1, 1, 1, 1));
 			__m128i spixel01 = _mm_mullo_epi16(t01, _mm_unpacklo_epi8(_mm_set_epi32(0, 0, sline1[sx0[1]], sline1[sx0[0]]), _mm_setzero_si128()));
-			__m128i t11 = _mm_shufflehi_epi16(_mm_shufflelo_epi16(txx, _MM_SHUFFLE(0, 0, 0, 0)), _MM_SHUFFLE(0, 0, 0, 0));
+			__m128i t11 = _mm_sub_epi16(_mm_sub_epi16(_mm_sub_epi16(_mm_set1_epi16(128), t00), t10), t01);
 			__m128i spixel11 = _mm_mullo_epi16(t11, _mm_unpacklo_epi8(_mm_set_epi32(0, 0, sline1[sx1[1]], sline1[sx1[0]]), _mm_setzero_si128()));
 			__m128i spixel = _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(_mm_add_epi16(_mm_add_epi16(spixel00, spixel10), spixel01), spixel11), _mm_set1_epi16(63)), 7);
 
@@ -946,10 +946,10 @@ void BitmapCanvas::drawTile(CanvasTexture* tex, float left, float top, float wid
 			uint32_t tx = (int)(ufrac * 128.0f);
 			uint32_t invtx = 128 - tx;
 
-			uint32_t t00 = (invtx * invty + 63) >> 7;
-			uint32_t t10 = (tx * invty + 63) >> 7;
-			uint32_t t01 = (invtx * ty + 63) >> 7;
-			uint32_t t11 = (tx * ty + 63) >> 7;
+			uint32_t t00 = (invtx * invty) >> 7;
+			uint32_t t10 = (tx * invty) >> 7;
+			uint32_t t01 = (invtx * ty) >> 7;
+			uint32_t t11 = 128 - t00 - t10 - t01;
 
 			uint32_t salpha = (t00 * salpha00 + t10 * salpha10 + t01 * salpha01 + t11 * salpha11 + 63) >> 7;
 			uint32_t sred = (t00 * sred00 + t10 * sred10 + t01 * sred01 + t11 * sred11 + 63) >> 7;
