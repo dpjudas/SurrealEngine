@@ -78,6 +78,7 @@ protected:
 	bool OnMouseDown(const Point& pos, InputKey key) override;
 	bool OnMouseDoubleclick(const Point& pos, InputKey key) override;
 	bool OnMouseUp(const Point& pos, InputKey key) override;
+	void OnMouseLeave() override;
 	void OnKeyChar(std::string chars) override;
 	void OnKeyDown(InputKey key) override;
 	void OnKeyUp(InputKey key) override;

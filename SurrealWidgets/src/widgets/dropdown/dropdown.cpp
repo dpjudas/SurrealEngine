@@ -149,7 +149,6 @@ double Dropdown::GetPreferredWidth()
 void Dropdown::OnPaint(Canvas* canvas)
 {
 	Colorf textColor = GetStyleColor("color");
-	Colorf arrowColor = GetStyleColor("arrow-color");
 
 	double w = GetWidth();
 	double h = GetHeight();
@@ -158,17 +157,28 @@ void Dropdown::OnPaint(Canvas* canvas)
 	double textY = (h-(vtp.bottom-vtp.top))/2.0 + vtp.baseline;
 	canvas->drawText(GetFont(), Point(7.0, textY), text, textColor);
 
-	double arrowS = 8.0;
-	double arrowX = w - 3.0; // rightmost point, aligned with scrollbar
-	double arrowY = (h-arrowS)/2;
+	if (auto arrowImage = GetStyleImage("arrow-image"))
+	{
+		auto image_width = GetStyleDouble("arrow-image-width");
+		auto image_height = GetStyleDouble("arrow-image-height");
+		canvas->drawImage(arrowImage, Rect::xywh(w - image_width, (h - image_height) / 2, image_width, image_height));
+	}
+	else
+	{
+		Colorf arrowColor = GetStyleColor("arrow-color");
 
-	Point p1(arrowX, arrowY);
-	Point p2(arrowX - arrowS, arrowY);
-	Point p3(arrowX - arrowS/2, arrowY + arrowS);
+		double arrowS = 8.0;
+		double arrowX = w - 3.0; // rightmost point, aligned with scrollbar
+		double arrowY = (h-arrowS)/2;
 
-	canvas->line(p1, p2, arrowColor);
-	canvas->line(p2, p3, arrowColor);
-	canvas->line(p3, p1, arrowColor);
+		Point p1(arrowX, arrowY);
+		Point p2(arrowX - arrowS, arrowY);
+		Point p3(arrowX - arrowS/2, arrowY + arrowS);
+
+		canvas->line(p1, p2, arrowColor);
+		canvas->line(p2, p3, arrowColor);
+		canvas->line(p3, p1, arrowColor);
+	}
 }
 
 bool Dropdown::OnMouseDown(const Point& pos, InputKey key)

@@ -125,6 +125,15 @@ bool CheckboxLabel::OnMouseUp(const Point& pos, InputKey key)
 void CheckboxLabel::OnMouseLeave()
 {
 	mouseDownActive = false;
+	SetStyleState("");
+}
+
+void CheckboxLabel::OnMouseMove(const Point& Pos)
+{
+	if (GetStyleState().empty())
+	{
+		SetStyleState("hover");
+	}
 }
 
 void CheckboxLabel::OnKeyUp(InputKey key)
