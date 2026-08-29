@@ -156,7 +156,7 @@ static const char* theme_default_stylesheet = R"xxxx(
 	--tertiary-text-950: #ffffff;
 }
 
-.light, .aero {
+.light {
 	--textarea-text: #000000;
 	--textarea-bg: #eeeeee;
 
@@ -336,23 +336,6 @@ pushbutton {
 	border-bottom-color: var(--secondary-600);
 }
 
-pushbutton.aero {
-	border-image-source: url("button_normal.png");
-	border-top-width: 6;
-	border-bottom-width: 6;
-	border-left-width: 5;
-	border-right-width: 5;
-	border-top-image-slice: 6;
-	border-bottom-image-slice: 6;
-	border-left-image-slice: 5;
-	border-right-image-slice: 5;
-	border-top-image-width: 6;
-	border-bottom-image-width: 6;
-	border-left-image-width: 5;
-	border-right-image-width: 5;
-	border-center-image-slice: true;
-}
-
 pushbutton.bordeaux {
 	background-color: transparent;
 	border-left-color: transparent;
@@ -383,10 +366,6 @@ pushbutton:hover {
 pushbutton.bordeaux:hover {
 	border-image-source: url("PushButtonHover.png");
 	background-color: transparent;
-}
-
-pushbutton.aero:hover {
-	border-image-source: url("button_hot.png");
 }
 
 pushbutton:down {
@@ -478,6 +457,10 @@ textedit {
 	selection-background-nofocus: var(--tertiary-400);
 }
 
+)xxxx";
+// compilers suck!
+static const char* theme_default_stylesheet2 = R"xxxx(
+
 listview, treeview {
 	noncontent-left: 1;
 	noncontent-top: 1;
@@ -500,8 +483,8 @@ listview-body, treeview-body {
 }
 
 listview-header, treeview-header {
-	background-color: var(--secondary-500);
-	color: var(--secondary-text-500);
+	background-color: var(--primary-600);
+	color: var(--primary-text-600);
 	noncontent-left: 10;
 	noncontent-right: 2;
 }
@@ -604,13 +587,6 @@ checkbox-label {
 	checked-color: var(--secondary-text-500);
 	unchecked-outer-border-color: var(--secondary-500);
 	unchecked-inner-border-color: var(--bgMain);
-}
-
-checkbox-label.aero {
-	checked-image: url("checkbox_checked_normal.png");
-	checked-align: -3;
-	unchecked-image: url("checkbox_unchecked_normal.png");
-	unchecked-align: -3;
 }
 
 checkbox-label.bordeaux {
