@@ -290,6 +290,11 @@ void LineEdit::SetSelectAllOnFocusGain(bool enable)
 
 void LineEdit::OnMouseMove(const Point& pos)
 {
+	if (GetStyleState().empty())
+	{
+		SetStyleState("hover");
+	}
+
 	if (mouse_selecting)
 	{
 		if (pos.x < 0.0 || pos.x >= GetWidth())
@@ -350,6 +355,11 @@ bool LineEdit::OnMouseUp(const Point& pos, InputKey key)
 		Update();
 	}
 	return true;
+}
+
+void LineEdit::OnMouseLeave()
+{
+	SetStyleState("");
 }
 
 void LineEdit::OnKeyChar(std::string chars)

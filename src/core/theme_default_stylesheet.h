@@ -430,7 +430,29 @@ lineedit.bordeaux {
 	border-top-image-slice: 4;
 	border-bottom-image-slice: 4;
 	border-left-image-slice: 8;
-	border-right-image-slice: 8;
+	border-right-image-slice: 10;
+	border-top-image-width: 2;
+	border-bottom-image-width: 2;
+	border-left-image-width: 4;
+	border-right-image-width: 4;
+	border-center-image-slice: true;
+}
+
+lineedit.bordeaux:hover {
+	background-color: transparent;
+	border-left-color: transparent;
+	border-right-color: transparent;
+	border-top-color: transparent;
+	border-bottom-color: transparent;
+	border-image-source: url("TextFieldHover.png");
+	border-top-width: 2;
+	border-bottom-width: 2;
+	border-left-width: 4;
+	border-right-width: 4;
+	border-top-image-slice: 4;
+	border-bottom-image-slice: 4;
+	border-left-image-slice: 8;
+	border-right-image-slice: 10;
 	border-top-image-width: 2;
 	border-bottom-image-width: 2;
 	border-left-image-width: 4;
@@ -496,6 +518,32 @@ dropdown {
 	border-right-color: var(--secondary-500);
 	border-bottom-color: var(--secondary-500);
 	arrow-color: var(--secondary-text-500);
+}
+
+dropdown.bordeaux {
+	background-color: transparent;
+	border-left-color: transparent;
+	border-right-color: transparent;
+	border-top-color: transparent;
+	border-bottom-color: transparent;
+	border-image-source: url("TextField.png");
+	arrow-image: url("DropdownTriangle.png");
+	arrow-image-width: 16;
+	arrow-image-height: 16;
+	border-top-width: 2;
+	border-bottom-width: 2;
+	border-left-width: 4;
+	border-right-width: 4;
+	border-top-image-slice: 4;
+	border-bottom-image-slice: 4;
+	border-left-image-slice: 8;
+	border-right-image-slice: 8;
+	border-top-image-width: 2;
+	border-bottom-image-width: 2;
+	border-left-image-width: 4;
+	border-right-image-width: 4;
+	border-center-image-slice: true;
+	color: var(--textarea-text);
 }
 
 scrollbar {
@@ -571,6 +619,15 @@ checkbox-label.bordeaux {
 	checked-image: url("CheckBoxTicked.png");
 	checked-align: 0;
 	unchecked-image: url("CheckBox.png");
+	unchecked-align: 0;
+}
+
+checkbox-label.bordeaux:hover {
+	checked-image-width: 16;
+	checked-image-height: 16;
+	checked-image: url("CheckBoxTickedHover.png");
+	checked-align: 0;
+	unchecked-image: url("CheckBoxHover.png");
 	unchecked-align: 0;
 }
 

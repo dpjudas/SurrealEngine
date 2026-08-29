@@ -26,6 +26,7 @@ protected:
 	bool OnMouseUp(const Point& pos, InputKey key) override;
 	void OnMouseLeave() override;
 	void OnKeyUp(InputKey key) override;
+	void OnMouseMove(const Point& pos) override;
 
 private:
 	Size GetCheckboxSize();
