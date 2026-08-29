@@ -6,6 +6,7 @@
 #include "GameApp.h"
 #include "GameFolder.h"
 #include "Engine.h"
+#include "ThemeStylesheet.h"
 #include "UI/WidgetResourceData.h"
 #include "UI/ErrorWindow/ErrorWindow.h"
 #include "UI/Launcher/LauncherWindow.h"
@@ -20,7 +21,7 @@ int GameApp::main(Array<std::string> args)
 	auto backend = DisplayBackend::TryCreateBackend();
 	DisplayBackend::Set(std::move(backend));
 	InitWidgetResources();
-	WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
+	WidgetTheme::SetTheme(std::make_unique<StylesheetTheme>(theme_stylesheet, "dark"));
 
 	try
 	{

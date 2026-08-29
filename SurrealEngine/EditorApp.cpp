@@ -5,6 +5,7 @@
 #include "GameFolder.h"
 #include "Engine.h"
 #include "LauncherSettings.h"
+#include "ThemeStylesheet.h"
 #include "UI/Launcher/LauncherWindow.h"
 #include "UI/Editor/EditorMainWindow.h"
 #include "UI/ErrorWindow/ErrorWindow.h"
@@ -17,7 +18,7 @@ int EditorApp::main(Array<std::string> args)
 	auto backend = DisplayBackend::TryCreateBackend();
 	DisplayBackend::Set(std::move(backend));
 	InitWidgetResources();
-	WidgetTheme::SetTheme(std::make_unique<DarkWidgetTheme>());
+	WidgetTheme::SetTheme(std::make_unique<StylesheetTheme>(theme_stylesheet, "dark"));
 
 	try
 	{
