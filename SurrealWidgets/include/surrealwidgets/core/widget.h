@@ -279,3 +279,29 @@ private:
 	friend class SaveFileDialog;
 	friend class Dropdown;
 };
+
+class PseudoWidget : Widget
+{
+public:
+	PseudoWidget(const std::string& styleClass);
+
+	void Paint(Canvas* canvas, const Rect& box);
+	bool IsStyled() const;
+
+	using Widget::SetStyleClass;
+	using Widget::GetStyleClass;
+	using Widget::SetStyleState;
+	using Widget::GetStyleState;
+	using Widget::SetStyleBool;
+	using Widget::SetStyleInt;
+	using Widget::SetStyleDouble;
+	using Widget::SetStyleString;
+	using Widget::SetStyleColor;
+	using Widget::SetStyleImage;
+	using Widget::GetStyleBool;
+	using Widget::GetStyleInt;
+	using Widget::GetStyleDouble;
+	using Widget::GetStyleString;
+	using Widget::GetStyleColor;
+	using Widget::GetStyleImage;
+};
