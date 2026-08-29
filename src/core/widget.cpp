@@ -1149,3 +1149,29 @@ std::shared_ptr<Font> Widget::GetFont() const
 	WidgetStyle* style = WidgetTheme::GetTheme()->GetStyle(StyleClass);
 	return style ? style->GetFont(StyleState) : std::shared_ptr<Font>();
 }
+
+/////////////////////////////////////////////////////////////////////////////
+
+PseudoWidget::PseudoWidget(const std::string& styleClass)
+{
+	SetStyleClass(styleClass);
+}
+
+void PseudoWidget::Paint(Canvas* canvas, const Rect& box)
+{
+	WidgetStyle* style = WidgetTheme::GetTheme()->GetStyle(GetStyleClass());
+	if (!style)
+		return;
+
+	Point oldOrigin = canvas->getOrigin();
+	canvas->pushClip(box);
+	canvas->setOrigin(oldOrigin + box.topLeft());
+	style->Paint(this, canvas, box.size());
+	canvas->setOrigin(oldOrigin);
+	canvas->popClip();
+}
+
+bool PseudoWidget::IsStyled() const
+{
+	return WidgetTheme::GetTheme()->GetStyle(GetStyleClass());
+}

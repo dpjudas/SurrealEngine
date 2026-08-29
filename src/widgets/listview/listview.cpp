@@ -1,5 +1,6 @@
 #include "widgets/listview/listview.h"
 #include "widgets/scrollbar/scrollbar.h"
+#include "core/theme.h"
 #include <algorithm>
 
 ListView::ListView(Widget* parent) : Widget(parent)
@@ -316,6 +317,8 @@ void ListViewBody::OnPaint(Canvas* canvas)
 
 	double y = -listview->scrollbar->GetPosition();
 
+	PseudoWidget itemStyle("listview-item");
+
 	int itemIndex = 0;
 	for (const std::unique_ptr<ListViewItem>& item : listview->items)
 	{
@@ -325,7 +328,11 @@ void ListViewBody::OnPaint(Canvas* canvas)
 			bool selected = itemIndex == listview->selectedItem;
 			if (selected)
 			{
-				canvas->fillRect(Rect::xywh(x - 2.0, itemY, w, itemHeight), selectionBackground);
+				Rect box = Rect::xywh(x - 2.0, itemY, w, itemHeight);
+				if (itemStyle.IsStyled())
+					itemStyle.Paint(canvas, box);
+				else
+					canvas->fillRect(box, selectionBackground);
 			}
 			double cx = x;
 			int colCount = std::min((int)item->columns.size(), listview->header->GetColumnCount());
