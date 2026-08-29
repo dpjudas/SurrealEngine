@@ -364,7 +364,7 @@ public:
 	}
 
 	template<typename T>
-	TypedScriptArray<T> DynamicArray(PropertyDataOffset offset) { return *static_cast<TypedScriptArray<T>*>(PropertyData.Ptr(offset.DataOffset)); }
+	TypedScriptArray<T> DynamicArray(PropertyDataOffset offset) { return TypedScriptArray<T>(static_cast<ScriptArray*>(PropertyData.Ptr(offset.DataOffset))); }
 
 	template<typename T>
 	static T* Cast(UObject* obj)
