@@ -310,10 +310,91 @@ dropdown {
 }
 
 scrollbar {
-	track-color: var(--primary-500);
-	thumb-color: var(--secondary-500);
-	noncontent-top: 5;
-	noncontent-bottom: 5;
+}
+
+scrollbutton-up, scrollbutton-down, scrollbutton-left, scrollbutton-right, scrollthumb-vert, scrollthumb-horz, scrolltrack-vert, scrolltrack-horz {
+	border-top-width: 4;
+	border-bottom-width: 4;
+	border-left-width: 4;
+	border-right-width: 4;
+	border-top-image-slice: 8;
+	border-bottom-image-slice: 8;
+	border-left-image-slice: 8;
+	border-right-image-slice: 8;
+	border-top-image-width: 4;
+	border-bottom-image-width: 4;
+	border-left-image-width: 4;
+	border-right-image-width: 4;
+	border-center-image-slice: true;
+}
+
+scrollbutton-up {
+	border-image-source: url("theme/ScrollbarUpNormal.png");
+}
+
+scrollbutton-up:hover {
+	border-image-source: url("theme/ScrollbarUpHover.png");
+}
+
+scrollbutton-up:down {
+	border-image-source: url("theme/ScrollbarUpPressed.png");
+}
+
+scrollbutton-down {
+	border-image-source: url("theme/ScrollbarDownNormal.png");
+}
+
+scrollbutton-down:hover {
+	border-image-source: url("theme/ScrollbarDownHover.png");
+}
+
+scrollbutton-down:down {
+	border-image-source: url("theme/ScrollbarDownPressed.png");
+}
+
+scrollbutton-left {
+	border-image-source: url("theme/ScrollbarLeftNormal.png");
+}
+
+scrollbutton-left:hover {
+	border-image-source: url("theme/ScrollbarLeftHover.png");
+}
+
+scrollbutton-left:down {
+	border-image-source: url("theme/ScrollbarLeftPressed.png");
+}
+
+scrollbutton-right {
+	border-image-source: url("theme/ScrollbarRightNormal.png");
+}
+
+scrollbutton-right:hover {
+	border-image-source: url("theme/ScrollbarRightHover.png");
+}
+
+scrollbutton-right:down {
+	border-image-source: url("theme/ScrollbarRightPressed.png");
+}
+
+scrollthumb-vert, scrollthumb-horz {
+	border-image-source: url("theme/ScrollbarThumbNormal.png");
+	grip-image: url("theme/ScrollbarGripNormal.png");
+	grip-image-width: 16;
+	grip-image-height: 16;
+}
+
+scrollthumb-vert:hover, scrollthumb-horz:hover {
+	border-image-source: url("theme/ScrollbarThumbHover.png");
+	grip-image: url("theme/ScrollbarGripHover.png");
+}
+
+scrollthumb-vert:down, scrollthumb-horz:down {
+	border-image-source: url("theme/ScrollbarThumbPressed.png");
+	grip-image: url("theme/ScrollbarGripHover.png");
+}
+
+scrolltrack-vert, scrolltrack-horz {
+	border-image-source: url("theme/ScrollbarTrack.png");
 }
 
 tabbar {
