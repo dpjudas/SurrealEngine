@@ -3,9 +3,6 @@
 #include "core/colorf.h"
 #include <stdexcept>
 
-#define HIDE_SMALL_BAR false
-#define HIDE_SMALL_THUMB true
-
 Scrollbar::Scrollbar(Widget* parent) : Widget(parent)
 {
 	SetStyleClass("scrollbar");
@@ -169,7 +166,12 @@ void Scrollbar::OnMouseMove(const Point& pos)
 			UpdatePartPositions();
 		}
 	}
-
+	else if (mouse_down_mode == mouse_down_none)
+	{
+		part_button_decrement->SetStyleState(rect_button_decrement.contains(pos) ? "hover" : "");
+		part_button_increment->SetStyleState(rect_button_increment.contains(pos) ? "hover" : "");
+		part_thumb->SetStyleState(rect_thumb.contains(pos) ? "hover" : "");
+	}
 	Update();
 }
 
@@ -181,6 +183,7 @@ bool Scrollbar::OnMouseDown(const Point& pos, InputKey key)
 	{
 		mouse_down_mode = mouse_down_button_decr;
 		FuncScrollOnMouseDown = &FuncScrollLineDecrement;
+		part_button_decrement->SetStyleState("down");
 
 		double last_position = position;
 
@@ -198,6 +201,7 @@ bool Scrollbar::OnMouseDown(const Point& pos, InputKey key)
 	{
 		mouse_down_mode = mouse_down_button_incr;
 		FuncScrollOnMouseDown = &FuncScrollLineIncrement;
+		part_button_increment->SetStyleState("down");
 
 		double last_position = position;
 
@@ -216,6 +220,7 @@ bool Scrollbar::OnMouseDown(const Point& pos, InputKey key)
 		mouse_down_mode = mouse_down_thumb_drag;
 		thumb_start_position = position;
 		thumb_start_pixel_position = vertical ? (rect_thumb.y - rect_track_decrement.y) : (rect_thumb.x - rect_track_decrement.x);
+		part_thumb->SetStyleState("down");
 	}
 	else if (rect_track_decrement.contains(pos))
 	{
@@ -265,8 +270,17 @@ bool Scrollbar::OnMouseUp(const Point& pos, InputKey key)
 {
 	if (mouse_down_mode == mouse_down_thumb_drag)
 	{
+		part_thumb->SetStyleState(rect_thumb.contains(pos) ? "hover" : "");
 		if (FuncScrollThumbRelease)
 			FuncScrollThumbRelease();
+	}
+	else if (mouse_down_mode == mouse_down_button_decr)
+	{
+		part_button_decrement->SetStyleState(rect_button_decrement.contains(pos) ? "hover" : "");
+	}
+	else if (mouse_down_mode == mouse_down_button_incr)
+	{
+		part_button_increment->SetStyleState(rect_button_increment.contains(pos) ? "hover" : "");
 	}
 
 	mouse_down_mode = mouse_down_none;
@@ -279,6 +293,12 @@ bool Scrollbar::OnMouseUp(const Point& pos, InputKey key)
 
 void Scrollbar::OnMouseLeave()
 {
+	if (part_button_decrement->GetStyleState() == "hover")
+		part_button_decrement->SetStyleState("");
+	if (part_button_increment->GetStyleState() == "hover")
+		part_button_increment->SetStyleState("");
+	if (part_thumb->GetStyleState() == "hover")
+		part_thumb->SetStyleState("");
 	Update();
 }
 
@@ -289,32 +309,52 @@ void Scrollbar::OnGeometryChanged()
 
 void Scrollbar::OnPaint(Canvas* canvas)
 {
-	/*
-	part_button_decrement.render_box(canvas, rect_button_decrement);
-	part_track_decrement.render_box(canvas, rect_track_decrement);
-	part_thumb.render_box(canvas, rect_thumb);
-	part_thumb_gripper.render_box(canvas, rect_thumb);
-	part_track_increment.render_box(canvas, rect_track_increment);
-	part_button_increment.render_box(canvas, rect_button_increment);
-	*/
+	if (part_thumb->IsStyled())
+	{
+		part_track->Paint(canvas, rect_track);
+		part_button_decrement->Paint(canvas, rect_button_decrement);
+		part_thumb->Paint(canvas, rect_thumb);
+		if (auto image = part_thumb->GetStyleImage("grip-image"))
+		{
+			double w = part_thumb->GetStyleDouble("grip-image-width");
+			double h = part_thumb->GetStyleDouble("grip-image-height");
+			if (w == 0.0)
+				w = (double)image->GetWidth();
+			if (h == 0.0)
+				h = (double)image->GetHeight();
+			double x = rect_thumb.x + (rect_thumb.width - w) * 0.5;
+			double y = rect_thumb.y + (rect_thumb.height - h) * 0.5;
+			canvas->drawImage(image, Rect::xywh(x, y, w, h));
+		}
+		part_button_increment->Paint(canvas, rect_button_increment);
+	}
+	else
+	{
+		auto height = GetHeight();
+		auto paint = rect_thumb.height < height;
 
-	auto height = GetHeight();
-	auto paint = rect_thumb.height < height;
+		canvas->fillRect(Rect::shrink(Rect::xywh(0.0, 0.0, GetWidth(), height), 4.0, 0.0, 4.0, 0.0), GetStyleColor("track-color"));
 
-	if (HIDE_SMALL_BAR && !paint) return;
+		if (!paint) return;
 
-	canvas->fillRect(Rect::shrink(Rect::xywh(0.0, 0.0, GetWidth(), height), 4.0, 0.0, 4.0, 0.0), GetStyleColor("track-color"));
-
-	if (HIDE_SMALL_THUMB && !paint) return;
-
-	canvas->fillRect(Rect::shrink(rect_thumb, 4.0, 0.0, 4.0, 0.0), GetStyleColor("thumb-color"));
+		canvas->fillRect(Rect::shrink(rect_thumb, 4.0, 0.0, 4.0, 0.0), GetStyleColor("thumb-color"));
+	}
 }
 
 // Calculates positions of all parts. Returns true if thumb position was changed compared to previously, false otherwise.
 bool Scrollbar::UpdatePartPositions()
 {
-	double decr_height = showbuttons ? 16.0 : 0.0;
-	double incr_height = showbuttons ? 16.0 : 0.0;
+	if (parts_vertical != vertical || !part_button_increment)
+	{
+		parts_vertical = vertical;
+		part_button_decrement = std::make_unique<PseudoWidget>(vertical ? "scrollbutton-up" : "scrollbutton-left");
+		part_track = std::make_unique<PseudoWidget>(vertical ? "scrolltrack-vert" : "scrolltrack-horz");
+		part_thumb = std::make_unique<PseudoWidget>(vertical ? "scrollthumb-vert" : "scrollthumb-horz");
+		part_button_increment = std::make_unique<PseudoWidget>(vertical ? "scrollbutton-down" : "scrollbutton-right");
+	}
+
+	double decr_height = showbuttons ? 20.0 : 0.0;
+	double incr_height = showbuttons ? 20.0 : 0.0;
 
 	double total_height = vertical ? GetHeight() : GetWidth();
 	double track_height = std::max(0.0, total_height - decr_height - incr_height);
@@ -326,6 +366,7 @@ bool Scrollbar::UpdatePartPositions()
 
 	rect_button_decrement = CreateRect(0.0, decr_height);
 	rect_track_decrement = CreateRect(decr_height, thumb_offset);
+	rect_track = CreateRect(0, total_height); // = CreateRect(decr_height, decr_height + track_height);
 	rect_thumb = CreateRect(thumb_offset, thumb_offset + thumb_height);
 	rect_track_increment = CreateRect(thumb_offset + thumb_height, decr_height + track_height);
 	rect_button_increment = CreateRect(decr_height + track_height, decr_height + track_height + incr_height);
