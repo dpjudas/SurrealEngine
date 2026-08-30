@@ -32,8 +32,8 @@ public:
 
 	void SetPosition(double pos);
 
-	double GetPreferredWidth() override { return 16.0; }
-	double GetPreferredHeight() override { return 16.0; }
+	double GetPreferredWidth() override { return 20.0; }
+	double GetPreferredHeight() override { return 20.0; }
 
 	std::function<void()> FuncScroll;
 	std::function<void()> FuncScrollMin;
@@ -70,7 +70,7 @@ private:
 	double page_step = 10.0;
 	double position = 0.0;
 
-	bool showbuttons = false;
+	bool showbuttons = true;
 
 	enum MouseDownMode
 	{
@@ -91,9 +91,16 @@ private:
 
 	Rect rect_button_decrement;
 	Rect rect_track_decrement;
+	Rect rect_track;
 	Rect rect_thumb;
 	Rect rect_track_increment;
 	Rect rect_button_increment;
+
+	bool parts_vertical = false;
+	std::unique_ptr<PseudoWidget> part_button_decrement;
+	std::unique_ptr<PseudoWidget> part_track;
+	std::unique_ptr<PseudoWidget> part_thumb;
+	std::unique_ptr<PseudoWidget> part_button_increment;
 
 	std::function<void()>* FuncScrollOnMouseDown = nullptr;
 };
