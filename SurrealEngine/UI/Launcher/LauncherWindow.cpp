@@ -12,6 +12,7 @@
 #include <surrealwidgets/window/window.h>
 #include <surrealwidgets/widgets/tabwidget/tabwidget.h>
 #include <surrealwidgets/widgets/layout/vboxlayout.h>
+#include <surrealwidgets/widgets/dialog/messagebox.h>
 
 int LauncherWindow::ExecModal()
 {
@@ -92,9 +93,13 @@ void LauncherWindow::Start()
 
 void LauncherWindow::Exit()
 {
-	Save();
-	ExecResult = -1;
-	DisplayWindow::ExitLoop();
+	// Hehe, this is too annoying, but it is an easy way to test the message box with this theme
+	// if (MessageBox::Question(this, "Are you sure you want to exit?", "Exit Surreal Engine") == DialogButton::Yes)
+	{
+		Save();
+		ExecResult = -1;
+		DisplayWindow::ExitLoop();
+	}
 }
 
 void LauncherWindow::OnClose()

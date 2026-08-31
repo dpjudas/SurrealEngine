@@ -13,6 +13,7 @@
 #undef PlaySound
 #undef DrawText
 #undef FindWindow
+#undef MessageBox
 #endif
 
 #include <cstdint>

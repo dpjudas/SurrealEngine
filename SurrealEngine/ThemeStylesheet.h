@@ -253,7 +253,7 @@ listview, treeview {
 
 listview-body, treeview-body {
 	color: var(--textarea-text);
-	selection-color: var(--secondary-text-500);
+	selection-color: #ffffff;
 	selection-background: var(--secondary-500);
 	noncontent-top: 2;
 	noncontent-left: 8;
