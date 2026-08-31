@@ -33,7 +33,7 @@ void VBoxLayout::OnGeometryChanged()
 
 		if (!widget->GetStretching())
 		{
-			nonStretchingWidgetsTotalHeight += GetFrameHeight(widget);
+			nonStretchingWidgetsTotalHeight += GetFrameHeight(widget, ParentWidget->GetWidth());
 		}
 		else
 			stretchingWidgetsCount++;
@@ -48,7 +48,7 @@ void VBoxLayout::OnGeometryChanged()
 	{
 		double frameHeight = 0.0;
 		if (!widget->GetStretching())
-			frameHeight = GetFrameHeight(widget);
+			frameHeight = GetFrameHeight(widget, ParentWidget->GetWidth());
 		else
 			frameHeight = stretchHeights;
 
@@ -78,6 +78,21 @@ double VBoxLayout::GetPreferredHeight()
 		else
 			first = false;
 		h += GetFrameHeight(widget);
+	}
+	return h;
+}
+
+double VBoxLayout::GetPreferredHeight(double width)
+{
+	double h = 0.0;
+	bool first = true;
+	for (const auto& widget : Widgets)
+	{
+		if (!first)
+			h += GapHeight;
+		else
+			first = false;
+		h += GetFrameHeight(widget, width);
 	}
 	return h;
 }

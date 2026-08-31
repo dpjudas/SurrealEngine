@@ -483,6 +483,10 @@ if(SURREALWIDGETS_BUILD_EXAMPLE)
 		"${CMAKE_CURRENT_SOURCE_DIR}/example/resources/surreal-engine-icon-64.png"
 		"${CMAKE_CURRENT_SOURCE_DIR}/example/resources/surreal-engine-icon-128.png"
 		"${CMAKE_CURRENT_SOURCE_DIR}/example/resources/surreal-engine-icon-256.png"
+		"${CMAKE_CURRENT_SOURCE_DIR}/example/resources/ErrorIcon.png"
+		"${CMAKE_CURRENT_SOURCE_DIR}/example/resources/InformationIcon.png"
+		"${CMAKE_CURRENT_SOURCE_DIR}/example/resources/QuestionIcon.png"
+		"${CMAKE_CURRENT_SOURCE_DIR}/example/resources/WarningIcon.png"
 	)
 
 	add_custom_command(

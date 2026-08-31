@@ -180,6 +180,11 @@ double Widget::GetPreferredHeight()
 	return m_Layout ? m_Layout->GetPreferredHeight() : 0.0;
 }
 
+double Widget::GetPreferredHeight(double width)
+{
+	return m_Layout ? m_Layout->GetPreferredHeight(width) : GetPreferredHeight();
+}
+
 Size Widget::GetSize() const
 {
 	return ContentGeometry.size();

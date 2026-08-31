@@ -86,6 +86,65 @@ double HBoxLayout::GetPreferredHeight()
 	return h;
 }
 
+double HBoxLayout::GetPreferredHeight(double width)
+{
+	if (Widgets.empty())
+		return 0.0;
+
+	const double totalWidth = width;
+	double nonStretchingWidgetsTotalWidth = 0.0;
+	int stretchingWidgetsCount = 0;
+	double stretchWidths = 0.0;
+
+	bool first = true;
+	for (const auto& widget : Widgets)
+	{
+		if (!first)
+			nonStretchingWidgetsTotalWidth += GapWidth;
+		else
+			first = false;
+
+		if (!widget->GetStretching())
+		{
+			nonStretchingWidgetsTotalWidth += GetFrameWidth(widget);
+		}
+		else
+		{
+			stretchingWidgetsCount++;
+		}
+	}
+
+	if (stretchingWidgetsCount > 0)
+		stretchWidths = (totalWidth - nonStretchingWidgetsTotalWidth) / stretchingWidgetsCount;
+
+	double h = 0.0;
+	for (const auto& widget : Widgets)
+	{
+		double frameWidth = widget->GetNoncontentLeft() + widget->GetNoncontentRight();
+		double contentWidth = 0.0;
+		if (!widget->GetStretching())
+		{
+			if (widget->GetFixedWidth().has_value())
+			{
+				contentWidth = widget->GetFixedWidth().value();
+			}
+			else
+			{
+				contentWidth = widget->GetPreferredWidth();
+			}
+			frameWidth += contentWidth;
+		}
+		else
+		{
+			contentWidth = std::max(stretchWidths - frameWidth, 0.0);
+			frameWidth = stretchWidths;
+		}
+
+		h = std::max(h, GetFrameHeight(widget, contentWidth));
+	}
+	return h;
+}
+
 void HBoxLayout::SetGapWidth(const double newGapWidth)
 {
 	GapWidth = newGapWidth;

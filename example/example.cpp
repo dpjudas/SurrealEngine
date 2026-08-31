@@ -220,7 +220,7 @@ LauncherWindowTab3::LauncherWindowTab3(Widget parent)
 	};
 
 	Popup->OnClick = [this]{
-		auto result = MessageBox::Information(this, "This is an Information MessageBox. You selected " + Choices->GetItem(Choices->GetSelectedItem()) + ".");
+		auto result = MessageBox::Information(this, "This is an Information MessageBox.\nYou selected " + Choices->GetItem(Choices->GetSelectedItem()) + ".\n\nWhy does everyone walk so slowly in the middle of the grocery store aisle?! It is not a museum! People have places to be, and I just need to grab my milk and leave. Move your cart to the side!");
 		std::cout << "Dialog returned: " << static_cast<uint32_t>(result) << std::endl;
 	};
 

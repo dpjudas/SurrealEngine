@@ -3,6 +3,7 @@
 
 #include "../../core/widget.h"
 #include "../../core/image.h"
+#include <optional>
 
 enum ImageBoxMode
 {

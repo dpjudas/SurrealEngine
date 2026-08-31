@@ -30,11 +30,13 @@ public:
 
 	virtual double GetPreferredWidth() = 0;
 	virtual double GetPreferredHeight() = 0;
+	virtual double GetPreferredHeight(double width) = 0;
 	virtual void OnGeometryChanged() = 0;
 
 protected:
 	static double GetFrameWidth(Widget* widget);
 	static double GetFrameHeight(Widget* widget);
+	static double GetFrameHeight(Widget* widget, double width);
 
 	std::vector<Widget*> Widgets;
 	Widget* ParentWidget = nullptr;

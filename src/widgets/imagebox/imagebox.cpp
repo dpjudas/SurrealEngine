@@ -7,7 +7,11 @@ ImageBox::ImageBox(Widget* parent) : Widget(parent)
 
 double ImageBox::GetPreferredWidth()
 {
-	if (image)
+	if (GetFixedWidth().has_value())
+		return GetFixedWidth().value();
+	else if (image && GetFixedHeight().has_value())
+		return image->GetWidth() * (double)GetFixedHeight().value() / image->GetHeight();
+	else if (image)
 		return (double)image->GetWidth();
 	else
 		return 0.0;
@@ -15,7 +19,11 @@ double ImageBox::GetPreferredWidth()
 
 double ImageBox::GetPreferredHeight()
 {
-	if (image)
+	if (GetFixedHeight().has_value())
+		return GetFixedHeight().value();
+	else if (image && GetFixedWidth().has_value())
+		return image->GetHeight() * (double)GetFixedWidth().value() / image->GetWidth();
+	else if (image)
 		return (double)image->GetHeight();
 	else
 		return 0.0;
