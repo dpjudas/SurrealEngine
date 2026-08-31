@@ -257,6 +257,7 @@ listview-body, treeview-body {
 	selection-background: var(--secondary-500);
 	noncontent-top: 2;
 	noncontent-left: 8;
+	noncontent-right: 8;
 	noncontent-bottom: 9;
 }
 
