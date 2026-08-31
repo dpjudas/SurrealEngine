@@ -77,3 +77,15 @@ double Layout::GetFrameHeight(Widget* widget)
 		return widget->GetNoncontentTop() + widget->GetPreferredHeight() + widget->GetNoncontentBottom();
 	}
 }
+
+double Layout::GetFrameHeight(Widget* widget, double width)
+{
+	if (widget->GetFixedHeight().has_value())
+	{
+		return widget->GetNoncontentTop() + widget->GetFixedHeight().value() + widget->GetNoncontentBottom();
+	}
+	else
+	{
+		return widget->GetNoncontentTop() + widget->GetPreferredHeight(width) + widget->GetNoncontentBottom();
+	}
+}

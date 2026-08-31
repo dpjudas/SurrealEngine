@@ -23,6 +23,7 @@ public:
 
 	double GetPreferredWidth() override;
 	double GetPreferredHeight() override;
+	double GetPreferredHeight(double width) override;
 
 protected:
 	void OnPaint(Canvas* canvas) override;

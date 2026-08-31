@@ -40,6 +40,7 @@ public:
 
 	virtual double GetPreferredWidth();
 	virtual double GetPreferredHeight();
+	virtual double GetPreferredHeight(double width);
 
 	// Widget noncontent area
 	void SetNoncontentSizes(double left, double top, double right, double bottom);

@@ -184,7 +184,7 @@ private:
 	TextSizeResult FindTextSize(Canvas* canvas, const TextBlock& block, size_t object_index);
 	std::vector<TextBlock> FindTextBlocks();
 	void LayoutLines(Canvas* canvas, double max_width);
-	void LayoutText(Canvas* canvas, std::vector<TextBlock> blocks, std::vector<TextBlock>::size_type block_index, CurrentLine& current_line, double max_width);
+	void LayoutText(Canvas* canvas, const std::vector<TextBlock>& blocks, std::vector<TextBlock>::size_type block_index, CurrentLine& current_line, double max_width);
 	void LayoutBlock(CurrentLine& current_line, double max_width, std::vector<TextBlock>& blocks, std::vector<TextBlock>::size_type block_index);
 	void LayoutFloatBlock(CurrentLine& current_line, double max_width);
 	void LayoutInlineBlock(CurrentLine& current_line, double max_width, std::vector<TextBlock>& blocks, std::vector<TextBlock>::size_type block_index);

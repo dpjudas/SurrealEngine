@@ -360,6 +360,8 @@ SpanLayout::TextSizeResult SpanLayout::FindTextSize(Canvas* canvas, const TextBl
 	{
 		size_t end = std::min(objects[object_index].end, block.end);
 		std::string subtext = text.substr(pos, end - pos);
+		if (IsNewline(block))
+			subtext = " ";
 
 		Size text_size = canvas->measureText(font, subtext).size();
 
@@ -417,8 +419,10 @@ std::vector<SpanLayout::TextBlock> SpanLayout::FindTextBlocks()
 		{
 		case ' ':
 		case '\t':
-		case '\n':
 			end_pos = text.find_first_not_of(text[pos], pos);
+			break;
+		case '\n':
+			end_pos = pos + 1;
 			break;
 		default:
 			end_pos = text.find_first_of(" \t\n", pos);
@@ -618,7 +622,7 @@ bool SpanLayout::BoxFitsOnLine(const FloatBox& box, double max_width)
 	return true;
 }
 
-void SpanLayout::LayoutText(Canvas* canvas, std::vector<TextBlock> blocks, std::vector<TextBlock>::size_type block_index, CurrentLine& current_line, double max_width)
+void SpanLayout::LayoutText(Canvas* canvas, const std::vector<TextBlock>& blocks, std::vector<TextBlock>::size_type block_index, CurrentLine& current_line, double max_width)
 {
 	TextSizeResult text_size_result = FindTextSize(canvas, blocks[block_index], current_line.object_index);
 	current_line.object_index += text_size_result.objects_traversed;

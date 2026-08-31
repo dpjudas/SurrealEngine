@@ -4,6 +4,7 @@
 
 class PushButton;
 class TextLabel;
+class ImageBox;
 
 enum class MessageBoxIcon
 {
@@ -25,6 +26,7 @@ public:
     static DialogButton Error(Widget* owner, const std::string& message, const std::string& windowTitle = "Error");
 
 private:
-    TextLabel* m_MessageLabel;
+    ImageBox* m_Icon = nullptr;
+    TextLabel* m_MessageLabel = nullptr;
     std::vector<PushButton*> m_DialogButtons;
 };
