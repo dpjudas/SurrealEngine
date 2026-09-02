@@ -331,6 +331,9 @@ public:
 	virtual void ShowMaximized() = 0;
 	virtual void ShowMinimized() = 0;
 	virtual void ShowNormal() = 0;
+	virtual void SetWindowResizable(bool enable) = 0;
+	virtual void SetWindowMinSize(int width, int height) = 0;
+	virtual void SetWindowMaxSize(int width, int height) = 0;
 	virtual bool IsWindowFullscreen() = 0;
 	virtual void Hide() = 0;
 	virtual void Activate() = 0;

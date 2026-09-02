@@ -326,6 +326,8 @@ int example(Backend backend, Theme theme)
 
 	auto launcher = new LauncherWindow();
 	launcher->SetFrameGeometry((Widget::GetScreenSize().width - 615.0) * 0.5, (Widget::GetScreenSize().height - 668.0) * 0.5, 615.0, 668.0);
+	launcher->SetWindowMinSize(600, 400);
+	launcher->SetWindowMaxSize(1280, 960);
 	launcher->Show();
 
 	DisplayWindow::RunLoop();

@@ -94,7 +94,7 @@ Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, WidgetType
 	classdesc.cbSize = sizeof(WNDCLASSEX);
 	classdesc.hInstance = GetModuleHandle(0);
 	classdesc.style = CS_VREDRAW | CS_HREDRAW | CS_DBLCLKS;
-	classdesc.lpszClassName = L"ZWidgetWindow";
+	classdesc.lpszClassName = L"SurrealWidgetsWindow";
 	classdesc.lpfnWndProc = &Win32DisplayWindow::WndProc;
 	if (renderAPI != RenderAPI::Unspecified && renderAPI != RenderAPI::Bitmap)
 		classdesc.hbrBackground = (HBRUSH)GetStockObject(BLACK_BRUSH); // Use a black initial color for the window if not using GDI bitmap painting
@@ -317,6 +317,31 @@ void Win32DisplayWindow::ShowNormal()
 		Fullscreen = false;
 	}
 	ShowWindow(WindowHandle.hwnd, SW_NORMAL);
+}
+
+void Win32DisplayWindow::SetWindowResizable(bool enable)
+{
+	auto flags = GetWindowLongPtr(WindowHandle.hwnd, GWL_STYLE);
+
+	if (enable)
+		flags |= WS_SIZEBOX;
+	else
+		flags &= ~WS_SIZEBOX;
+
+	SetWindowLongPtr(WindowHandle.hwnd, GWL_STYLE, flags);
+	SetWindowPos(WindowHandle.hwnd, 0, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE | SWP_NOZORDER | SWP_FRAMECHANGED);
+}
+
+void Win32DisplayWindow::SetWindowMinSize(int width, int height)
+{
+	minWindowWidth = width;
+	minWindowHeight = height;
+}
+
+void Win32DisplayWindow::SetWindowMaxSize(int width, int height)
+{
+	maxWindowWidth = width;
+	maxWindowHeight = height;
 }
 
 bool Win32DisplayWindow::IsWindowFullscreen()
@@ -884,6 +909,15 @@ LRESULT Win32DisplayWindow::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lpar
 	else if (msg == WM_SIZE)
 	{
 		WindowHost->OnWindowGeometryChanged();
+		return 0;
+	}
+	else if (msg == WM_GETMINMAXINFO)
+	{
+		MINMAXINFO* mmi = (MINMAXINFO*)lparam;
+		mmi->ptMinTrackSize.x = minWindowWidth;
+		mmi->ptMinTrackSize.y = minWindowHeight;
+		mmi->ptMaxTrackSize.x = maxWindowWidth;
+		mmi->ptMaxTrackSize.y = maxWindowHeight;
 		return 0;
 	}
 	/*else if (msg == WM_NCCALCSIZE && wparam == TRUE) // calculate client area for the window

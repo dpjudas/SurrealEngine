@@ -23,6 +23,9 @@ public:
     void ShowMaximized() override;
     void ShowMinimized() override;
     void ShowNormal() override;
+    void SetWindowResizable(bool enable) override;
+    void SetWindowMinSize(int width, int height) override;
+    void SetWindowMaxSize(int width, int height) override;
     bool IsWindowFullscreen() override;
     void Hide() override;
     void Activate() override;

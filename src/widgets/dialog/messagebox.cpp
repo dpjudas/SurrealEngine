@@ -93,7 +93,7 @@ MessageBox::MessageBox(Widget* owner, const std::string& windowTitle, const std:
 
     SetLayout(mainLayout);
     SetNoncontentSizes(15, 10, 15, 10);
-    
+
     double layoutWidth = std::min(GetPreferredWidth(), 700.0);
     double layoutHeight = GetPreferredHeight(layoutWidth);
     double frameWidth = layoutWidth + GetNoncontentLeft() + GetNoncontentRight();
@@ -114,6 +114,8 @@ MessageBox::MessageBox(Widget* owner, const std::string& windowTitle, const std:
         double y = (screenSize.height - frameHeight) * 0.5;
         SetFrameGeometry(Rect::xywh(x, y, frameWidth, frameHeight));
     }
+
+    SetWindowResizable(false);
 }
 
 DialogButton MessageBox::Information(Widget* owner, const std::string& message, const std::string& windowTitle)

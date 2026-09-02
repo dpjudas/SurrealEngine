@@ -974,6 +974,21 @@ void CocoaDisplayWindow::ShowNormal()
     }
 }
 
+void CocoaDisplayWindow::SetWindowResizable(bool enable)
+{
+    // TODO: Stub
+}
+
+void CocoaDisplayWindow::SetWindowMinSize(int width, int height)
+{
+    // TODO: Stub
+}
+
+void CocoaDisplayWindow::SetWindowMaxSize(int width, int height)
+{
+    // TODO: Stub
+}
+
 bool CocoaDisplayWindow::IsWindowFullscreen()
 {
     if (impl->window)

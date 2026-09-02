@@ -92,6 +92,9 @@ public:
 	void SetWindowBorderColor(const Colorf& color);
 	void SetWindowCaptionColor(const Colorf& color);
 	void SetWindowCaptionTextColor(const Colorf& color);
+	void SetWindowResizable(const bool enable) const { Window()->DispWindow->SetWindowResizable(enable); }
+	void SetWindowMinSize(const int width, const int height) const { Window()->DispWindow->SetWindowMinSize(width, height); }
+	void SetWindowMaxSize(const int width, const int height) const { Window()->DispWindow->SetWindowMaxSize(width, height); }
 
 	void SetVisible(bool enable) { if (enable) Show(); else Hide(); }
 	void Show();

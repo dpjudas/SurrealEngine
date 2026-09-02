@@ -104,7 +104,30 @@ void WaylandDisplayWindow::InitializeToplevel()
 
 	m_XDGToplevel.on_configure_bounds() = [this] (int32_t width, int32_t height)
 	{
+		if (!isResizable)
+			return;
 
+		auto clientFrame = GetClientFrame();
+
+		bool changed = false;
+
+		if (width > 0 && clientFrame.width > width)
+		{
+			clientFrame.width = width;
+			changed = true;
+		}
+
+		if (height > 0 && clientFrame.height > height)
+		{
+			clientFrame.height = height;
+			changed = true;
+		}
+
+		if (changed)
+		{
+			SetClientFrame(clientFrame);
+			windowHost->OnWindowGeometryChanged();
+		}
 	};
 
 	m_XDGExported = backend->m_XDGExporter.export_toplevel(m_WindowSurface);
@@ -215,6 +238,42 @@ void WaylandDisplayWindow::ShowNormal()
 {
 	if (m_XDGToplevel)
 		m_XDGToplevel.unset_fullscreen();
+}
+
+void WaylandDisplayWindow::SetWindowResizable(bool enable)
+{
+	isResizable = enable;
+	auto rect = GetClientFrame();
+	if (!enable)
+	{
+		m_XDGToplevel.set_min_size(rect.width, rect.height);
+		m_XDGToplevel.set_max_size(rect.width, rect.height);
+	}
+	else
+	{
+		m_XDGToplevel.set_min_size(m_minWindowWidth, m_minWindowHeight);
+		m_XDGToplevel.set_max_size(m_maxWindowWidth, m_maxWindowHeight);
+	}
+}
+
+void WaylandDisplayWindow::SetWindowMinSize(int width, int height)
+{
+	if (m_XDGToplevel)
+	{
+		m_XDGToplevel.set_min_size(width, height);
+		m_minWindowWidth = width;
+		m_minWindowHeight = height;
+	}
+}
+
+void WaylandDisplayWindow::SetWindowMaxSize(int width, int height)
+{
+	if (m_XDGToplevel)
+	{
+		m_XDGToplevel.set_max_size(width, height);
+		m_maxWindowWidth = width;
+		m_maxWindowHeight = height;
+	}
 }
 
 bool WaylandDisplayWindow::IsWindowFullscreen()
