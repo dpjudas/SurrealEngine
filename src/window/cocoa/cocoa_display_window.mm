@@ -193,6 +193,9 @@ public:
     CGImageRef cgImage = nullptr;
     std::map<InputKey, bool> keyState;
     bool cursorLocked = false;
+    bool resizable = true;
+    NSSize minContentSize = NSMakeSize(0.0, 0.0);
+    NSSize maxContentSize = NSMakeSize(CGFLOAT_MAX, CGFLOAT_MAX);
     RenderAPI renderAPI = RenderAPI::Unspecified;
     std::shared_ptr<CocoaDisplayWindowLifetime> lifetime = std::make_shared<CocoaDisplayWindowLifetime>();
 
@@ -976,17 +979,58 @@ void CocoaDisplayWindow::ShowNormal()
 
 void CocoaDisplayWindow::SetWindowResizable(bool enable)
 {
-    // TODO: Stub
+    impl->resizable = enable;
+
+    if (!impl->window)
+        return;
+
+    // Borderless popups have no resize affordances to begin with
+    if (([impl->window styleMask] & NSWindowStyleMaskTitled) != 0)
+    {
+        NSWindowStyleMask style = [impl->window styleMask];
+        if (enable)
+            style |= NSWindowStyleMaskResizable;
+        else
+            style &= ~NSWindowStyleMaskResizable;
+        [impl->window setStyleMask:style];
+
+        // The zoom button survives the style mask change, so disable it too
+        [[impl->window standardWindowButton:NSWindowZoomButton] setEnabled:enable];
+        [impl->window setCollectionBehavior:enable ? NSWindowCollectionBehaviorFullScreenPrimary : NSWindowCollectionBehaviorFullScreenNone];
+    }
+
+    if (enable)
+    {
+        [impl->window setContentMinSize:impl->minContentSize];
+        [impl->window setContentMaxSize:impl->maxContentSize];
+    }
+    else
+    {
+        // Pin the window to its current content size
+        NSSize size = [[impl->window contentView] frame].size;
+        [impl->window setContentMinSize:size];
+        [impl->window setContentMaxSize:size];
+    }
 }
 
 void CocoaDisplayWindow::SetWindowMinSize(int width, int height)
 {
-    // TODO: Stub
+    impl->minContentSize = NSMakeSize(width, height);
+
+    if (impl->window && impl->resizable)
+    {
+        [impl->window setContentMinSize:impl->minContentSize];
+    }
 }
 
 void CocoaDisplayWindow::SetWindowMaxSize(int width, int height)
 {
-    // TODO: Stub
+    impl->maxContentSize = NSMakeSize(width, height);
+
+    if (impl->window && impl->resizable)
+    {
+        [impl->window setContentMaxSize:impl->maxContentSize];
+    }
 }
 
 bool CocoaDisplayWindow::IsWindowFullscreen()
