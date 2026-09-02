@@ -95,6 +95,9 @@ public:
 	void ShowMaximized() override;
 	void ShowMinimized() override;
 	void ShowNormal() override;
+	void SetWindowResizable(bool enable) override;
+	void SetWindowMinSize(int width, int height) override;
+	void SetWindowMaxSize(int width, int height) override;
 	void Hide() override;
 	void Activate() override;
 	void ShowCursor(bool enable) override;
@@ -211,6 +214,12 @@ private:
 	EGLSurface m_EGLSurface = nullptr;
 
 	bool isFullscreen = false;
+	bool isResizable = true;
+
+	int m_minWindowWidth = 0;
+	int m_minWindowHeight = 0;
+	int m_maxWindowWidth = 0;
+	int m_maxWindowHeight = 0;
 
 	// Helper functions
 	void CreateBuffers(int32_t width, int32_t height);

@@ -26,6 +26,9 @@ public:
 	void ShowMaximized() override;
 	void ShowMinimized() override;
 	void ShowNormal() override;
+	void SetWindowResizable(bool enable) override;
+	void SetWindowMinSize(int width, int height) override;
+	void SetWindowMaxSize(int width, int height) override;
 	bool IsWindowFullscreen() override;
 	void Hide() override;
 	void Activate() override;
@@ -146,6 +149,11 @@ private:
 	EGLDisplay m_EGLDisplay = nullptr;
 	EGLContext m_EGLContext = nullptr;
 	EGLSurface m_EGLSurface = nullptr;
+
+	int minWindowWidth = 0;
+	int minWindowHeight = 0;
+	int maxWindowWidth = 0;
+	int maxWindowHeight = 0;
 
 	friend class X11Connection;
 	friend class X11DisplayBackend;

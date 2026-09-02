@@ -308,6 +308,64 @@ void X11DisplayWindow::ShowNormal()
 	isFullscreen = false;
 }
 
+void X11DisplayWindow::SetWindowResizable(bool enable)
+{
+	auto rect = GetClientFrame();
+	XSizeHints* size_hints = XAllocSizeHints();
+	long user_hints;
+	XGetWMNormalHints(display, window, size_hints, &user_hints);
+	if (enable)
+	{
+		size_hints->flags &= ~(PMinSize | PMaxSize);
+		size_hints->min_width = minWindowWidth;
+		size_hints->max_width = maxWindowWidth;
+		size_hints->min_height = minWindowHeight;
+		size_hints->max_height = maxWindowHeight;
+	}
+	else
+	{
+		size_hints->flags |= PMinSize | PMaxSize;
+		size_hints->min_width = GetPixelWidth();
+		size_hints->max_width = GetPixelWidth();
+		size_hints->min_height = GetPixelHeight();
+		size_hints->max_height = GetPixelHeight();
+	}
+	XSetWMNormalHints(display, window, size_hints);
+	XFree(size_hints);
+}
+
+void X11DisplayWindow::SetWindowMinSize(int width, int height)
+{
+	XSizeHints* size_hints = XAllocSizeHints();
+	long user_hints;
+	XGetWMNormalHints(display, window, size_hints, &user_hints);
+	size_hints->flags |= PMinSize;
+	size_hints->min_width = width;
+	size_hints->min_height = height;
+
+	XSetWMNormalHints(display, window, size_hints);
+	XFree(size_hints);
+
+	minWindowWidth = width;
+	minWindowHeight = height;
+}
+
+void X11DisplayWindow::SetWindowMaxSize(int width, int height)
+{
+	XSizeHints* size_hints = XAllocSizeHints();
+	long user_hints;
+	XGetWMNormalHints(display, window, size_hints, &user_hints);
+	size_hints->flags |= PMaxSize;
+	size_hints->max_width = width;
+	size_hints->max_height = height;
+
+	XSetWMNormalHints(display, window, size_hints);
+	XFree(size_hints);
+
+	maxWindowWidth = width;
+	maxWindowHeight = height;
+}
+
 void X11DisplayWindow::Hide()
 {
 	if (isMapped)

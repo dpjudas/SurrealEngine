@@ -141,6 +141,21 @@ void SDL2DisplayWindow::ShowNormal()
 	isFullscreen = false;
 }
 
+void SDL2DisplayWindow::SetWindowResizable(bool enable)
+{
+	SDL_SetWindowResizable(Handle.window, enable ? SDL_TRUE : SDL_FALSE);
+}
+
+void SDL2DisplayWindow::SetWindowMinSize(int width, int height)
+{
+	SDL_SetWindowMinimumSize(Handle.window, width, height);
+}
+
+void SDL2DisplayWindow::SetWindowMaxSize(int width, int height)
+{
+	SDL_SetWindowMaximumSize(Handle.window, width, height);
+}
+
 bool SDL2DisplayWindow::IsWindowFullscreen()
 {
 	return isFullscreen;
