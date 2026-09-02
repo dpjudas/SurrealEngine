@@ -334,12 +334,14 @@ void Win32DisplayWindow::SetWindowResizable(bool enable)
 
 void Win32DisplayWindow::SetWindowMinSize(int width, int height)
 {
+	minWindowSizeSet = true;
 	minWindowWidth = width;
 	minWindowHeight = height;
 }
 
 void Win32DisplayWindow::SetWindowMaxSize(int width, int height)
 {
+	maxWindowSizeSet = true;
 	maxWindowWidth = width;
 	maxWindowHeight = height;
 }
@@ -914,10 +916,16 @@ LRESULT Win32DisplayWindow::OnWindowMessage(UINT msg, WPARAM wparam, LPARAM lpar
 	else if (msg == WM_GETMINMAXINFO)
 	{
 		MINMAXINFO* mmi = (MINMAXINFO*)lparam;
-		mmi->ptMinTrackSize.x = minWindowWidth;
-		mmi->ptMinTrackSize.y = minWindowHeight;
-		mmi->ptMaxTrackSize.x = maxWindowWidth;
-		mmi->ptMaxTrackSize.y = maxWindowHeight;
+		if (minWindowSizeSet)
+		{
+			mmi->ptMinTrackSize.x = minWindowWidth;
+			mmi->ptMinTrackSize.y = minWindowHeight;
+		}
+		if (maxWindowSizeSet)
+		{
+			mmi->ptMaxTrackSize.x = maxWindowWidth;
+			mmi->ptMaxTrackSize.y = maxWindowHeight;
+		}
 		return 0;
 	}
 	/*else if (msg == WM_NCCALCSIZE && wparam == TRUE) // calculate client area for the window
