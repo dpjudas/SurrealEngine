@@ -119,7 +119,7 @@ Win32DisplayWindow::Win32DisplayWindow(DisplayWindowHost* windowHost, WidgetType
 	if (!owner)
 		exstyle |= WS_EX_APPWINDOW;
 
-	CreateWindowEx(exstyle, L"ZWidgetWindow", L"", style, 0, 0, 100, 100, owner ? owner->WindowHandle.hwnd : 0, 0, GetModuleHandle(0), this);
+	CreateWindowEx(exstyle, L"SurrealWidgetsWindow", L"", style, 0, 0, 100, 100, owner ? owner->WindowHandle.hwnd : 0, 0, GetModuleHandle(0), this);
 }
 
 Win32DisplayWindow::~Win32DisplayWindow()
