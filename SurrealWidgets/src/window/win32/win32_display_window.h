@@ -105,8 +105,10 @@ public:
 
 	bool TrackMouseActive = false;
 
+	bool minWindowSizeSet = false;
 	int minWindowWidth = 0;
 	int minWindowHeight = 0;
+	bool maxWindowSizeSet = false;
 	int maxWindowWidth = 0;
 	int maxWindowHeight = 0;
 
