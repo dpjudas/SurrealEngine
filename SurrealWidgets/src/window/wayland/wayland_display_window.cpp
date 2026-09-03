@@ -144,8 +144,7 @@ void WaylandDisplayWindow::InitializePopup()
 
 	wayland::xdg_positioner_t popupPositioner = backend->m_XDGWMBase.create_positioner();
 
-	// TODO: We gotta figure out a way to make positioner actually position the menu
-	// Maybe somehow get the clicked menu's rectangle relative to the window's surface?
+	// Assign dummy values to the positioner.
 	popupPositioner.set_anchor(wayland::xdg_positioner_anchor::bottom);
 	popupPositioner.set_anchor_rect(0, 0, 1, 30);
 	popupPositioner.set_size(1, 1);
@@ -153,10 +152,8 @@ void WaylandDisplayWindow::InitializePopup()
 	m_XDGPopup = m_XDGSurface.get_popup(m_owner->m_XDGSurface, popupPositioner);
 
 	m_XDGPopup.on_configure() = [&] (int32_t x, int32_t y, int32_t width, int32_t height) {
-		SetClientFrame(Rect::xywh(x, y, width, height));
+		//SetClientFrame(Rect::xywh(x, y, width, height));
 	};
-
-	//m_XDGPopup.on_repositioned()
 
 	m_XDGPopup.on_popup_done() = [&] () {
 		OnExitEvent();
@@ -199,6 +196,19 @@ void WaylandDisplayWindow::SetWindowIcon(const std::vector<std::shared_ptr<Image
 
 void WaylandDisplayWindow::SetClientFrame(const Rect& box)
 {
+	if (m_XDGPopup && m_owner)
+	{
+		m_OwnerOffset = m_owner->MapFromGlobal(box.topLeft());
+		auto ownerRect = m_owner->GetClientFrame();
+		auto positioner = backend->m_XDGWMBase.create_positioner();
+
+		positioner.set_offset(0, 0);
+		positioner.set_anchor(wayland::xdg_positioner_anchor::top_left);
+		positioner.set_anchor_rect(m_OwnerOffset.x, m_OwnerOffset.y, ownerRect.width, ownerRect.height);
+
+		m_XDGPopup.reposition(positioner, 0);
+	}
+
 	// Resizing will be shown on the next commit
 	CreateBuffers(box.width, box.height);
 	windowHost->OnWindowGeometryChanged();
@@ -225,19 +235,36 @@ void WaylandDisplayWindow::ShowFullscreen()
 void WaylandDisplayWindow::ShowMaximized()
 {
 	if (m_XDGToplevel)
+	{
 		m_XDGToplevel.set_maximized();
+		isMaximized = true;
+	}
 }
 
 void WaylandDisplayWindow::ShowMinimized()
 {
 	if (m_XDGToplevel)
+	{
 		m_XDGToplevel.set_minimized();
+		isMaximized = false;
+	}
 }
 
 void WaylandDisplayWindow::ShowNormal()
 {
 	if (m_XDGToplevel)
-		m_XDGToplevel.unset_fullscreen();
+	{
+		if (isFullscreen)
+		{
+			m_XDGToplevel.unset_fullscreen();
+			isFullscreen = false;
+		}
+		else if (isMaximized)
+		{
+			m_XDGToplevel.unset_maximized();
+			isMaximized = false;
+		}
+	}
 }
 
 void WaylandDisplayWindow::SetWindowResizable(bool enable)
@@ -370,7 +397,17 @@ void WaylandDisplayWindow::SetCursor(StandardCursor cursor, std::shared_ptr<Cust
 
 Rect WaylandDisplayWindow::GetClientFrame() const
 {
-	return Rect(m_WindowGlobalPos.x, m_WindowGlobalPos.y, m_WindowSize.width, m_WindowSize.height);
+	Point globalPos = m_OwnerOffset;
+
+	if (m_XDGPopup && m_owner)
+	{
+		for (auto cur = m_owner ; cur != nullptr ; cur = cur->m_owner)
+		{
+			globalPos += cur->m_OwnerOffset;
+		}
+	}
+
+	return Rect(globalPos, Size(m_WindowSize.width, m_WindowSize.height));
 }
 
 Size WaylandDisplayWindow::GetClientSize() const
@@ -438,12 +475,12 @@ void WaylandDisplayWindow::SetClipboardText(const std::string& text)
 
 Point WaylandDisplayWindow::MapFromGlobal(const Point& pos) const
 {
-	return (pos - m_WindowGlobalPos) / m_ScaleFactor;
+	return (pos * m_ScaleFactor - GetClientFrame().topLeft()) / m_ScaleFactor;
 }
 
 Point WaylandDisplayWindow::MapToGlobal(const Point& pos) const
 {
-	return (m_WindowGlobalPos + pos) / m_ScaleFactor;
+	return (GetClientFrame().topLeft() + pos * m_ScaleFactor) / m_ScaleFactor;
 }
 
 void WaylandDisplayWindow::OnXDGToplevelConfigureEvent(int32_t width, int32_t height, const std::vector<wayland::xdg_toplevel_state>& states)
@@ -454,26 +491,37 @@ void WaylandDisplayWindow::OnXDGToplevelConfigureEvent(int32_t width, int32_t he
 		{
 			if (backend->GetMouseLockOwnerWindow() == this)
 				ShowCursor(false);
+
 			windowHost->OnWindowActivated();
 		}
 		// waylandpp's XDG_Toplevel seems to only have states up until tiled_top for the time being.
 		// yet later versions of XDGWMBase has more states (like suspended)
 		// so to not blow things up when waylandpp adds the missing states, we individually add the relevant states here
-		else if (state == wayland::xdg_toplevel_state::fullscreen ||
-				 state == wayland::xdg_toplevel_state::maximized ||
-				 state == wayland::xdg_toplevel_state::resizing ||
-				 state == wayland::xdg_toplevel_state::tiled_bottom ||
-				 state == wayland::xdg_toplevel_state::tiled_left ||
-				 state == wayland::xdg_toplevel_state::tiled_right ||
-				 state == wayland::xdg_toplevel_state::tiled_top)
+		else if (state == wayland::xdg_toplevel_state::fullscreen)
 		{
-			Rect rect = GetClientFrame();
-			rect.width = width;
-			rect.height = height;
-			SetClientFrame(rect);
-			windowHost->OnWindowGeometryChanged();
+			isFullscreen = true;
 		}
+		else if (state == wayland::xdg_toplevel_state::maximized)
+		{
+			isMaximized = true;
+		}
+		// else if (state == wayland::xdg_toplevel_state::resizing ||
+		// 		 state == wayland::xdg_toplevel_state::tiled_bottom ||
+		// 		 state == wayland::xdg_toplevel_state::tiled_left ||
+		// 		 state == wayland::xdg_toplevel_state::tiled_right ||
+		// 		 state == wayland::xdg_toplevel_state::tiled_top)
+		// {
+		// 	// Rect rect = GetClientFrame();
+		// 	// rect.width = width;
+		// 	// rect.height = height;
+		// 	// SetClientFrame(rect);
+		// }
 	}
+
+	Rect rect = GetClientFrame();
+	rect.width = width;
+	rect.height = height;
+	SetClientFrame(rect);
 }
 
 void WaylandDisplayWindow::OnExportHandleEvent(std::string exportedHandle)
