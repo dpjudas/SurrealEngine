@@ -256,8 +256,8 @@ listview-body, treeview-body {
 	selection-color: #ffffff;
 	selection-background: var(--secondary-500);
 	noncontent-top: 2;
-	noncontent-left: 8;
-	noncontent-right: 8;
+	noncontent-left: 2;
+	noncontent-right: 2;
 	noncontent-bottom: 9;
 }
 
@@ -273,7 +273,7 @@ listview-header, treeview-header {
 	noncontent-right: 2;
 	noncontent-top: 1;
 	noncontent-bottom: 1;
-	color: #000000;
+	color: #ffffff;
 	border-image-source: url("theme/ViewHeader.png");
 	border-top-width: 4;
 	border-bottom-width: 4;
@@ -291,6 +291,11 @@ listview-header, treeview-header {
 }
 
 listview-item {
+	noncontent-left: 6;
+	noncontent-right: 6;
+}
+
+listview-item:selected {
 	border-image-source: url("theme/ListViewItemSelected.png");
 	border-top-width: 2;
 	border-bottom-width: 2;
