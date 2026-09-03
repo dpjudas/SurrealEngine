@@ -18,7 +18,7 @@ int LauncherWindow::ExecModal()
 {
 	Size screenSize = GetScreenSize();
 	double windowWidth = 1024.0;
-	double windowHeight = 750.0;
+	double windowHeight = 675.0;
 
 	auto launcher = std::make_unique<LauncherWindow>();
 	launcher->SetFrameGeometry((screenSize.width - windowWidth) * 0.5, (screenSize.height - windowHeight) * 0.5, windowWidth, windowHeight);

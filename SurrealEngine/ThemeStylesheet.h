@@ -180,18 +180,14 @@ pushbutton {
 	noncontent-bottom: 5;
 	color: #000000;
 	border-image-source: url("theme/PushButton.png");
-	border-top-width: 2;
-	border-bottom-width: 2;
-	border-left-width: 4;
-	border-right-width: 4;
-	border-top-image-slice: 4;
-	border-bottom-image-slice: 4;
+	border-top-image-slice: 8;
+	border-bottom-image-slice: 8;
 	border-left-image-slice: 8;
 	border-right-image-slice: 8;
-	border-top-image-width: 2;
-	border-bottom-image-width: 2;
-	border-left-image-width: 4;
-	border-right-image-width: 4;
+	border-top-image-width: 3;
+	border-bottom-image-width: 3;
+	border-left-image-width: 3;
+	border-right-image-width: 3;
 	border-center-image-slice: true;
 }
 
@@ -275,18 +271,14 @@ listview-header, treeview-header {
 	noncontent-bottom: 1;
 	color: #ffffff;
 	border-image-source: url("theme/ViewHeader.png");
-	border-top-width: 4;
-	border-bottom-width: 4;
-	border-left-width: 4;
-	border-right-width: 4;
 	border-top-image-slice: 8;
 	border-bottom-image-slice: 8;
 	border-left-image-slice: 8;
 	border-right-image-slice: 8;
-	border-top-image-width: 4;
-	border-bottom-image-width: 4;
-	border-left-image-width: 4;
-	border-right-image-width: 4;
+	border-top-image-width: 3;
+	border-bottom-image-width: 3;
+	border-left-image-width: 3;
+	border-right-image-width: 3;
 	border-center-image-slice: true;
 }
 
@@ -297,18 +289,14 @@ listview-item {
 
 listview-item:selected {
 	border-image-source: url("theme/ListViewItemSelected.png");
-	border-top-width: 2;
-	border-bottom-width: 2;
-	border-left-width: 4;
-	border-right-width: 4;
-	border-top-image-slice: 4;
-	border-bottom-image-slice: 4;
+	border-top-image-slice: 8;
+	border-bottom-image-slice: 8;
 	border-left-image-slice: 8;
 	border-right-image-slice: 8;
-	border-top-image-width: 2;
-	border-bottom-image-width: 2;
-	border-left-image-width: 4;
-	border-right-image-width: 4;
+	border-top-image-width: 3;
+	border-bottom-image-width: 3;
+	border-left-image-width: 3;
+	border-right-image-width: 3;
 	border-center-image-slice: true;
 }
 
@@ -321,18 +309,14 @@ dropdown {
 	arrow-image: url("theme/DropdownTriangle.png");
 	arrow-image-width: 16;
 	arrow-image-height: 16;
-	border-top-width: 2;
-	border-bottom-width: 2;
-	border-left-width: 4;
-	border-right-width: 4;
-	border-top-image-slice: 4;
-	border-bottom-image-slice: 4;
+	border-top-image-slice: 8;
+	border-bottom-image-slice: 8;
 	border-left-image-slice: 8;
 	border-right-image-slice: 8;
-	border-top-image-width: 2;
-	border-bottom-image-width: 2;
-	border-left-image-width: 4;
-	border-right-image-width: 4;
+	border-top-image-width: 3;
+	border-bottom-image-width: 3;
+	border-left-image-width: 3;
+	border-right-image-width: 3;
 	border-center-image-slice: true;
 	color: #000000;
 }
@@ -341,18 +325,14 @@ scrollbar {
 }
 
 scrollbutton-up, scrollbutton-down, scrollbutton-left, scrollbutton-right, scrollthumb-vert, scrollthumb-horz, scrolltrack-vert, scrolltrack-horz {
-	border-top-width: 4;
-	border-bottom-width: 4;
-	border-left-width: 4;
-	border-right-width: 4;
 	border-top-image-slice: 8;
 	border-bottom-image-slice: 8;
 	border-left-image-slice: 8;
 	border-right-image-slice: 8;
-	border-top-image-width: 4;
-	border-bottom-image-width: 4;
-	border-left-image-width: 4;
-	border-right-image-width: 4;
+	border-top-image-width: 3;
+	border-bottom-image-width: 3;
+	border-left-image-width: 3;
+	border-right-image-width: 3;
 	border-center-image-slice: true;
 }
 
