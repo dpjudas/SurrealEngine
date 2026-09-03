@@ -4,7 +4,6 @@
 #include "Utils/CommandLine.h"
 #include "GameFolder.h"
 #include "Engine.h"
-#include "ThemeStylesheet.h"
 #include "Commandlet/Native/NativeCommandlet.h"
 #include "Commandlet/ExportCommandlet.h"
 #include "Commandlet/QuitCommandlet.h"
@@ -34,10 +33,7 @@
 
 int DebuggerApp::Main(Array<std::string> args)
 {
-	auto backend = DisplayBackend::TryCreateBackend();
-	DisplayBackend::Set(std::move(backend));
-	InitWidgetResources();
-	WidgetTheme::SetTheme(std::make_unique<StylesheetTheme>(theme_stylesheet, "dark"));
+	InitWidgetResources("dark");
 
 	Logger::Get()->SetCallback([&](const LogMessageLine& line) { PrintLog(line); });
 

@@ -6,6 +6,8 @@
 #include "Utils/Exception.h"
 #include <cstdlib>
 #include <string>
+#include <surrealwidgets/core/theme.h>
+#include <surrealwidgets/window/window.h>
 
 class ResourceLoaderPK3 : public ResourceLoader
 {
@@ -90,13 +92,22 @@ private:
 	mz_zip_archive widgetResources = {};
 };
 
+static std::unique_ptr<DisplayBackend> backend;
 
-void InitWidgetResources()
+void InitWidgetResources(const std::string& theme)
 {
+	backend = DisplayBackend::TryCreateBackend();
+	DisplayBackend::Set(std::move(backend));
+
 	ResourceLoader::Set(std::make_unique<ResourceLoaderPK3>());
+
+	auto bytes = ResourceData::ReadAllBytes("theme/Theme.css");
+	std::string stylesheet((const char*)bytes.data(), bytes.size());
+	WidgetTheme::SetTheme(std::make_unique<StylesheetTheme>(stylesheet, theme));
 }
 
 void DeinitWidgetResources()
 {
 	ResourceLoader::Set(nullptr);
+	backend.reset();
 }

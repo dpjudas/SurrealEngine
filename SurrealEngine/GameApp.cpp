@@ -6,22 +6,16 @@
 #include "GameApp.h"
 #include "GameFolder.h"
 #include "Engine.h"
-#include "ThemeStylesheet.h"
 #include "UI/WidgetResourceData.h"
 #include "UI/ErrorWindow/ErrorWindow.h"
 #include "UI/Launcher/LauncherWindow.h"
 #include "Utils/File.h"
 #include <stdexcept>
-#include <surrealwidgets/core/theme.h>
-#include <surrealwidgets/window/window.h>
 #include <iostream>
 
 int GameApp::main(Array<std::string> args)
 {
-	auto backend = DisplayBackend::TryCreateBackend();
-	DisplayBackend::Set(std::move(backend));
-	InitWidgetResources();
-	WidgetTheme::SetTheme(std::make_unique<StylesheetTheme>(theme_stylesheet, "dark"));
+	InitWidgetResources("dark");
 
 	try
 	{

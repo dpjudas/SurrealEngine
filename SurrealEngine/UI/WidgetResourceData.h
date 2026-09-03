@@ -2,5 +2,5 @@
 
 #include <surrealwidgets/core/resourcedata.h>
 
-void InitWidgetResources();
+void InitWidgetResources(const std::string& theme);
 void DeinitWidgetResources();
