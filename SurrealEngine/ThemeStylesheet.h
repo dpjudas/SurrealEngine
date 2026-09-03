@@ -261,6 +261,13 @@ listview-body, treeview-body {
 	noncontent-bottom: 9;
 }
 
+treeview-body {
+	node-image-width: 20;
+	node-image-height: 20;
+	node-open-image: url("theme/TreeViewExpandedItem.png");
+	node-closed-image: url("theme/TreeViewUnexpandedItem.png");
+}
+
 listview-header, treeview-header {
 	noncontent-left: 10;
 	noncontent-right: 2;
