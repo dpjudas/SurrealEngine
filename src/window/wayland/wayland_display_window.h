@@ -165,7 +165,7 @@ private:
 
 	bool m_NeedsUpdate = true;
 
-	Point m_WindowGlobalPos = Point(0, 0);
+	Point m_OwnerOffset = Point(0, 0);
 	Size m_WindowSize = Size(0, 0);
 	double m_ScaleFactor = 1.0;
 
@@ -214,6 +214,7 @@ private:
 	EGLSurface m_EGLSurface = nullptr;
 
 	bool isFullscreen = false;
+	bool isMaximized = false;
 	bool isResizable = true;
 
 	int m_minWindowWidth = 0;
