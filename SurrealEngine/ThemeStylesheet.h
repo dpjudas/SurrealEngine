@@ -262,10 +262,25 @@ listview-body, treeview-body {
 }
 
 listview-header, treeview-header {
-	background-color: var(--primary-600);
-	color: var(--primary-text-600);
 	noncontent-left: 10;
 	noncontent-right: 2;
+	noncontent-top: 1;
+	noncontent-bottom: 1;
+	color: #000000;
+	border-image-source: url("theme/ViewHeader.png");
+	border-top-width: 4;
+	border-bottom-width: 4;
+	border-left-width: 4;
+	border-right-width: 4;
+	border-top-image-slice: 8;
+	border-bottom-image-slice: 8;
+	border-left-image-slice: 8;
+	border-right-image-slice: 8;
+	border-top-image-width: 4;
+	border-bottom-image-width: 4;
+	border-left-image-width: 4;
+	border-right-image-width: 4;
+	border-center-image-slice: true;
 }
 
 listview-item {
