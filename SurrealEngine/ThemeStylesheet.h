@@ -245,10 +245,10 @@ listview, treeview {
 	noncontent-right: 1;
 	noncontent-bottom: 1;
 	background-color: var(--textarea-bg);
-	border-left-color: var(--secondary-500);
-	border-top-color: var(--secondary-500);
-	border-right-color: var(--secondary-500);
-	border-bottom-color: var(--secondary-500);
+	border-left-color: var(--primary-300);
+	border-top-color: var(--primary-300);
+	border-right-color: var(--primary-300);
+	border-bottom-color: var(--primary-300);
 }
 
 listview-body, treeview-body {
