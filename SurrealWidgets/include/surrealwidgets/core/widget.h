@@ -308,4 +308,9 @@ public:
 	using Widget::GetStyleString;
 	using Widget::GetStyleColor;
 	using Widget::GetStyleImage;
+
+	using Widget::GetNoncontentLeft;
+	using Widget::GetNoncontentTop;
+	using Widget::GetNoncontentRight;
+	using Widget::GetNoncontentBottom;
 };

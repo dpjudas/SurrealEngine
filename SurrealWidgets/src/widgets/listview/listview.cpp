@@ -318,6 +318,9 @@ void ListViewBody::OnPaint(Canvas* canvas)
 	double y = -listview->scrollbar->GetPosition();
 
 	PseudoWidget itemStyle("listview-item");
+	double ncLeft = itemStyle.GetNoncontentLeft();
+	double ncRight = itemStyle.GetNoncontentRight();
+	itemStyle.SetStyleState("selected");
 
 	int itemIndex = 0;
 	for (const std::unique_ptr<ListViewItem>& item : listview->items)
@@ -334,13 +337,13 @@ void ListViewBody::OnPaint(Canvas* canvas)
 				else
 					canvas->fillRect(box, selectionBackground);
 			}
-			double cx = x;
+			double cx = x + ncLeft;
 			int colCount = std::min((int)item->columns.size(), listview->header->GetColumnCount());
 			for (int colIndex = 0; colIndex < colCount; ++colIndex)
 			{
 				double colwidth = listview->header->GetColumnWidth(colIndex);
 				if (colIndex + 1 == listview->header->GetColumnCount())
-					colwidth = std::max(w - cx, 0.0);
+					colwidth = std::max(w - ncRight - cx, 0.0);
 				canvas->pushClip(Rect::xywh(cx, itemY, std::max(colwidth - 5.0, 0.0), itemHeight));
 				canvas->drawText(font, Point(cx, y + 15.0), item->columns[colIndex], selected ? selectionColor : textColor);
 				canvas->popClip();
