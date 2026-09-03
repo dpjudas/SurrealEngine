@@ -489,6 +489,13 @@ listview-header, treeview-header {
 	noncontent-right: 2;
 }
 
+treeview-body.bordeaux {
+	node-image-width: 20;
+	node-image-height: 20;
+	node-open-image: url("TreeViewExpandedItem.png");
+	node-closed-image: url("TreeViewUnexpandedItem.png");
+}
+
 dropdown {
 	noncontent-left: 5;
 	noncontent-top: 5;

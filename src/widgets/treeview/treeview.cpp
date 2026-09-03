@@ -338,15 +338,29 @@ void TreeViewBody::OnPaint(Canvas* canvas)
 	Colorf textColor = GetStyleColor("color");
     Colorf selectionBackground = GetStyleColor("selection-background");
     Colorf selectionColor = GetStyleColor("selection-color");
-	auto font = GetFont();
+    double nodeImageWidth = GetStyleDouble("node-image-width");
+    double nodeImageHeight = GetStyleDouble("node-image-height");
+    auto nodeOpenImage = GetStyleImage("node-open-image");
+    auto nodeClosedImage = GetStyleImage("node-closed-image");
+    auto font = GetFont();
 
 	double y = -m_TreeView->m_Scrollbar->GetPosition();
+
+    double notchPadding = 15.0; // +/- "icon"
+    if (nodeOpenImage && nodeClosedImage)
+    {
+        if (nodeImageWidth <= 0.0 || nodeImageHeight <= 0.0)
+        {
+            nodeImageWidth = nodeOpenImage->GetWidth();
+            nodeImageHeight = nodeOpenImage->GetHeight();
+        }
+        notchPadding = nodeImageWidth + 2.0;
+    }
 
 	int itemIndex = 0;
 	for (const auto& item : m_TreeView->m_VisibleNodes)
 	{
 		double itemY = y;
-	    double notchPadding = 15.0; // +/- "icon"
 	    double leftPadding = item->GetDepth() * 4.0;
 	    bool hasChildren = item->HasChildNodes();
 	    bool childrenVisible = item->GetChildrenVisible();
@@ -367,12 +381,23 @@ void TreeViewBody::OnPaint(Canvas* canvas)
 				canvas->pushClip(Rect::xywh(cx, itemY, std::max(colwidth - 5.0, 0.0), itemHeight));
 			    if (colIndex == 0)
 			    {
-			        if (hasChildren)
-			            canvas->drawText(font, Point(cx, y + 15.0), childrenVisible ? "-" : "+", selected ? selectionColor : textColor);
+                    if (hasChildren)
+                    {
+                        if (nodeOpenImage && nodeClosedImage)
+                        {
+                            canvas->drawImage(childrenVisible ? nodeOpenImage : nodeClosedImage, Rect::xywh(cx, y + (itemHeight - nodeImageHeight) * 0.5, nodeImageWidth, nodeImageHeight));
+                        }
+                        else
+                        {
+                            canvas->drawText(font, Point(cx, y + 15.0), childrenVisible ? "-" : "+", selected ? selectionColor : textColor);
+                        }
+                    }
 			        canvas->drawText(font, Point(cx + notchPadding + leftPadding, y + 15.0), item->m_Columns[colIndex], selected ? selectionColor : textColor);
 			    }
-			    else
-				    canvas->drawText(font, Point(cx, y + 15.0), item->m_Columns[colIndex], selected ? selectionColor : textColor);
+                else
+                {
+                    canvas->drawText(font, Point(cx, y + 15.0), item->m_Columns[colIndex], selected ? selectionColor : textColor);
+                }
 				canvas->popClip();
 				cx += colwidth;
 			}
