@@ -1226,12 +1226,12 @@ if(APPLE)
 			COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Resources"
 			COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Frameworks"
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different
-				"${CMAKE_BINARY_DIR}/SurrealEngine.pk3"
+				"$<TARGET_FILE_DIR:SurrealEngine>/SurrealEngine.pk3"
 				"$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Resources"
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different
 				"${MOLTENVK_DYLIB}"
 				"$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Frameworks/libMoltenVK.dylib"
-			DEPENDS Resources
+			DEPENDS $<TARGET_FILE_DIR:SurrealEngine>/SurrealEngine.pk3
 		)
 	endforeach()
 else()
