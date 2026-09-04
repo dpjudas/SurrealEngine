@@ -662,9 +662,12 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 	uint32_t polyflags = 0;
 	switch (actor->Style())
 	{
-	case 2: polyflags |= PF_Masked; break; // STY_Masked
-	case 3: polyflags |= PF_Translucent; break; // STY_Translucent
-	case 4: polyflags |= PF_Modulated; break; // STY_Modulated
+	default: break;
+	case STY_None: break;
+	case STY_AlphaBlend: break;
+	case STY_Masked: polyflags |= PF_Masked; break;
+	case STY_Translucent: polyflags |= PF_Translucent; break;
+	case STY_Modulated: polyflags |= PF_Modulated; break;
 	}
 	if (actor->bNoSmooth()) polyflags |= PF_NoSmooth;
 	if (actor->bSelected()) polyflags |= PF_Selected;
@@ -904,9 +907,12 @@ bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* 
 	uint32_t polyFlags = 0;
 	switch (actor->Style())
 	{
-	case 2: polyFlags |= PF_Masked; break; // STY_Masked
-	case 3: polyFlags |= PF_Translucent; break; // STY_Translucent
-	case 4: polyFlags |= PF_Modulated; break; // STY_Modulated
+	default: break;
+	case STY_None: break;
+	case STY_AlphaBlend: break;
+	case STY_Masked: polyFlags |= PF_Masked; break;
+	case STY_Translucent: polyFlags |= PF_Translucent; break;
+	case STY_Modulated: polyFlags |= PF_Modulated; break;
 	}
 	if (actor->bNoSmooth()) polyFlags |= PF_NoSmooth;
 	if (actor->bSelected()) polyFlags |= PF_Selected;

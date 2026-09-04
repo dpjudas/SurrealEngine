@@ -198,7 +198,7 @@ void NPawn::AIPickRandomDestination(UObject* Self, float minDist, float maxDist,
   
 	if (candidates.empty()) { dest = {}; return; }  
   
-	float r = static_cast<float>(std::rand()) / RAND_MAX;  
+	float r = static_cast<float>(static_cast<double>(std::rand()) / RAND_MAX);
 	size_t idx = static_cast<size_t>(r * candidates.size());  
 	dest = candidates[idx]->Location();  
 }

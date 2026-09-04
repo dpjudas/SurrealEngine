@@ -1231,15 +1231,9 @@ if(APPLE)
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different
 				"${MOLTENVK_DYLIB}"
 				"$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Frameworks/libMoltenVK.dylib"
-			DEPENDS ${CMAKE_BINARY_DIR}/SurrealEngine.pk3
+			DEPENDS Resources ${CMAKE_BINARY_DIR}/SurrealEngine.pk3
 		)
 	endforeach()
-else()
-#	add_custom_command(TARGET SurrealEngine POST_BUILD
-#		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-#			"${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine.pk3"
-#			$<TARGET_FILE_DIR:SurrealEngine>
-#	)
 endif()
 
 if(MSVC)
