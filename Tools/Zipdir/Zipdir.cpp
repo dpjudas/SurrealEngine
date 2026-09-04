@@ -42,6 +42,7 @@ int main(int argc, char** argv)
 
 		if (args.size() == 3)
 		{
+			std::cout << "Zipping " << args[1].c_str() << std::endl;
 			zipFolder(args[1], args[2]);
 			return 0;
 		}
