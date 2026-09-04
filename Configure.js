@@ -986,7 +986,7 @@ var includePaths = [
 ];
 
 var engineArtifacts = [
-	"SurrealEngine.pk3",
+/*	"SurrealEngine.pk3",*/
 ];
 
 var win32Defines = [
@@ -1079,3 +1079,48 @@ if (Environment.isMSVC()) {
 	surrealCommon.addPrecompiledHeaderIgnoreList(thirdPartySources);
 	surrealCommon.addPrecompiledHeaderIgnoreList(["SurrealEngine/RenderDevice/OpenGL/gl_load/gl_load.c"]);
 }
+
+var zipdir = Target.addConsole("zipdir");
+zipdir.addFiles([
+	"Tools/Zipdir/Zipdir.cpp",
+	"Tools/Zipdir/ZipWriter.cpp",
+	"Tools/Zipdir/ZipWriter.h",
+	"Tools/Zipdir/DataBuffer.cpp",
+	"Tools/Zipdir/DataBuffer.h",
+	"Tools/Zipdir/IODevice.h",
+	"Tools/Zipdir/MemoryDevice.cpp",
+	"Tools/Zipdir/MemoryDevice.h",
+	"Tools/Zipdir/FilePath.cpp",
+	"Tools/Zipdir/FilePath.h",
+	"Tools/Zipdir/File.cpp",
+	"Tools/Zipdir/File.h",
+	"Tools/Zipdir/Directory.cpp",
+	"Tools/Zipdir/Directory.h",
+	"Tools/Zipdir/UTF16.cpp",
+	"Tools/Zipdir/UTF16.h",
+	"Thirdparty/miniz/miniz.c",
+	"Thirdparty/miniz/miniz.h"
+]);
+zipdir.addIncludePaths(["Thirdparty/miniz"]);
+if (Environment.isWindows()) {
+	zipdir.addCompileOptions(["/O2"]);
+}
+
+if (Environment.isWindows()) {
+	zipdir.addDefines([
+		"WIN32", "_WIN32",
+		"UNICODE", "_UNICODE",
+		"_WIN32_WINNT=0x0600",
+	]);
+}
+
+var resourceFiles = Directory.files("Resources/*", { recursive: true });
+var pk3name = "SurrealEngine.pk3";
+var pk3dir = Directory.currentPath("Resources");
+var binDebug = Directory.buildPath("Debug/bin");
+var binRelease = Directory.buildPath("Release/bin");
+var resources = Target.addCustom("Resources");
+resources.addFiles(resourceFiles);
+resources.addLinkLibraries(["zipdir"]);
+resources.setBuildCommand(`zipdir "${binDebug}/${pk3name}" "${pk3dir}"`, { configuration: "Debug" });
+resources.setBuildCommand(`zipdir "${binRelease}/${pk3name}" "${pk3dir}"`, { configuration: "Release" });
