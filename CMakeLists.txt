@@ -1214,6 +1214,9 @@ endif()
 
 add_zip(SurrealEngine.pk3 ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
 
+add_dependencies(SurrealEngine Resources)
+add_dependencies(SurrealEditor Resources)
+
 if(WIN32)
 	add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:OpenAL::OpenAL>" $<TARGET_FILE_DIR:SurrealEngine>)
 endif()
@@ -1231,7 +1234,6 @@ if(APPLE)
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different
 				"${MOLTENVK_DYLIB}"
 				"$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Frameworks/libMoltenVK.dylib"
-			DEPENDS Resources ${CMAKE_BINARY_DIR}/SurrealEngine.pk3
 		)
 	endforeach()
 endif()
