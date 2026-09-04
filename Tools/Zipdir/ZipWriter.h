@@ -2,6 +2,7 @@
 #pragma once
 
 #include "IODevice.h"
+#include <string>
 #include <memory>
 
 class ZipWriter
