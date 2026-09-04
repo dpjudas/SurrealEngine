@@ -1149,15 +1149,15 @@ add_executable(SurrealDebugger ${SURREALDEBUGGER_SOURCES})
 target_link_libraries(SurrealDebugger SurrealCommon ${SURREALCOMMON_LIBS})
 set_target_properties(SurrealDebugger PROPERTIES CXX_STANDARD 20)
 
-function( create_zip_source_groups FOLDER_NAME PK3_DIR )
-	file(GLOB PK3_SRCS ${PK3_DIR}/*)
-	foreach(PK3_SRC ${PK3_SRCS})
-		if(IS_DIRECTORY ${PK3_SRC})
-			get_filename_component(DIRNAME ${PK3_SRC} NAME)
-			list(REMOVE_ITEM PK3_SRCS ${PK3_SRC})
-			create_zip_source_groups( ${FOLDER_NAME}\\${DIRNAME} ${PK3_SRC} )
+function( create_zip_source_groups FOLDER_NAME ZIP_DIR )
+	file(GLOB ZIP_SRCS ${ZIP_DIR}/*)
+	foreach(ZIP_SRC ${ZIP_SRCS})
+		if(IS_DIRECTORY ${ZIP_SRC})
+			get_filename_component(DIRNAME ${ZIP_SRC} NAME)
+			list(REMOVE_ITEM ZIP_SRCS ${ZIP_SRC})
+			create_zip_source_groups( ${FOLDER_NAME}\\${DIRNAME} ${ZIP_SRC} )
 		endif()
-		source_group(${FOLDER_NAME} FILES ${PK3_SRCS})
+		source_group(${FOLDER_NAME} FILES ${ZIP_SRCS})
 	endforeach()
 endfunction()
 
@@ -1166,7 +1166,6 @@ function( add_zip ZIP_NAME ZIP_DIR )
 	# Add command for building the zip file
 	add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${ZIP_NAME}
 		COMMAND zipdir ${CMAKE_BINARY_DIR}/${ZIP_NAME} ${ZIP_DIR}
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/${ZIP_NAME} $<TARGET_FILE_DIR:SurrealEngine>/${ZIP_NAME}
 		DEPENDS zipdir )
 
 	# Find the files in the directory
@@ -1236,6 +1235,12 @@ if(APPLE)
 				"$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Frameworks/libMoltenVK.dylib"
 		)
 	endforeach()
+else()
+	add_custom_command(TARGET SurrealEngine POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+		"${CMAKE_BINARY_DIR}/SurrealEngine.pk3"
+		$<TARGET_FILE_DIR:SurrealEngine>
+	)
 endif()
 
 if(MSVC)
