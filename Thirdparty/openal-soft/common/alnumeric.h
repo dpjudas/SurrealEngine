@@ -15,6 +15,10 @@
 #include "altraits.h"
 #include "opthelpers.h"
 
+#ifdef __clang__
+#pragma clang diagnostic push
+#pragma clang diagnostic ignored "-Wdeprecated-literal-operator"
+#endif
 
 inline constexpr int64_t operator "" _i64(unsigned long long int n) noexcept { return static_cast<int64_t>(n); }
 inline constexpr uint64_t operator "" _u64(unsigned long long int n) noexcept { return static_cast<uint64_t>(n); }
@@ -304,5 +308,9 @@ inline float gain_to_level_mb(float x)
         return -10'000.0f;
     return maxf(std::log10(x) * 2'000.0f, -10'000.0f);
 }
+
+#ifdef __clang__
+#pragma clang diagnostic pop
+#endif
 
 #endif /* AL_NUMERIC_H */

@@ -3,6 +3,10 @@
 #include <stddef.h>
 #include "gl_load.h"
 
+#ifdef __clang__
+#pragma clang diagnostic ignored "-Wpointer-sign"
+#endif
+
 void* IntGetProcAddress(const GLubyte* name);
 
 int ogl_ext_ARB_buffer_storage = ogl_LOAD_FAILED;

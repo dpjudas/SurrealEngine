@@ -92,6 +92,9 @@ void ExportCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 
 	switch (cmd)
 	{
+	default:
+	case ExportCommand::Unknown:
+		break;
 	case ExportCommand::All:
 		ExportAll(console, packages);
 		break;

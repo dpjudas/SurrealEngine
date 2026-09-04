@@ -14,11 +14,11 @@ public:
 	size_t ElementAlignment() override { return 1; }
 	size_t ElementSize() override { return 1; }
 
-	void ConstructElement(void* data) {}
-	void CopyConstructElement(void* data, const void* src) {}
-	void CopyElement(void* data, const void* src) {}
-	void DestructElement(void* data) {}
-	bool CompareElement(const void* v1, const void* v2) { return true; }
-	bool CompareLessElement(const void* v1, const void* v2) { return false; }
+	void ConstructElement(void* data) override {}
+	void CopyConstructElement(void* data, const void* src) override {}
+	void CopyElement(void* data, const void* src) override {}
+	void DestructElement(void* data) override {}
+	bool CompareElement(const void* v1, const void* v2) override { return true; }
+	bool CompareLessElement(const void* v1, const void* v2) override { return false; }
 	GCAllocation* MarkPropertyElement(GCAllocation* marklist, void* data) override { return marklist; }
 };
