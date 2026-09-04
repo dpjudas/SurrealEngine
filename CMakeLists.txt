@@ -1149,6 +1149,68 @@ add_executable(SurrealDebugger ${SURREALDEBUGGER_SOURCES})
 target_link_libraries(SurrealDebugger SurrealCommon ${SURREALCOMMON_LIBS})
 set_target_properties(SurrealDebugger PROPERTIES CXX_STANDARD 20)
 
+function( create_zip_source_groups FOLDER_NAME PK3_DIR )
+	file(GLOB PK3_SRCS ${PK3_DIR}/*)
+	foreach(PK3_SRC ${PK3_SRCS})
+		if(IS_DIRECTORY ${PK3_SRC})
+			get_filename_component(DIRNAME ${PK3_SRC} NAME)
+			list(REMOVE_ITEM PK3_SRCS ${PK3_SRC})
+			create_zip_source_groups( ${FOLDER_NAME}\\${DIRNAME} ${PK3_SRC} )
+		endif()
+		source_group(${FOLDER_NAME} FILES ${PK3_SRCS})
+	endforeach()
+endfunction()
+
+function( add_zip ZIP_NAME ZIP_DIR )
+
+	# Add command for building the zip file
+	add_custom_command( OUTPUT ${CMAKE_BINARY_DIR}/${ZIP_NAME}
+		COMMAND zipdir ${CMAKE_BINARY_DIR}/${ZIP_NAME} ${ZIP_DIR}
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different ${CMAKE_BINARY_DIR}/${ZIP_NAME} $<TARGET_FILE_DIR:SurrealEngine>/${ZIP_NAME}
+		DEPENDS zipdir )
+
+	# Find the files in the directory
+	file(GLOB_RECURSE ZIP_SRCS ${ZIP_DIR}/*)
+
+	# Create target project for the zip file
+	# Touch zipdir executable to force rebuild of the zip file if any of the resource files change
+	add_custom_target( Resources ALL
+		COMMAND ${CMAKE_COMMAND} -E touch $<TARGET_FILE:zipdir>
+		DEPENDS ${CMAKE_BINARY_DIR}/${ZIP_NAME}
+		SOURCES ${ZIP_SRCS})
+
+	# Create IDE source gorups
+	create_zip_source_groups("Source Files" ${ZIP_DIR})
+
+endfunction()
+
+set(ZIPDIR_SOURCES
+	Tools/Zipdir/Zipdir.cpp
+	Tools/Zipdir/ZipWriter.cpp
+	Tools/Zipdir/ZipWriter.h
+	Tools/Zipdir/DataBuffer.cpp
+	Tools/Zipdir/DataBuffer.h
+	Tools/Zipdir/IODevice.h
+	Tools/Zipdir/MemoryDevice.cpp
+	Tools/Zipdir/MemoryDevice.h
+	Tools/Zipdir/FilePath.cpp
+	Tools/Zipdir/FilePath.h
+	Tools/Zipdir/File.cpp
+	Tools/Zipdir/File.h
+	Tools/Zipdir/Directory.cpp
+	Tools/Zipdir/Directory.h
+	Tools/Zipdir/UTF16.cpp
+	Tools/Zipdir/UTF16.h
+	Thirdparty/miniz/miniz.c
+	Thirdparty/miniz/miniz.h
+)
+
+add_executable(zipdir ${ZIPDIR_SOURCES})
+set_target_properties(zipdir PROPERTIES CXX_STANDARD 20)
+set_target_properties(zipdir PROPERTIES C_STANDARD 17)
+
+add_zip(SurrealEngine.pk3 ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
+
 if(WIN32)
 	add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:OpenAL::OpenAL>" $<TARGET_FILE_DIR:SurrealEngine>)
 endif()
@@ -1161,19 +1223,20 @@ if(APPLE)
 			COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Resources"
 			COMMAND ${CMAKE_COMMAND} -E make_directory "$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Frameworks"
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different
-				"${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine.pk3"
+				"${CMAKE_BINARY_DIR}/SurrealEngine.pk3"
 				"$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Resources"
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different
 				"${MOLTENVK_DYLIB}"
 				"$<TARGET_BUNDLE_DIR:${bundle_target}>/Contents/Frameworks/libMoltenVK.dylib"
+			DEPENDS Resources
 		)
 	endforeach()
 else()
-	add_custom_command(TARGET SurrealEngine POST_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy_if_different
-			"${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine.pk3"
-			$<TARGET_FILE_DIR:SurrealEngine>
-	)
+#	add_custom_command(TARGET SurrealEngine POST_BUILD
+#		COMMAND ${CMAKE_COMMAND} -E copy_if_different
+#			"${CMAKE_CURRENT_SOURCE_DIR}/SurrealEngine.pk3"
+#			$<TARGET_FILE_DIR:SurrealEngine>
+#	)
 endif()
 
 if(MSVC)
