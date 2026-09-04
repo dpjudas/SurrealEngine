@@ -1208,6 +1208,9 @@ set(ZIPDIR_SOURCES
 add_executable(zipdir ${ZIPDIR_SOURCES})
 set_target_properties(zipdir PROPERTIES CXX_STANDARD 20)
 set_target_properties(zipdir PROPERTIES C_STANDARD 17)
+if (APPLE)
+target_link_libraries(zipdir "-framework CoreFoundation")
+endif()
 
 add_zip(SurrealEngine.pk3 ${CMAKE_CURRENT_SOURCE_DIR}/Resources)
 
