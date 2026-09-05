@@ -1102,9 +1102,9 @@ zipdir.addFiles([
 	"Thirdparty/miniz/miniz.h"
 ]);
 zipdir.addIncludePaths(["Thirdparty/miniz"]);
-if (Environment.isWindows()) {
+/*if (Environment.isWindows()) {
 	zipdir.addCompileOptions(["/O2"]);
-}
+}*/
 
 if (Environment.isWindows()) {
 	zipdir.addDefines([

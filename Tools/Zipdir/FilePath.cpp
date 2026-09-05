@@ -1,6 +1,7 @@
 
 #include "FilePath.h"
 #include <string_view>
+#include <cstdint>
 
 static const int stricmptable[] =
 {
