@@ -112,6 +112,7 @@
 #include "Packages/Engine/Actors/UProjector.h"
 #include "Packages/Engine/Actors/USkeletalMeshInstance.h"
 #include "Packages/Engine/Actors/USpawnNotify.h"
+#include "Packages/Engine/Actors/UStaticMeshActor.h"
 #include "Packages/Engine/Actors/Brush/UBrush.h"
 #include "Packages/Engine/Actors/Brush/UMover.h"
 #include "Packages/Engine/Actors/Decoration/UCarcass.h"
@@ -169,6 +170,7 @@
 #include "Packages/Engine/Resources/UPalette.h"
 #include "Packages/Engine/Resources/UPrimitive.h"
 #include "Packages/Engine/Resources/USound.h"
+#include "Packages/Engine/Resources/UStaticLightData.h"
 #include "Packages/Engine/Resources/Level/UBspNodes.h"
 #include "Packages/Engine/Resources/Level/UBspSurfs.h"
 #include "Packages/Engine/Resources/Level/ULevel.h"
@@ -1292,6 +1294,8 @@ void PackageManager::RegisterNativeClasses()
 	{
 		RegisterNativeClass<U227SkeletalMeshInstance>(enginePackage, "SkeletalMeshInstance", "Object");
 		RegisterNativeClass<U227AnimationNotify>(enginePackage, "AnimationNotify", "Object");
+		RegisterNativeClass<UStaticLightData>(enginePackage, "StaticLightData", "Object");
+		RegisterNativeClass<UStaticMeshActor>(enginePackage, "StaticMeshActor", "Actor");
 		RegisterNativeClass<UInventoryAttachment>(enginePackage, "InventoryAttachment", "Actor");
 		RegisterNativeClass<UWeaponAttachment>(enginePackage, "WeaponAttachment", "InventoryAttachment");
 		RegisterNativeClass<UWeaponMuzzleFlash>(enginePackage, "WeaponMuzzleFlash", "InventoryAttachment");

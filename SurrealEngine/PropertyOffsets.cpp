@@ -5453,6 +5453,36 @@ static void InitPropertyOffsets_SkeletalMeshInstance(PackageManager* packages)
 	PropOffsets_SkeletalMeshInstance.HardAttachFlags = cls->GetPropertyDataOffset("HardAttachFlags");
 }
 
+PropertyDataOffsets_StaticLightData PropOffsets_StaticLightData;
+
+static void InitPropertyOffsets_StaticLightData(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Engine")->GetUObject("Class", "StaticLightData"));
+	if (!cls)
+	{
+		memset(&PropOffsets_StaticLightData, 0xff, sizeof(PropOffsets_StaticLightData));
+		return;
+	}
+
+	PropOffsets_StaticLightData.HasLightmap = cls->GetPropertyDataOffset("HasLightmap");
+}
+
+PropertyDataOffsets_StaticMeshActor PropOffsets_StaticMeshActor;
+
+static void InitPropertyOffsets_StaticMeshActor(PackageManager* packages)
+{
+	auto cls = UObject::TryCast<UClass>(packages->GetPackage("Engine")->GetUObject("Class", "StaticMeshActor"));
+	if (!cls)
+	{
+		memset(&PropOffsets_StaticMeshActor, 0xff, sizeof(PropOffsets_StaticMeshActor));
+		return;
+	}
+
+	PropOffsets_StaticMeshActor.StaticLightD = cls->GetPropertyDataOffset("StaticLightD");
+	PropOffsets_StaticMeshActor.bBuildStaticLights = cls->GetPropertyDataOffset("bBuildStaticLights");
+	PropOffsets_StaticMeshActor.bComputeUnlitColor = cls->GetPropertyDataOffset("bComputeUnlitColor");
+}
+
 //////////////////////////////////////////
 
 PropertyDataOffsets_RMusic_Player PropOffsets_RMusic_Player;
@@ -5603,6 +5633,7 @@ void InitPropertyOffsets(PackageManager* packages)
 		InitPropertyOffsets_XRainRestrictionVolume(packages);
 		InitPropertyOffsets_DynamicZoneInfo(packages);
 		InitPropertyOffsets_Projector(packages);
+		InitPropertyOffsets_StaticLightData(packages);
 	}
 	if (packages->IsDeusEx())
 	{
