@@ -47,6 +47,9 @@ MessageBox::MessageBox(Widget* owner, const std::string& windowTitle, const std:
     m_MessageLabel->SetText(message);
     m_MessageLabel->SetStretching(true);
 
+    // We may need this if the message box is made resizable
+    //m_MessageLabel->SetTextVerticalAlignment(TextLabelVerticalAlignment::Top);
+
     if (AllFlags(buttons, DialogButton::Ok))
         m_DialogButtons.push_back(AddDialogButton(DialogButton::Ok));
     if (AllFlags(buttons, DialogButton::Cancel))

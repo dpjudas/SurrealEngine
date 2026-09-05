@@ -34,6 +34,16 @@ TextLabelAlignment TextLabel::GetTextAlignment() const
 	return textAlignment;
 }
 
+void TextLabel::SetTextVerticalAlignment(TextLabelVerticalAlignment alignment)
+{
+	textVerticalAlignment = alignment;
+}
+
+TextLabelVerticalAlignment TextLabel::GetTextVerticalAlignment() const
+{
+	return textVerticalAlignment;
+}
+
 double TextLabel::GetPreferredWidth()
 {
 	SpanLayout spanlayout;
@@ -79,6 +89,21 @@ void TextLabel::OnPaint(Canvas* canvas)
 	spanlayout.AddText(text, GetFont(), GetStyleColor("color"));
 	spanlayout.Layout(GetCanvas(), GetWidth());
 	spanlayout.SetAlign(align[(int)textAlignment]);
-	spanlayout.SetPosition(Point(0.0, 0.0/*(GetHeight() - spanlayout.GetSize().height) * 0.5 */));
+
+	double y = 0.0;
+	switch (textVerticalAlignment)
+	{
+	default:
+	case TextLabelVerticalAlignment::Top:
+		y = 0.0;
+		break;
+	case TextLabelVerticalAlignment::Center:
+		y = (GetHeight() - spanlayout.GetSize().height) * 0.5;
+		break;
+	case TextLabelVerticalAlignment::Bottom:
+		y = GetHeight() - spanlayout.GetSize().height;
+		break;
+	}
+	spanlayout.SetPosition(Point(0.0, y));
 	spanlayout.DrawLayout(canvas);
 }

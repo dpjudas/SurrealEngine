@@ -10,6 +10,13 @@ enum class TextLabelAlignment
 	Right
 };
 
+enum class TextLabelVerticalAlignment
+{
+	Top,
+	Center,
+	Bottom
+};
+
 class TextLabel : public Widget
 {
 public:
@@ -21,6 +28,9 @@ public:
 	void SetTextAlignment(TextLabelAlignment alignment);
 	TextLabelAlignment GetTextAlignment() const;
 
+	void SetTextVerticalAlignment(TextLabelVerticalAlignment alignment);
+	TextLabelVerticalAlignment GetTextVerticalAlignment() const;
+
 	double GetPreferredWidth() override;
 	double GetPreferredHeight() override;
 	double GetPreferredHeight(double width) override;
@@ -31,4 +41,5 @@ protected:
 private:
 	std::string text;
 	TextLabelAlignment textAlignment = TextLabelAlignment::Left;
+	TextLabelVerticalAlignment textVerticalAlignment = TextLabelVerticalAlignment::Center;
 };
