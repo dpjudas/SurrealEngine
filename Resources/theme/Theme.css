@@ -462,8 +462,8 @@ scrollbutton-right.light:down {
 }
 
 scrollthumb-vert, scrollthumb-horz {
-	grip-image-width: 16;
-	grip-image-height: 16;
+	grip-image-width: 24;
+	grip-image-height: 24;
 }
 
 scrollthumb-vert.dark {
