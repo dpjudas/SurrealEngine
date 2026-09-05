@@ -96,7 +96,7 @@ void ExpressionSema::expression(AstLiteral* node)
 	else if (node->type == AstLiteralType::boolean)
 	{
 		node->result = { sema.type_system().boolean_type, ExpressionClass::value };
-		node->result.constval.i1 = node->value == "true";
+		node->result.constval.i1 = NameString("true") == node->value;
 	}
 	else if (node->type == AstLiteralType::string)
 	{
@@ -173,7 +173,7 @@ void ExpressionSema::expression(AstSimpleName* node)
 			}
 			if (method_group.size() != lookup.members.size())
 				throw SemaException("Ambiguous member lookup", node);
-			node->result = { name_scope.variables["this"].type, ExpressionClass::method_group };
+			node->result = { name_scope.variables["self"].type, ExpressionClass::method_group };
 			node->result.method_group = method_group;
 			return;
 		}
@@ -181,6 +181,9 @@ void ExpressionSema::expression(AstSimpleName* node)
 
 	AstIdentifierName name;
 	name.name = node->identifier;
+	name.sourceIndex = node->sourceIndex;
+	name.line = node->line;
+	name.column = node->column;
 	TypeName* type_name = type_scope.lookup_type(&name);
 	if (!type_name)
 		throw SemaException("Unknown identifier or type name", node);
@@ -384,7 +387,7 @@ void ExpressionSema::expression(AstElementAccess* node)
 
 void ExpressionSema::expression(AstBaseAccess* node)
 {
-	ExpressionResult operand = name_scope.variables["this"];
+	ExpressionResult operand = name_scope.variables["self"];
 
 	if (auto class_type = dynamic_cast<ClassType*>(operand.type))
 	{

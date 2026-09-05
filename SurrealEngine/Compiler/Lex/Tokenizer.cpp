@@ -273,12 +273,13 @@ bool Tokenizer::read_identifier_part_character(std::u32string::value_type &chara
 
 bool Tokenizer::read_bool_literal(Token &token)
 {
-	if (data[pos] == 't' && pos + 4 <= data.size())
+	if ((data[pos] == 't' || data[pos] == 'T') && pos + 4 <= data.size())
 	{
 		const char *keyword = "true";
+		const char* keyword2 = "TRUE";
 		for (int i = 0; i < 4; i++)
 		{
-			if (data[pos + i] != keyword[i])
+			if (data[pos + i] != keyword[i] && data[pos + i] != keyword2[i])
 				return false;
 		}
 		size_t endpos = pos + 4;
@@ -300,12 +301,13 @@ bool Tokenizer::read_bool_literal(Token &token)
 		pos += 4;
 		return true;
 	}
-	else if (data[pos] == 'f' && pos + 5 <= data.size())
+	else if ((data[pos] == 'f' || data[pos] == 'F') && pos + 5 <= data.size())
 	{
 		const char *keyword = "false";
+		const char* keyword2 = "FALSE";
 		for (int i = 0; i < 5; i++)
 		{
-			if (data[pos + i] != keyword[i])
+			if (data[pos + i] != keyword[i] && data[pos + i] != keyword2[i])
 				return false;
 		}
 		size_t endpos = pos + 5;

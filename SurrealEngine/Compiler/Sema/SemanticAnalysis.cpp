@@ -122,7 +122,7 @@ Type* TypeScope::lookup_type(AstName* name)
 		if (it != ts.nameToType.end())
 			return it->second;
 
-		throw SemaException("Unknown type '" + identifier->name + "'", name);
+		throw SemaException("Unknown identifier '" + identifier->name + "'", name);
 	}
 	else if (auto clsName = dynamic_cast<AstClassName*>(name))
 	{
@@ -151,19 +151,28 @@ void MemberLookup::lookup(TypeName* type, const std::string& name)
 			for (ConstantTypeMember* constant : cls->constants)
 			{
 				if (typeName == constant->name)
+				{
 					members.insert(constant);
+					break;
+				}
 			}
 
 			for (FieldTypeMember* field : cls->fields)
 			{
 				if (typeName == field->name)
+				{
 					members.insert(field);
+					break;
+				}
 			}
 
 			for (MethodTypeMember* method : cls->methods)
 			{
 				if (typeName == method->name)
+				{
 					members.insert(method);
+					break;
+				}
 			}
 
 			for (Type* subtype : cls->subtypes)
@@ -173,6 +182,49 @@ void MemberLookup::lookup(TypeName* type, const std::string& name)
 			}
 
 			cls = cls->base;
+		}
+	}
+	else if (auto struct_ = dynamic_cast<StructType*>(type))
+	{
+		while (struct_)
+		{
+			for (ConstantTypeMember* constant : struct_->constants)
+			{
+				if (typeName == constant->name)
+				{
+					members.insert(constant);
+					break;
+				}
+			}
+
+			for (FieldTypeMember* field : struct_->fields)
+			{
+				if (typeName == field->name)
+				{
+					members.insert(field);
+					break;
+				}
+			}
+
+			for (MethodTypeMember* method : struct_->methods)
+			{
+				if (typeName == method->name)
+				{
+					members.insert(method);
+					break;
+				}
+			}
+
+			for (Type* subtype : struct_->subtypes)
+			{
+				if (typeName == subtype->name)
+				{
+					members.insert(subtype);
+					break;
+				}
+			}
+
+			struct_ = struct_->base;
 		}
 	}
 }

@@ -4,6 +4,7 @@
 #include <map>
 #include "AstTypeDeclaration.h"
 #include "AstExpression.h"
+#include "Package/NameString.h"
 
 class AstExpression;
 class ConstantTypeMember;
@@ -93,7 +94,7 @@ public:
 class NameScope
 {
 public:
-	std::map<std::string, ExpressionResult> variables;
+	std::map<NameString, ExpressionResult> variables;
 };
 
 class MethodTypeMember;

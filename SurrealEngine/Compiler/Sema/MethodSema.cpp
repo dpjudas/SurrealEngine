@@ -74,7 +74,7 @@ void MethodSema::name(AstStateDeclaration* node)
 void MethodSema::add_parameters(NameScope& name_scope, const std::vector<AstMethodParameter*>& parameters, bool is_static, Type* value_type)
 {
 	if (!is_static)
-		name_scope.variables["this"] = ExpressionResult(this_type, dynamic_cast<StructType*>(this_type) ? ExpressionClass::variable : ExpressionClass::value);
+		name_scope.variables["self"] = ExpressionResult(this_type, dynamic_cast<StructType*>(this_type) ? ExpressionClass::variable : ExpressionClass::value);
 
 	if (value_type)
 		name_scope.variables["value"] = ExpressionResult(value_type, ExpressionClass::variable);
