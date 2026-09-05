@@ -538,6 +538,7 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Packages/Engine/Actors/UProjectile.h
 	SurrealEngine/Packages/Engine/Actors/UProjector.h
 	SurrealEngine/Packages/Engine/Actors/USkeletalMeshInstance.h
+	SurrealEngine/Packages/Engine/Actors/UStaticMeshActor.h
 	SurrealEngine/Packages/Engine/Actors/USpawnNotify.h
 	SurrealEngine/Packages/Engine/Actors/Brush/UBrush.h
 	SurrealEngine/Packages/Engine/Actors/Brush/UMover.h
@@ -613,6 +614,7 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Packages/Engine/Resources/UPrimitive.h
 	SurrealEngine/Packages/Engine/Resources/USound.cpp
 	SurrealEngine/Packages/Engine/Resources/USound.h
+	SurrealEngine/Packages/Engine/Resources/UStaticLightData.h
 	SurrealEngine/Packages/Engine/Resources/Level/UBspNodes.cpp
 	SurrealEngine/Packages/Engine/Resources/Level/UBspNodes.h
 	SurrealEngine/Packages/Engine/Resources/Level/UBspSurfs.cpp

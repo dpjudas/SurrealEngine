@@ -4350,6 +4350,22 @@ struct PropertyDataOffsets_AnimationNotify
 
 extern PropertyDataOffsets_AnimationNotify PropOffsets_AnimationNotify;
 
+struct PropertyDataOffsets_StaticLightData
+{
+	PropertyDataOffset HasLightmap;
+};
+
+extern PropertyDataOffsets_StaticLightData PropOffsets_StaticLightData;
+
+struct PropertyDataOffsets_StaticMeshActor
+{
+	PropertyDataOffset StaticLightD;
+	PropertyDataOffset bBuildStaticLights;
+	PropertyDataOffset bComputeUnlitColor;
+};
+
+extern PropertyDataOffsets_StaticMeshActor PropOffsets_StaticMeshActor;
+
 struct PropertyDataOffsets_RMusic_Player
 {
 	PropertyDataOffset RMusic_Volume;
