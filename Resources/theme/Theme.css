@@ -254,10 +254,10 @@ listview, treeview {
 	noncontent-right: 1;
 	noncontent-bottom: 1;
 	background-color: var(--textarea-bg);
-	border-left-color: var(--primary-300);
-	border-top-color: var(--primary-300);
-	border-right-color: var(--primary-300);
-	border-bottom-color: var(--primary-300);
+	border-left-color: var(--primary-700);
+	border-top-color: var(--primary-700);
+	border-right-color: var(--primary-700);
+	border-bottom-color: var(--primary-700);
 }
 
 listview-body, treeview-body {
@@ -342,6 +342,7 @@ dropdown {
 dropdown.dark {
 	border-image-source: url("theme/DarkMode/TextFieldDarkMode.png");
 	arrow-image: url("theme/DarkMode/DownTriangleDarkMode.png");
+	color: #ffffff;
 }
 
 dropdown.light {
@@ -544,31 +545,48 @@ tabbar-tab {
 	noncontent-right: 15;
 	noncontent-top: 1;
 	noncontent-bottom: 1;
+	border-top-image-slice: 8;
+	border-bottom-image-slice: 4;
+	border-left-image-slice: 8;
+	border-right-image-slice: 8;
+	border-top-image-width: 4;
+	border-bottom-image-width: 4;
+	border-left-image-width: 4;
+	border-right-image-width: 4;
+	border-center-image-slice: true;
+	border-image-source: url("theme/LightMode/TabInactive.png");
 	color: var(--primary-text-600);
-	background-color: var(--primary-600);
-	border-left-color: var(--primary-700);
-	border-top-color: var(--primary-700);
-	border-right-color: var(--primary-700);
-	border-bottom-color: var(--primary-700);
+}
+
+tabbar-tab.dark {
+	border-image-source: url("theme/DarkMode/TabInactiveDarkMode.png");
 }
 
 tabbar-tab:hover {
 	color: var(--primary-text-400);
-	background-color: var(--primary-400);
+	border-image-source: url("theme/LightMode/TabHover.png");
+}
+
+tabbar-tab.dark:hover {
+	border-image-source: url("theme/DarkMode/TabHoverDarkMode.png");
 }
 
 tabbar-tab:active {
 	color: var(--primary-text-500);
-	background-color: var(--primary-500);
-	border-left-color: var(--primary-600);
-	border-top-color: var(--primary-600);
-	border-right-color: var(--primary-600);
-	border-bottom-color: transparent;
+	border-image-source: url("theme/LightMode/TabActive.png");
+}
+
+tabbar-tab.dark:active {
+	border-image-source: url("theme/DarkMode/TabActiveDarkMode.png");
 }
 
 tabbar-spacer {
 	noncontent-bottom: 1;
-	border-bottom-color: var(--primary-600);
+	border-bottom-color: #9c9c9c;
+}
+
+tabbar-spacer.dark {
+	border-bottom-color: #000000;
 }
 
 tabwidget-stack {
