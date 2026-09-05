@@ -840,11 +840,15 @@ void BitmapCanvas::drawTile(CanvasTexture* tex, float left, float top, float wid
 
 	for (int y = y0; y < y1; y++)
 	{
-		float vpix = v + vscale * (y - top);
-		float vfrac = vpix - (int)vpix;
+		float vpix = v + vscale * (y + 0.5f - top) - 0.5f;
+		//float vfrac = vpix - std::floor(vpix); // We only have SSE2 on x64
+		float fval = (float)(int)vpix;
+		float vfrac = vpix - (fval - (vpix < fval ? 1.0f : 0.0f));
 		int sy0 = (int)vpix;
 		int sy1 = sy0 + 1;
+		sy0 = sy0 >= 0 ? sy0 : 0;
 		sy0 = sy0 < sheight ? sy0 : sheight - 1;
+		sy1 = sy1 >= 0 ? sy1 : 0;
 		sy1 = sy1 < sheight ? sy1 : sheight - 1;
 
 		const uint32_t* sline0 = src + sy0 * swidth;
@@ -863,14 +867,25 @@ void BitmapCanvas::drawTile(CanvasTexture* tex, float left, float top, float wid
 		int ssex1 = x0 + (((x1 - x0) >> 1) << 1);
 		while (x < ssex1)
 		{
-			float upix0 = u + uscale * (x - left);
-			float upix1 = u + uscale * (x + 1.0f - left);
-			float ufrac0 = upix0 - (int)upix0;
-			float ufrac1 = upix1 - (int)upix1;
+			float upix0 = u + uscale * (x + 0.5f - left) - 0.5f;
+			float upix1 = u + uscale * (x + 1.5f - left) - 0.5f;
+
+			// float ufrac0 = upix0 - std::floor(upix0);
+			float fval0 = (float)(int)upix0;
+			float ufrac0 = upix0 - (fval0 - (upix0 < fval0 ? 1.0f : 0.0f));
+
+			// float ufrac1 = upix1 - std::floor(upix1);
+			float fval1 = (float)(int)upix1;
+			float ufrac1 = upix1 - (fval1 - (upix1 < fval1 ? 1.0f : 0.0f));
+
 			int sx0[2] = { (int)upix0, (int)upix1 };
 			int sx1[2] = { sx0[0] + 1, sx0[1] + 1 };
+			sx0[0] = sx0[0] >= 0 ? sx0[0] : 0;
+			sx0[1] = sx0[1] >= 0 ? sx0[1] : 0;
 			sx0[0] = sx0[0] < swidth ? sx0[0] : swidth - 1;
 			sx0[1] = sx0[1] < swidth ? sx0[1] : swidth - 1;
+			sx1[0] = sx1[0] >= 0 ? sx1[0] : 0;
+			sx1[1] = sx1[1] >= 0 ? sx1[1] : 0;
 			sx1[0] = sx1[0] < swidth ? sx1[0] : swidth - 1;
 			sx1[1] = sx1[1] < swidth ? sx1[1] : swidth - 1;
 
@@ -910,11 +925,15 @@ void BitmapCanvas::drawTile(CanvasTexture* tex, float left, float top, float wid
 
 		while (x < x1)
 		{
-			float upix = u + uscale * (x - left);
-			float ufrac = upix - (int)upix;
+			float upix = u + uscale * (x + 0.5f - left) - 0.5f;
+			//float ufrac = upix - std::floor(upix);
+			float fval0 = (float)(int)upix;
+			float ufrac = upix - (fval0 - (upix < fval0 ? 1.0f : 0.0f));
 			int sx0 = (int)upix;
 			int sx1 = sx0 + 1;
+			sx0 = sx0 >= 0 ? sx0 : 0;
 			sx0 = sx0 < swidth ? sx0 : swidth - 1;
+			sx1 = sx1 >= 0 ? sx1 : 0;
 			sx1 = sx1 < swidth ? sx1 : swidth - 1;
 
 			// Linear filter sample:
