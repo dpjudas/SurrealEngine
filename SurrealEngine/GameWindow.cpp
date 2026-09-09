@@ -75,7 +75,27 @@ bool GameWindow::GetKeyState(EInputKey key)
 
 Array<Size> GameWindow::QueryAvailableResolutions() const
 {
-	return { DisplayBackend::Get()->GetScreenSize() };
+	Array<Size> result;
+	const auto resolutions = DisplayBackend::Get()->GetAvailableResolutions();
+	for (const Size& resolution : resolutions)
+	{
+		bool alreadyAdded = false;
+		for (const Size& existing : result)
+		{
+			if (existing == resolution)
+			{
+				alreadyAdded = true;
+				break;
+			}
+		}
+		if (!alreadyAdded)
+			result.push_back(resolution);
+	}
+
+	if (result.empty())
+		result.push_back(DisplayBackend::Get()->GetScreenSize());
+
+	return result;
 }
 
 void GameWindow::OnPaint(Canvas* canvas)
@@ -199,20 +219,6 @@ std::string GameWindow::GetAvailableResolutions() const
 	}
 
 	return result;
-}
-
-void GameWindow::AddResolutionIfNotAdded(Array<Size>& resList, Size resolution) const
-{
-	// Skip over the current resolution if it is already inserted
-	// (in case of multiple refresh rates being available for the display)
-	for (auto& res : resList)
-	{
-		if (resolution == res)
-			return;
-	}
-
-	// Add the resolution, as it is not added before
-	resList.push_back(resolution);
 }
 
 Size GameWindow::ParseResolutionString(const std::string& resolutionString) const

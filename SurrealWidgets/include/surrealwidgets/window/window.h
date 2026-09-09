@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <string>
+#include <vector>
 #include <functional>
 #include <cstdint>
 #include <cstdlib>
@@ -416,6 +417,7 @@ public:
 	virtual void StopTimer(void* timerID) = 0;
 
 	virtual Size GetScreenSize() = 0;
+	virtual std::vector<Size> GetAvailableResolutions() const { return {}; }
 
 	virtual std::unique_ptr<OpenFileDialog> CreateOpenFileDialog(DisplayWindow* owner);
 	virtual std::unique_ptr<SaveFileDialog> CreateSaveFileDialog(DisplayWindow* owner);

@@ -147,7 +147,6 @@ protected:
 
 private:
 	Array<Size> QueryAvailableResolutions() const;
-	void AddResolutionIfNotAdded(Array<Size>& resList, Size resolution) const;
 	Size ParseResolutionString(const std::string& resolutionString) const;
 	Size GetClosestResolution(Size resolution) const;
 

@@ -16,6 +16,7 @@ public:
 	void StopTimer(void* timerID) override;
 
 	Size GetScreenSize() override;
+	std::vector<Size> GetAvailableResolutions() const override;
 
 	bool IsSDL2() override { return true; }
 

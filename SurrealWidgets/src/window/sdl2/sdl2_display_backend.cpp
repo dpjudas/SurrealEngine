@@ -1,6 +1,7 @@
 #include "sdl2_display_backend.h"
 #include "sdl2_display_window.h"
 #include <stdexcept>
+#include <vector>
 #include <SDL2/SDL_video.h>
 #ifndef WIN32
 #include <dlfcn.h>
@@ -89,6 +90,56 @@ Size SDL2DisplayBackend::GetScreenSize()
 		throw std::runtime_error(std::string("Unable to get screen size:") + SDL_GetError());
 
 	return Size(rect.w / UIScale, rect.h / UIScale);
+}
+
+std::vector<Size> SDL2DisplayBackend::GetAvailableResolutions() const
+{
+	std::vector<Size> result;
+	int numDisplays = SDL_GetNumVideoDisplays();
+	if (numDisplays < 1)
+		return result;
+
+	for (int displayIndex = 0; displayIndex < numDisplays; ++displayIndex)
+	{
+		int numModes = SDL_GetNumDisplayModes(displayIndex);
+		if (numModes < 1)
+			continue;
+
+		for (int modeIndex = 0; modeIndex < numModes; ++modeIndex)
+		{
+			SDL_DisplayMode mode = {};
+			if (SDL_GetDisplayMode(displayIndex, modeIndex, &mode) != 0)
+				continue;
+
+			if (mode.w <= 0 || mode.h <= 0)
+				continue;
+
+			Size resolution(mode.w / UIScale, mode.h / UIScale);
+			bool alreadyAdded = false;
+			for (const Size& existing : result)
+			{
+				if (existing == resolution)
+				{
+					alreadyAdded = true;
+					break;
+				}
+			}
+			if (!alreadyAdded)
+				result.push_back(resolution);
+		}
+	}
+
+	if (result.empty())
+	{
+		SDL_Rect rect = {};
+		if (SDL_GetDisplayBounds(0, &rect) == 0)
+			result.push_back(Size(rect.w / UIScale, rect.h / UIScale));
+	}
+
+	if (result.empty())
+		result.push_back(GetScreenSize());
+
+	return result;
 }
 
 void* SDL2DisplayBackend::StartTimer(int timeoutMilliseconds, std::function<void()> onTimer)
