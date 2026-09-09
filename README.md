@@ -34,6 +34,8 @@ Additionally, Surreal Engine is available on following Linux distributions:
 * Select the game you want to play in Games tab.
 * Click "Play"!
 
+For packaged Linux or SteamOS builds, place `SurrealEngine`, `libSurrealVideo.so`, and `SurrealEngine.pk3` in the same folder and launch `./run.sh`.
+
 ## Discord Server
 
 Visit us on Discord at https://discord.gg/5AEry4s
