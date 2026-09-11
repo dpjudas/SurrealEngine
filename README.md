@@ -22,6 +22,19 @@ Please refer to [Building.md](Docs/Building.md) for details!
 
 [Nightly builds are available on the Releases section](https://github.com/dpjudas/SurrealEngine/releases/tag/nightly).
 
+### Recent Changes
+
+Since the fork, the release builds have been updated with:
+
+* Launcher video settings for startup render device, resolution, refresh rate, fullscreen, VSync, AA, lighting, gamma, HDR, bloom, and debug layer.
+* Curated startup resolution lists grouped by aspect ratio, with per-resolution refresh-rate selection and fallback rates.
+* Shared launcher settings persistence for render and game selection state.
+* Controller shortcuts in the launcher and in-game menus, including confirm/cancel prompts for new game and load latest save.
+* Raw gamepad button forwarding through the widget/window stack so controller input reaches UI prompts correctly.
+* Packaged release output that stages stripped binaries, `SurrealEngine.pk3`, and `libSurrealVideo.so` into a flat distributable layout.
+* A versioned release zip archive with max compression for the nightly downloads.
+* Save-load audio cleanup so attract/menu music stops correctly when loading a save.
+
 Additionally, Surreal Engine is available on following Linux distributions:
 
 * Arch: [AUR](https://aur.archlinux.org/packages/surrealengine-git)
