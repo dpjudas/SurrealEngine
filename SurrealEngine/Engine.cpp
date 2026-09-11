@@ -786,6 +786,7 @@ void Engine::LoadFromSaveFile(const UnrealURL& url)
 	if (!savefilePackage)
 		return;
 
+	audiodev->SetViewport(nullptr);
 	audiodev->StopSounds();
 	UnloadMap();
 
