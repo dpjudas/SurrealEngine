@@ -7,7 +7,7 @@ pkgver=r1042.784a270
 pkgrel=1
 arch=('x86_64')
 depends=('libx11' 'spirv-tools' 'vulkan-icd-loader' 'vulkan-driver' 'sdl2' 'alsa-lib')
-makedepends=('gcc' 'git' 'cmake' 'vulkan-driver' 'sdl2' 'alsa-lib' 'waylandpp')
+makedepends=('gcc' 'git' 'cmake' 'ninja' 'ccache' 'vulkan-driver' 'sdl2' 'alsa-lib' 'waylandpp')
 optdepends=('waylandpp: For ZWidget Wayland backend')
 provides=('surrealengine')
 url="https://github.com/dpjudas/SurrealEngine"
@@ -24,9 +24,9 @@ build() {
   cd SurrealEngine
   [[ -d build ]] && rm -rf build
   mkdir build && cd build
-  cmake -DCMAKE_BUILD_TYPE=Release ..
+  cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
 
-  make -j 16
+  cmake --build . --parallel
 }
 
 package() {

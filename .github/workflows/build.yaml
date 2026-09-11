@@ -21,13 +21,13 @@ jobs:
         - name: Linux GCC 12
           os: ubuntu-22.04
           extra_options: -DCMAKE_C_COMPILER=gcc-12 -DCMAKE_CXX_COMPILER=g++-12
-          deps_cmdline: sudo apt update && sudo apt install libsdl2-dev libx11-dev libopenal-dev
+          deps_cmdline: sudo apt update && sudo apt install ninja-build ccache libsdl2-dev libx11-dev libopenal-dev
           build_type: RelWithDebInfo
 
         - name: Linux Clang 15
           os: ubuntu-22.04
           extra_options: -DCMAKE_C_COMPILER=clang-15 -DCMAKE_CXX_COMPILER=clang++-15
-          deps_cmdline: sudo apt-get update && sudo apt-get install clang-15 libsdl2-dev libx11-dev libopenal-dev
+          deps_cmdline: sudo apt-get update && sudo apt-get install ninja-build ccache clang-15 libsdl2-dev libx11-dev libopenal-dev
           build_type: RelWithDebInfo
 
         - name: macOS arm64
@@ -48,7 +48,7 @@ jobs:
     - name: Configure
       shell: bash
       run: |
-        cmake -B build -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} -DPK3_QUIET_ZIPDIR=ON ${{ matrix.config.extra_options }} .
+        cmake -B build -G Ninja -DCMAKE_BUILD_TYPE=${{ matrix.config.build_type }} -DPK3_QUIET_ZIPDIR=ON ${{ matrix.config.extra_options }} .
 
     - name: Build
       shell: bash
@@ -136,4 +136,3 @@ jobs:
         rm: true
         token: ${{ secrets.GITHUB_TOKEN }}
         files: build/SurrealEngine-windows-prerelease.zip build/SurrealEngine-linux-prerelease.zip build/SurrealEngine-macos-prerelease.zip
-

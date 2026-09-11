@@ -556,11 +556,13 @@ void SDL2DisplayWindow::OnTextInput(const SDL_TextInputEvent& event)
 
 void SDL2DisplayWindow::OnJoyButtonUp(const SDL_ControllerButtonEvent& event)
 {
+	WindowHost->OnWindowJoyButtonUp(event.button);
 	WindowHost->OnWindowKeyUp(GameControllerButtonToInputKey((SDL_GameControllerButton)event.button));
 }
 
 void SDL2DisplayWindow::OnJoyButtonDown(const SDL_ControllerButtonEvent& event)
 {
+	WindowHost->OnWindowJoyButtonDown(event.button);
 	WindowHost->OnWindowKeyDown(GameControllerButtonToInputKey((SDL_GameControllerButton)event.button));
 }
 

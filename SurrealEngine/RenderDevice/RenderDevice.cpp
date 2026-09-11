@@ -25,6 +25,7 @@ RenderDevice::RenderDevice()
 	LightMode = (int)settings.RenderDevice.Light;
 	GammaCorrectScreenshots = settings.RenderDevice.GammaCorrectScreenshots;
 	UseDebugLayer = settings.RenderDevice.UseDebugLayer;
+	RefreshRate = settings.RenderDevice.StartupRefreshRate;
 }
 
 std::unique_ptr<RenderDevice> RenderDevice::Create(Widget* viewport, RenderAPI renderAPI)

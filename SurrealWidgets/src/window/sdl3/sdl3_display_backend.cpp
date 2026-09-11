@@ -103,6 +103,47 @@ std::vector<Size> SDL3DisplayBackend::GetAvailableResolutions() const
 	return result;
 }
 
+std::vector<DisplayMode> SDL3DisplayBackend::GetAvailableDisplayModes() const
+{
+	std::vector<DisplayMode> result;
+	int displayCount = 0;
+	SDL_DisplayID* displays = SDL_GetDisplays(&displayCount);
+	if (!displays || displayCount < 1)
+		return result;
+
+	SDL_DisplayID displayID = displays[0];
+	int modeCount = 0;
+	SDL_DisplayMode** modes = SDL_GetFullscreenDisplayModes(displayID, &modeCount);
+	if (modes)
+	{
+		for (int i = 0; i < modeCount; ++i)
+		{
+			const SDL_DisplayMode* mode = modes[i];
+			if (!mode || mode->w <= 0 || mode->h <= 0)
+				continue;
+
+			DisplayMode displayMode;
+			displayMode.resolution = Size(mode->w / UIScale, mode->h / UIScale);
+			displayMode.refreshRate = mode->refresh_rate > 0 ? mode->refresh_rate : 0;
+			bool alreadyAdded = false;
+			for (const DisplayMode& existing : result)
+			{
+				if (existing == displayMode)
+				{
+					alreadyAdded = true;
+					break;
+				}
+			}
+			if (!alreadyAdded)
+				result.push_back(displayMode);
+		}
+		SDL_free(modes);
+	}
+	SDL_free(displays);
+
+	return result;
+}
+
 void* SDL3DisplayBackend::StartTimer(int timeoutMilliseconds, std::function<void()> onTimer)
 {
 	return SDL3DisplayWindow::StartTimer(timeoutMilliseconds, std::move(onTimer));

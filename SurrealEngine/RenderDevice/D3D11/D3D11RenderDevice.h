@@ -219,8 +219,6 @@ public:
 	std::unique_ptr<D3D11TextureManager> Textures;
 	std::unique_ptr<D3D11UploadManager> Uploads;
 
-	int RefreshRate = 0;
-
 	struct
 	{
 		int ComplexSurfaces = 0;

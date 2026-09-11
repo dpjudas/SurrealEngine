@@ -48,6 +48,12 @@
 #include "Packages/ConSys/Events/UConEvent.h"
 #include "Packages/ConSys/Events/UConEventTransferObject.h"
 #include "Packages/ConSys/Events/UConEventCheckObject.h"
+#include <surrealwidgets/widgets/dialog/messagebox.h>
+#if defined(USE_SDL3)
+#include <SDL3/SDL_gamepad.h>
+#else
+#include <SDL2/SDL_gamecontroller.h>
+#endif
 #include "Packages/DeusEx/UDeusExLevelInfo.h"
 #include "Packages/DeusEx/UDeusExSaveInfo.h"
 #include "ObjectTravelInfo.h"
@@ -59,10 +65,14 @@
 #include "VM/ScriptCall.h"
 #include "Video/VideoPlayer.h"
 #include "Utils/Convert.h"
+#include "LauncherSettings.h"
 #include <chrono>
+#include <filesystem>
 #include <set>
 
 Engine* engine = nullptr;
+
+
 
 Engine::Engine(GameLaunchInfo launchinfo) : LaunchInfo(launchinfo)
 {
@@ -899,17 +909,20 @@ void Engine::SaveGameToSlot(int32_t slotNum, const std::string& saveDescription)
 		dxSaveInfo->UpdateTimeStamp();
 		deusExPackage->Save(dxSaveInfo, saveInfoFullPath);
 	}
-	else
-	{
-		const std::string saveFileName = "Save" + std::to_string(slotNum) + "." + packages->GetSaveExtension();
-		const std::string saveFileFullPath = (saveFolderPath / saveFileName).string();
-		LevelPackage->Save(Level, saveFileFullPath);
+		else
+		{
+			const std::string saveFileName = "Save" + std::to_string(slotNum) + "." + packages->GetSaveExtension();
+			const std::string saveFileFullPath = (saveFolderPath / saveFileName).string();
+			LevelPackage->Save(Level, saveFileFullPath);
 
-		// The save package is later reloaded by its slot filename ("SaveN"), not by the original
-		// map name, so record the real map name here for LoadFromSaveFile() to recover.
-		packages->SetIniValue("user", "SaveGame", "MapName" + std::to_string(slotNum), Level->package->GetPackageName().ToString());
+			// The save package is later reloaded by its slot filename ("SaveN"), not by the original
+			// map name, so record the real map name here for LoadFromSaveFile() to recover.
+			packages->SetIniValue("user", "SaveGame", "MapName" + std::to_string(slotNum), Level->package->GetPackageName().ToString());
+		}
+
+		LauncherSettings::Get().Games.LastSavedSlot = slotNum;
+		LauncherSettings::Get().Save();
 	}
-}
 
 std::map<std::string, std::string> Engine::CreateTravelInfo(bool transferItems)
 {
@@ -1476,6 +1489,13 @@ void Engine::LoadEngineSettings()
 		renderdev->LoadProperties();
 	}
 
+	client->StartupFullscreen = LauncherSettings::Get().RenderDevice.StartupFullscreen;
+	client->FullscreenViewportX = LauncherSettings::Get().RenderDevice.StartupViewportX;
+	client->FullscreenViewportY = LauncherSettings::Get().RenderDevice.StartupViewportY;
+	client->WindowedViewportX = LauncherSettings::Get().RenderDevice.StartupViewportX;
+	client->WindowedViewportY = LauncherSettings::Get().RenderDevice.StartupViewportY;
+	LogMessage(std::string("Launcher startup fullscreen: ") + (client->StartupFullscreen ? "true" : "false"));
+
 #ifdef WIN32
 	windowingSystemName = packages->GetIniValue("System", "Engine.SurrealWindowSystem", "WindowSystem", "Win32");
 #else
@@ -1711,6 +1731,45 @@ void Engine::OnWindowKeyUp(EInputKey key)
 		return;
 
 	InputEvent(key, IST_Release);
+}
+
+void Engine::OnWindowJoyButtonDown(int button)
+{
+	if (Frame::RunState != FrameRunState::Running || playingAvi)
+		return;
+
+	if (button == SDL_CONTROLLER_BUTTON_START)
+	{
+		if (dxRootWindow)
+			dxRootWindow->OnWindowKeyDown(IK_Escape);
+		return;
+	}
+
+	if (button == SDL_CONTROLLER_BUTTON_X)
+	{
+		const auto entryMapName = packages->GetIniValue("System", "URL", "EntryMap", "Entry");
+		if (MessageBox::Question(window.get(), "Start a new game? Unsaved progress will be lost.", "New Game") == DialogButton::Yes)
+			ClientTravel(GetDefaultURL(entryMapName).ToString(), ETravelType::TRAVEL_Absolute, false);
+		return;
+	}
+
+	if (button == SDL_CONTROLLER_BUTTON_Y)
+	{
+		auto latestSlot = LauncherSettings::Get().Games.LastSavedSlot >= 0 ? std::optional<uint32_t>((uint32_t)LauncherSettings::Get().Games.LastSavedSlot) : std::optional<uint32_t>();
+		if (latestSlot)
+		{
+			if (MessageBox::Question(window.get(), "Load the latest save? Current progress will be lost.", "Load Game") == DialogButton::Yes)
+				ClientTravel("?load=" + std::to_string(*latestSlot), ETravelType::TRAVEL_Absolute, false);
+		}
+		else
+			LogMessage("No save files found to load");
+		return;
+	}
+}
+
+void Engine::OnWindowJoyButtonUp(int button)
+{
+	(void)button;
 }
 
 void Engine::OnWindowGeometryChanged()

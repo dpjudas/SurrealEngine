@@ -92,6 +92,7 @@ public:
 	void StopTimer(void* timerID) override;
 
 	Size GetScreenSize() override;
+	std::vector<DisplayMode> GetAvailableDisplayModes() const override;
 
 	bool IsWayland() override { return true; }
 
@@ -114,6 +115,7 @@ public:
 
 	bool exitRunLoop = false;
 	Size s_ScreenSize = Size(0, 0);
+	int s_ScreenRefreshRate = 0;
 	wayland::display_t s_waylandDisplay = wayland::display_t();
 	wayland::registry_t s_waylandRegistry;
 	std::vector<WaylandDisplayWindow*> s_Windows;

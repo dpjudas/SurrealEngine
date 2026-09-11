@@ -37,6 +37,10 @@ public:
 	struct
 	{
 		RenderDeviceType Type = RenderDeviceType::Vulkan;
+		bool StartupFullscreen = false;
+		int StartupViewportX = 0;
+		int StartupViewportY = 0;
+		int StartupRefreshRate = 0;
 		bool UseVSync = true;
 		AntialiasMode Antialias = AntialiasMode::MSAA4x;
 		LightMode Light = LightMode::Normal;
@@ -53,6 +57,7 @@ public:
 	{
 		Array<std::string> SearchList;
 		int LastSelected = -1;
+		int LastSavedSlot = -1;
 	} Games;
 
 private:

@@ -2,6 +2,7 @@
 
 #include <surrealwidgets/core/widget.h>
 #include <surrealwidgets/widgets/radiobuttonlabel/radiobuttonlabel.h>
+#include <surrealwidgets/window/window.h>
 
 class LauncherWindow;
 class ListView;
@@ -35,7 +36,15 @@ private:
 #endif
 
 	TextLabel* AdvancedLabel = nullptr;
+	TextLabel* PresetLabel = nullptr;
+	Dropdown* Preset = nullptr;
+	TextLabel* QualityLabel = nullptr;
 
+	CheckboxLabel* StartupFullscreen = nullptr;
+	TextLabel* StartupResolutionLabel = nullptr;
+	Dropdown* StartupResolution = nullptr;
+	TextLabel* StartupRefreshRateLabel = nullptr;
+	Dropdown* StartupRefreshRate = nullptr;
 	CheckboxLabel* UseVSync = nullptr;
 
 	TextLabel* AntialiasModesLabel = nullptr;
@@ -58,4 +67,12 @@ private:
 
 	CheckboxLabel* UseDebugLayer = nullptr;
 	PushButton* ResetButton = nullptr;
+
+	void UpdateStartupRefreshRates();
+
+	std::vector<Size> StartupResolutions;
+	std::vector<std::vector<int>> StartupRefreshRates;
+	bool bUpdatingPreset = false;
+
+	void ApplyRenderPreset(int index);
 };

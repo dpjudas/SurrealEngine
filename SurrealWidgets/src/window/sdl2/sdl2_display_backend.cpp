@@ -142,6 +142,48 @@ std::vector<Size> SDL2DisplayBackend::GetAvailableResolutions() const
 	return result;
 }
 
+std::vector<DisplayMode> SDL2DisplayBackend::GetAvailableDisplayModes() const
+{
+	std::vector<DisplayMode> result;
+	int numDisplays = SDL_GetNumVideoDisplays();
+	if (numDisplays < 1)
+		return result;
+
+	for (int displayIndex = 0; displayIndex < numDisplays; ++displayIndex)
+	{
+		int numModes = SDL_GetNumDisplayModes(displayIndex);
+		if (numModes < 1)
+			continue;
+
+		for (int modeIndex = 0; modeIndex < numModes; ++modeIndex)
+		{
+			SDL_DisplayMode mode = {};
+			if (SDL_GetDisplayMode(displayIndex, modeIndex, &mode) != 0)
+				continue;
+
+			if (mode.w <= 0 || mode.h <= 0)
+				continue;
+
+			DisplayMode displayMode;
+			displayMode.resolution = Size(mode.w / UIScale, mode.h / UIScale);
+			displayMode.refreshRate = mode.refresh_rate > 0 ? mode.refresh_rate : 0;
+			bool alreadyAdded = false;
+			for (const DisplayMode& existing : result)
+			{
+				if (existing == displayMode)
+				{
+					alreadyAdded = true;
+					break;
+				}
+			}
+			if (!alreadyAdded)
+				result.push_back(displayMode);
+		}
+	}
+
+	return result;
+}
+
 void* SDL2DisplayBackend::StartTimer(int timeoutMilliseconds, std::function<void()> onTimer)
 {
 	return SDL2DisplayWindow::StartTimer(timeoutMilliseconds, std::move(onTimer));

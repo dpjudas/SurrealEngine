@@ -211,6 +211,8 @@ protected:
 	virtual void OnSetFocus() { }
 	virtual void OnLostFocus() { }
 	virtual void OnEnableChanged() { }
+	virtual void OnJoyButtonDown(int button) { }
+	virtual void OnJoyButtonUp(int button) { }
 
 	// DisplayWindowHost
 	void OnWindowPaint() override;
@@ -225,6 +227,8 @@ protected:
 	void OnWindowKeyChar(std::string chars) override;
 	void OnWindowKeyDown(InputKey key) override;
 	void OnWindowKeyUp(InputKey key) override;
+	void OnWindowJoyButtonDown(int button) override;
+	void OnWindowJoyButtonUp(int button) override;
 	void OnWindowGeometryChanged() override;
 	void OnWindowClose() override;
 	void OnWindowActivated() override;

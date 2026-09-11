@@ -960,6 +960,18 @@ void Widget::OnWindowKeyUp(InputKey key)
 		FocusWidget->OnKeyUp(key);
 }
 
+void Widget::OnWindowJoyButtonDown(int button)
+{
+	if (FocusWidget)
+		FocusWidget->OnJoyButtonDown(button);
+}
+
+void Widget::OnWindowJoyButtonUp(int button)
+{
+	if (FocusWidget)
+		FocusWidget->OnJoyButtonUp(button);
+}
+
 void Widget::OnWindowGeometryChanged()
 {
 	if (!DispWindow)

@@ -2,6 +2,43 @@ cmake_minimum_required(VERSION 3.15)
 
 project(SurrealEngine)
 
+set(SURREAL_RELEASE_VERSION "unknown")
+find_package(Git QUIET)
+if(GIT_FOUND AND EXISTS "${CMAKE_SOURCE_DIR}/.git")
+	execute_process(
+		COMMAND "${GIT_EXECUTABLE}" -C "${CMAKE_SOURCE_DIR}" describe --tags --dirty --always
+		OUTPUT_VARIABLE SURREAL_RELEASE_VERSION
+		OUTPUT_STRIP_TRAILING_WHITESPACE
+		ERROR_QUIET
+	)
+endif()
+
+string(REPLACE "/" "-" SURREAL_RELEASE_VERSION "${SURREAL_RELEASE_VERSION}")
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
+	if(CMAKE_SYSTEM_PROCESSOR MATCHES "^(x86_64|amd64)$")
+		set(SURREAL_RELEASE_PLATFORM "linux-x86_64")
+	else()
+		set(SURREAL_RELEASE_PLATFORM "linux-${CMAKE_SYSTEM_PROCESSOR}")
+	endif()
+else()
+	set(SURREAL_RELEASE_PLATFORM "${CMAKE_SYSTEM_NAME}-${CMAKE_SYSTEM_PROCESSOR}")
+endif()
+
+if(NOT CMAKE_CONFIGURATION_TYPES AND NOT CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: Debug Release RelWithDebInfo MinSizeRel." FORCE)
+endif()
+
+if(NOT MSVC)
+	set(CMAKE_INSTALL_DO_STRIP ON CACHE BOOL "Strip binaries during install" FORCE)
+endif()
+
+find_program(CCACHE_PROGRAM ccache)
+if(CCACHE_PROGRAM)
+	set(CMAKE_C_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "" FORCE)
+	set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}" CACHE STRING "" FORCE)
+endif()
+
 add_subdirectory(Thirdparty/openmpt)
 add_subdirectory(SurrealGPU)
 add_subdirectory(SurrealWidgets)
@@ -1255,3 +1292,45 @@ endif()
 install(TARGETS SurrealEngine RUNTIME DESTINATION bin BUNDLE DESTINATION app)
 install(TARGETS SurrealEditor RUNTIME DESTINATION bin BUNDLE DESTINATION app)
 install(TARGETS SurrealDebugger RUNTIME DESTINATION bin)
+install(TARGETS SurrealVideo LIBRARY DESTINATION bin RUNTIME DESTINATION bin BUNDLE DESTINATION app)
+install(FILES "${CMAKE_BINARY_DIR}/SurrealEngine.pk3" DESTINATION bin)
+
+add_custom_target(dist
+	COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_BINARY_DIR}/dist"
+	COMMAND ${CMAKE_COMMAND} --install "${CMAKE_BINARY_DIR}" --prefix "${CMAKE_BINARY_DIR}/dist" --strip
+	DEPENDS SurrealEngine SurrealEditor SurrealDebugger SurrealVideo Resources
+	USES_TERMINAL
+	COMMENT "Build and stage stripped distributable files into dist/"
+)
+
+find_program(PYTHON3_EXECUTABLE NAMES python3 python)
+if(NOT PYTHON3_EXECUTABLE)
+	message(FATAL_ERROR "python3 is required to build release archives")
+endif()
+
+set(SURREAL_ARCHIVE_NAME "SurrealEngine-${SURREAL_RELEASE_VERSION}-${SURREAL_RELEASE_PLATFORM}.zip")
+
+file(GENERATE OUTPUT "${CMAKE_BINARY_DIR}/package_dist.py" CONTENT [=[
+import os
+import pathlib
+import sys
+import zipfile
+
+out = pathlib.Path(sys.argv[1])
+src = pathlib.Path(sys.argv[2])
+root = src.parent
+
+with zipfile.ZipFile(out, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
+	for base, _, files in os.walk(src):
+		for name in files:
+			path = pathlib.Path(base) / name
+			zf.write(path, path.relative_to(root))
+]=])
+
+add_custom_target(package
+	COMMAND ${CMAKE_COMMAND} -E rm -f "${CMAKE_BINARY_DIR}/${SURREAL_ARCHIVE_NAME}"
+	COMMAND ${PYTHON3_EXECUTABLE} "${CMAKE_BINARY_DIR}/package_dist.py" "${CMAKE_BINARY_DIR}/${SURREAL_ARCHIVE_NAME}" "${CMAKE_BINARY_DIR}/dist"
+	DEPENDS dist
+	USES_TERMINAL
+	COMMENT "Create a release archive from dist/"
+)

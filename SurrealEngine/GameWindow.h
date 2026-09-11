@@ -97,6 +97,8 @@ public:
 	virtual void OnWindowKeyChar(std::string chars) = 0;
 	virtual void OnWindowKeyDown(EInputKey key) = 0;
 	virtual void OnWindowKeyUp(EInputKey key) = 0;
+	virtual void OnWindowJoyButtonDown(int button) = 0;
+	virtual void OnWindowJoyButtonUp(int button) = 0;
 	virtual void OnWindowGeometryChanged() = 0;
 	virtual void OnWindowClose() = 0;
 	virtual void OnWindowActivated() = 0;

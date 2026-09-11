@@ -10,6 +10,8 @@ Use CMake to build the project. Development versions of the following packages a
 
 * cmake
 * g++
+* ninja
+* ccache (Optional, but strongly recommended)
 * pthreads
 * dl
 * alsa (libasound2)
@@ -26,11 +28,11 @@ Use CMake to build the project. Development versions of the following packages a
 
 #### Ubuntu
 
-    # apt install cmake g++ libasound-dev libopenal-dev libdbus-1-dev libsdl3-dev libxkbcommon-dev waylandpp-dev
+    # apt install cmake g++ ninja-build ccache libasound-dev libopenal-dev libdbus-1-dev libsdl3-dev libxkbcommon-dev waylandpp-dev
 
 #### Arch Linux
 
-    # pacman -S libx11 gcc git cmake sdl3 alsa-lib waylandpp
+    # pacman -S libx11 gcc git cmake ninja ccache sdl3 alsa-lib waylandpp
 
 #### Fedora
 
@@ -44,7 +46,11 @@ Once you've installed all prerequisites, enter these commands in the given order
     cd SurrealEngine
     mkdir build
     cd build
-    cmake -DCMAKE_BUILD_TYPE=Release ..
-    make -j 16
+    cmake -G Ninja -DCMAKE_BUILD_TYPE=Release ..
+    cmake --build . --parallel
+    cmake --build . --target dist --parallel
+    cmake --build . --target package --parallel
 
-When compilation is successfully finished, `build` folder should contain these 3 executables: `SurrealEngine`, `SurrealEditor` and `SurrealDebugger`
+`ccache` is used automatically when available. To check whether it is active, run `cmake -LAH . | grep COMPILER_LAUNCHER` from the build directory.
+
+When compilation is successfully finished, the `dist` folder should contain the distributable files. The `dist` target builds and stages stripped binaries plus `SurrealEngine.pk3` in one step. The `package` target creates a max-compression zip archive named `SurrealEngine-<version>-linux-x86_64.zip`.

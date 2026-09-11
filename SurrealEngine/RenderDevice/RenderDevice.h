@@ -158,6 +158,7 @@ public:
 	uint8_t LightMode = 0;
 	bool GammaCorrectScreenshots = true;
 	bool UseDebugLayer = false;
+	int RefreshRate = 0;
 };
 
 class RenderDeviceTexture : public CanvasTexture

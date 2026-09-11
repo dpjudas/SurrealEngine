@@ -76,6 +76,7 @@ WaylandDisplayBackend::WaylandDisplayBackend()
 
 	m_waylandOutput.on_mode() = [this] (wayland::output_mode flags, int32_t width, int32_t height, int32_t refresh) {
 		s_ScreenSize = Size(width, height);
+		s_ScreenRefreshRate = refresh;
 	};
 
 	m_XDGWMBase.on_ping() = [this] (uint32_t serial) {
@@ -740,6 +741,19 @@ void WaylandDisplayBackend::ExitLoop()
 Size WaylandDisplayBackend::GetScreenSize()
 {
 	return s_ScreenSize;
+}
+
+std::vector<DisplayMode> WaylandDisplayBackend::GetAvailableDisplayModes() const
+{
+	std::vector<DisplayMode> result;
+	if (s_ScreenSize.width > 0 && s_ScreenSize.height > 0)
+	{
+		DisplayMode displayMode;
+		displayMode.resolution = s_ScreenSize;
+		displayMode.refreshRate = s_ScreenRefreshRate;
+		result.push_back(displayMode);
+	}
+	return result;
 }
 
 #ifdef USE_DBUS

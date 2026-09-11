@@ -119,6 +119,8 @@ public:
 	void OnWindowKeyChar(std::string chars) override;
 	void OnWindowKeyDown(EInputKey key) override;
 	void OnWindowKeyUp(EInputKey key) override;
+	void OnWindowJoyButtonDown(int button) override;
+	void OnWindowJoyButtonUp(int button) override;
 	void OnWindowGeometryChanged() override;
 	void OnWindowClose() override;
 	void OnWindowActivated() override;

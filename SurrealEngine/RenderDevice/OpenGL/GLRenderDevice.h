@@ -218,8 +218,6 @@ public:
 	std::unique_ptr<GLTextureManager> Textures;
 	std::unique_ptr<GLUploadManager> Uploads;
 
-	int RefreshRate = 0;
-
 	struct
 	{
 		int ComplexSurfaces = 0;

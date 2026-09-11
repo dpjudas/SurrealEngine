@@ -17,6 +17,7 @@ public:
 
 	Size GetScreenSize() override;
 	std::vector<Size> GetAvailableResolutions() const override;
+	std::vector<DisplayMode> GetAvailableDisplayModes() const override;
 
 	bool IsSDL2() override { return true; }
 

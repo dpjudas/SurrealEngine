@@ -31,6 +31,10 @@ LauncherSettings::LauncherSettings()
 		else if (rendevtype == "OpenGL")
 			RenderDevice.Type = RenderDeviceType::OpenGL;
 
+		RenderDevice.StartupFullscreen = settings["RenderDevice"]["StartupFullscreen"].to_boolean();
+		RenderDevice.StartupViewportX = settings["RenderDevice"]["StartupViewportX"].to_int();
+		RenderDevice.StartupViewportY = settings["RenderDevice"]["StartupViewportY"].to_int();
+		RenderDevice.StartupRefreshRate = settings["RenderDevice"]["StartupRefreshRate"].to_int();
 		std::string rendevaa = settings["RenderDevice"]["Antialias"].to_string();
 		if (rendevaa == "Off")
 			RenderDevice.Antialias = AntialiasMode::Off;
@@ -66,6 +70,7 @@ LauncherSettings::LauncherSettings()
 			Games.SearchList.push_back(jsonItem.to_string());
 		}
 		Games.LastSelected = settings["Games"]["LastSelected"].to_int();
+		Games.LastSavedSlot = settings["Games"]["LastSavedSlot"].to_int();
 	}
 	catch (...)
 	{
@@ -85,6 +90,10 @@ void LauncherSettings::Save()
 	case RenderDeviceType::OpenGL: rendev["Type"] = JsonValue::string("OpenGL"); break;
 	}
 
+	rendev["StartupFullscreen"] = JsonValue::boolean(RenderDevice.StartupFullscreen);
+	rendev["StartupViewportX"] = JsonValue::number(RenderDevice.StartupViewportX);
+	rendev["StartupViewportY"] = JsonValue::number(RenderDevice.StartupViewportY);
+	rendev["StartupRefreshRate"] = JsonValue::number(RenderDevice.StartupRefreshRate);
 	switch (RenderDevice.Antialias)
 	{
 	default:
@@ -119,6 +128,7 @@ void LauncherSettings::Save()
 	JsonValue games = JsonValue::object();
 	games["SearchList"] = JsonValue::array(Games.SearchList);
 	games["LastSelected"] = JsonValue::number(Games.LastSelected);
+	games["LastSavedSlot"] = JsonValue::number(Games.LastSavedSlot);
 
 	JsonValue settings = JsonValue::object();
 	settings["RenderDevice"] = std::move(rendev);

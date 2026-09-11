@@ -287,6 +287,17 @@ enum class WidgetType
 
 class DisplayWindow;
 
+struct DisplayMode
+{
+	Size resolution;
+	int refreshRate = 0;
+
+	bool operator==(const DisplayMode& other) const
+	{
+		return resolution == other.resolution && refreshRate == other.refreshRate;
+	}
+};
+
 class DisplayWindowHost
 {
 public:
@@ -302,6 +313,8 @@ public:
 	virtual void OnWindowKeyChar(std::string chars) = 0;
 	virtual void OnWindowKeyDown(InputKey key) = 0;
 	virtual void OnWindowKeyUp(InputKey key) = 0;
+	virtual void OnWindowJoyButtonDown(int button) = 0;
+	virtual void OnWindowJoyButtonUp(int button) = 0;
 	virtual void OnWindowGeometryChanged() = 0;
 	virtual void OnWindowClose() = 0;
 	virtual void OnWindowActivated() = 0;
@@ -418,6 +431,7 @@ public:
 
 	virtual Size GetScreenSize() = 0;
 	virtual std::vector<Size> GetAvailableResolutions() const { return {}; }
+	virtual std::vector<DisplayMode> GetAvailableDisplayModes() const { return {}; }
 
 	virtual std::unique_ptr<OpenFileDialog> CreateOpenFileDialog(DisplayWindow* owner);
 	virtual std::unique_ptr<SaveFileDialog> CreateSaveFileDialog(DisplayWindow* owner);
