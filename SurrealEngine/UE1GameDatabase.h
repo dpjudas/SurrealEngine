@@ -205,13 +205,15 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 };
 
 static const Array<std::string> knownUE1ExecutableNames = {
-	"Unreal.exe",
-	"UnrealLinux.bin",
-	"UnrealTournament.exe",
+	// Order matters: prefer Linux UT executables when both Linux and Windows names are present.
+	// This can happen if a Linux install is extracted over an existing Windows folder.
 	"ut-bin",
 	"ut-bin-x86",
 	"ut-bin-amd64",
 	"ut-bin-x64",
+	"Unreal.exe",
+	"UnrealLinux.bin",
+	"UnrealTournament.exe",
 	"DeusEx.exe",
 	"Klingons.exe",
 	"Khg.exe",

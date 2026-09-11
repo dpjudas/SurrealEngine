@@ -9,7 +9,7 @@ void LogUnimplemented(const std::string& message);
 
 struct LogMessageLine
 {
-	float Time;
+	float Time = 0.0f;
 	std::string Source;
 	std::string Text;
 };
