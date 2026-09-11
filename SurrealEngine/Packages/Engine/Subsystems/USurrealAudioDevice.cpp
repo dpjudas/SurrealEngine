@@ -165,11 +165,6 @@ void USurrealAudioDevice::SetViewport(UViewport* InViewport)
 	{
 		StopSounds();
 
-		if (m_Viewport)
-		{
-			m_Device->PlayMusic({});
-		}
-
 		m_Viewport = InViewport;
 
 		if (m_Viewport)
@@ -498,6 +493,9 @@ void USurrealAudioDevice::StopSounds()
 {
 	for (size_t i = 0; i < PlayingSounds.size(); i++)
 		StopSound(i);
+
+	m_Device->PlayMusic(nullptr);
+	m_Viewport = nullptr;
 }
 
 void USurrealAudioDevice::BreakpointTriggered()
