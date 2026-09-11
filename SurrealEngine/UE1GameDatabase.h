@@ -204,14 +204,16 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	{"28b0e54af165c1ad170d5132e4ac7ca986d06484", KnownUE1Games::HARRYPOTTER2_433},
 };
 
+// Note: order matters here as we pick the first match.
+// If a linux install was extracted over a Windows version then both versions may be present, but with the Windows version being the wrong version
 static const Array<std::string> knownUE1ExecutableNames = {
-	"Unreal.exe",
-	"UnrealLinux.bin",
-	"UnrealTournament.exe",
 	"ut-bin",
 	"ut-bin-x86",
 	"ut-bin-amd64",
 	"ut-bin-x64",
+	"Unreal.exe",
+	"UnrealLinux.bin",
+	"UnrealTournament.exe",
 	"DeusEx.exe",
 	"Klingons.exe",
 	"Khg.exe",
