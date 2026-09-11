@@ -1188,6 +1188,13 @@ add_executable(SurrealDebugger ${SURREALDEBUGGER_SOURCES})
 target_link_libraries(SurrealDebugger SurrealCommon ${SURREALCOMMON_LIBS})
 set_target_properties(SurrealDebugger PROPERTIES CXX_STANDARD 20)
 
+if(UNIX AND NOT APPLE)
+	foreach(runnable_target SurrealEngine SurrealEditor SurrealDebugger)
+		set_property(TARGET ${runnable_target} APPEND PROPERTY BUILD_RPATH "$ORIGIN")
+		set_property(TARGET ${runnable_target} APPEND PROPERTY INSTALL_RPATH "$ORIGIN")
+	endforeach()
+endif()
+
 function( create_zip_source_groups FOLDER_NAME ZIP_DIR )
 	file(GLOB ZIP_SRCS ${ZIP_DIR}/*)
 	foreach(ZIP_SRC ${ZIP_SRCS})
@@ -1289,11 +1296,11 @@ if(MSVC)
 	set_target_properties(SurrealDebugger PROPERTIES LINK_FLAGS_RELWITHDEBINFO /PDBSTRIPPED:${CMAKE_CURRENT_BINARY_DIR}/RelWithDebInfo/SurrealDebugger-stripped.pdb)
 endif()
 
-install(TARGETS SurrealEngine RUNTIME DESTINATION bin BUNDLE DESTINATION app)
-install(TARGETS SurrealEditor RUNTIME DESTINATION bin BUNDLE DESTINATION app)
-install(TARGETS SurrealDebugger RUNTIME DESTINATION bin)
-install(TARGETS SurrealVideo LIBRARY DESTINATION bin RUNTIME DESTINATION bin BUNDLE DESTINATION app)
-install(FILES "${CMAKE_BINARY_DIR}/SurrealEngine.pk3" DESTINATION bin)
+install(TARGETS SurrealEngine RUNTIME DESTINATION . BUNDLE DESTINATION app)
+install(TARGETS SurrealEditor RUNTIME DESTINATION . BUNDLE DESTINATION app)
+install(TARGETS SurrealDebugger RUNTIME DESTINATION .)
+install(TARGETS SurrealVideo LIBRARY DESTINATION . RUNTIME DESTINATION . BUNDLE DESTINATION app)
+install(FILES "${CMAKE_BINARY_DIR}/SurrealEngine.pk3" DESTINATION .)
 
 add_custom_target(dist
 	COMMAND ${CMAKE_COMMAND} -E rm -rf "${CMAKE_BINARY_DIR}/dist"
@@ -1324,7 +1331,7 @@ with zipfile.ZipFile(out, 'w', compression=zipfile.ZIP_DEFLATED, compresslevel=9
 	for base, _, files in os.walk(src):
 		for name in files:
 			path = pathlib.Path(base) / name
-			zf.write(path, path.relative_to(root))
+			zf.write(path, path.relative_to(src))
 ]=])
 
 add_custom_target(package
