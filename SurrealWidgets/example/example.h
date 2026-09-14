@@ -21,6 +21,7 @@
 #include <surrealwidgets/widgets/tabwidget/tabwidget.h>
 #include <surrealwidgets/widgets/dialog/textinputdialog.h>
 #include <surrealwidgets/widgets/treeview/treeview.h>
+#include <surrealwidgets/widgets/slider/slider.h>
 
 class LauncherWindowTab1 : public Widget
 {
@@ -62,6 +63,8 @@ private:
 	PushButton* TextInputPopup = nullptr;
 
 	TreeView* m_TreeView = nullptr;
+
+	Slider* m_Slider = nullptr;
 };
 
 class LauncherWindow : public Widget

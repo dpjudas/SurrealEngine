@@ -201,6 +201,9 @@ LauncherWindowTab3::LauncherWindowTab3(Widget parent)
 	QuestionPopup = new PushButton(this);
 	TextInputPopup = new PushButton(this);
 	m_TreeView = new TreeView(this);
+	m_Slider = new Slider(this);
+
+	m_Slider->SetTickPosition(TicksBothSides);
 
 	Label->SetText("Oh my, even more widgets");
 	Popup->SetText("Click me.");
@@ -222,6 +225,11 @@ LauncherWindowTab3::LauncherWindowTab3(Widget parent)
 	Popup->OnClick = [this]{
 		auto result = MessageBox::Information(this, "This is an Information MessageBox.\nYou selected " + Choices->GetItem(Choices->GetSelectedItem()) + ".\n\nWhy does everyone walk so slowly in the middle of the grocery store aisle?! It is not a museum! People have places to be, and I just need to grab my milk and leave. Move your cart to the side!");
 		std::cout << "Dialog returned: " << static_cast<uint32_t>(result) << std::endl;
+	};
+
+	m_Slider->ValueChanged = [this] (int newValue)
+	{
+		std::cout << "Slider value changed to: " << newValue << std::endl;
 	};
 
 	QuestionPopup->OnClick = [this]{
@@ -261,6 +269,7 @@ LauncherWindowTab3::LauncherWindowTab3(Widget parent)
 	layout->AddWidget(QuestionPopup);
 	layout->AddWidget(TextInputPopup);
 	layout->AddWidget(m_TreeView);
+	layout->AddWidget(m_Slider);
 
 	SetLayout(layout);
 }
