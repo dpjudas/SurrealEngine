@@ -87,6 +87,7 @@ set(SURREALWIDGETS_SOURCES
 	src/widgets/menubar/menubar.cpp
 	src/widgets/scrollbar/scrollbar.cpp
 	src/widgets/scrollwidget/scrollwidget.cpp
+	src/widgets/slider/slider.cpp
 	src/widgets/statusbar/statusbar.cpp
 	src/widgets/textedit/textedit.cpp
 	src/widgets/toolbar/toolbar.cpp
@@ -120,6 +121,7 @@ set(SURREALWIDGETS_INCLUDES
 	include/surrealwidgets/core/font.h
 	include/surrealwidgets/core/image.h
 	include/surrealwidgets/core/rect.h
+	include/surrealwidgets/core/orientation.h
 	include/surrealwidgets/core/pathfill.h
 	include/surrealwidgets/core/span_layout.h
 	include/surrealwidgets/core/timer.h
@@ -135,6 +137,7 @@ set(SURREALWIDGETS_INCLUDES
 	include/surrealwidgets/widgets/menubar/menubar.h
 	include/surrealwidgets/widgets/scrollbar/scrollbar.h
 	include/surrealwidgets/widgets/scrollwidget/scrollwidget.h
+	include/surrealwidgets/widgets/slider/slider.h
 	include/surrealwidgets/widgets/statusbar/statusbar.h
 	include/surrealwidgets/widgets/textedit/textedit.h
 	include/surrealwidgets/widgets/toolbar/toolbar.h
