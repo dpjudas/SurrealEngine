@@ -33,7 +33,7 @@ jobs:
         - name: macOS arm64
           os: macos-latest
           build_type: RelWithDebInfo
-          deps_cmdline: sudo brew install create-dmg
+          deps_cmdline: brew install create-dmg
 
     steps:
     - uses: actions/checkout@v4
