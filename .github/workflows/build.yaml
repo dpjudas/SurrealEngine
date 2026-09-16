@@ -33,6 +33,7 @@ jobs:
         - name: macOS arm64
           os: macos-latest
           build_type: RelWithDebInfo
+          deps_cmdline: sudo brew install create-dmg
 
     steps:
     - uses: actions/checkout@v4
@@ -79,7 +80,9 @@ jobs:
           strip package/SurrealDebugger
           strip package/libSurrealVideo.so
         elif [[ "${{ runner.os }}" == 'macOS' ]]; then
-          cp -r SurrealEngine.app package
+          mkdir diskimage
+          cp -r SurrealEngine.app diskimage
+          create-dmg --volname "Surreal Engine" package/SurrealEngine.dmg diskimage
         fi
 
     - name: Upload Package
