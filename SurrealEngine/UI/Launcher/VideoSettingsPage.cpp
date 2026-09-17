@@ -21,7 +21,9 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	D3D11 = new RadioButtonLabel(&RenderDeviceGroup, this);
 	//D3D12 = new RadioButtonLabel(&RenderDeviceGroup, this);
 #endif
+#ifndef __APPLE__
 	OpenGL = new RadioButtonLabel(&RenderDeviceGroup, this);
+#endif
 
 	AdvancedLabel = new TextLabel(this);
 	UseVSync = new CheckboxLabel(this);
@@ -47,7 +49,9 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	D3D11->SetText("Direct3D 11");
 	//D3D12->SetText("Direct3D 12");
 #endif
+#ifndef __APPLE__
 	OpenGL->SetText("OpenGL");
+#endif
 	AdvancedLabel->SetText("Render settings:");
 	UseVSync->SetText("Use vertical sync");
 	AntialiasModesLabel->SetText("Anti aliasing");
@@ -81,7 +85,9 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	D3D11->SetChecked(settings.RenderDevice.Type == RenderDeviceType::D3D11);
 	//D3D12->SetChecked(settings.RenderDevice.Type == RenderDeviceType::D3D12);
 #endif
+#ifndef __APPLE__
 	OpenGL->SetChecked(settings.RenderDevice.Type == RenderDeviceType::OpenGL);
+#endif
 	UseVSync->SetChecked(settings.RenderDevice.UseVSync);
 	AntialiasModes->SetSelectedItem((int)settings.RenderDevice.Antialias);
 	LightModes->SetSelectedItem((int)settings.RenderDevice.Light);
@@ -102,7 +108,9 @@ VideoSettingsPage::VideoSettingsPage(Widget* parent)
 	renderDeviceLayout->AddWidget(D3D11);
 	// renderDeviceLayout->AddWidget(D3D12);
 #endif
+#ifndef __APPLE__
 	renderDeviceLayout->AddWidget(OpenGL);
+#endif
 	renderDeviceLayout->AddStretch();
 
 	auto antialiasModesLayout = new HBoxLayout();
@@ -177,8 +185,11 @@ void VideoSettingsPage::Save()
 	//if (D3D12->GetChecked())
 	//	settings.RenderDevice.Type = RenderDeviceType::D3D12;
 #endif
+#ifndef __APPLE__
 	if (OpenGL->GetChecked())
 		settings.RenderDevice.Type = RenderDeviceType::OpenGL;
+#endif
+
 
 	settings.RenderDevice.UseVSync = UseVSync->GetChecked();
 
@@ -216,7 +227,9 @@ void VideoSettingsPage::OnResetButtonClicked()
 	D3D11->SetChecked(false);
 	//D3D12->SetChecked(false);
 #endif
+#ifndef __APPLE__
 	OpenGL->SetChecked(false);
+#endif
 	UseVSync->SetChecked(true);
 	AntialiasModes->SetSelectedItem(0);
 	LightModes->SetSelectedItem(0);
