@@ -143,7 +143,7 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	// Windows
 	{"0bf87fa4530ec9ecb0a144c95fb435ff3464ce15", KnownUE1Games::UT99_469e},
 	// Linux 32 bit (ut-bin-x86)
-	{"412cb72ae6deac8073e49ccad78904a415b90cf8", KnownUE1Games::UT99_469e},
+	{"a8043c1372c8f369d11e091a83e8951bc53514e7", KnownUE1Games::UT99_469e},
 	// Linux 64 bit (ut-bin-amd64)
 	{"eba30e88bcbff2d778f68865c047c238814dfd9c", KnownUE1Games::UT99_469e},
 
