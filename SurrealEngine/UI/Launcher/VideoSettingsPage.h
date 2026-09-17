@@ -27,7 +27,9 @@ private:
 
 	RadioGroup RenderDeviceGroup;
 	RadioButtonLabel* Vulkan = nullptr;
+#ifndef __APPLE__
 	RadioButtonLabel* OpenGL = nullptr;
+#endif
 
 #ifdef WIN32
 	RadioButtonLabel* D3D11 = nullptr;
