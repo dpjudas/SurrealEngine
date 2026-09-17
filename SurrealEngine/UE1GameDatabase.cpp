@@ -28,7 +28,7 @@ std::pair<KnownUE1Games, std::string> FindUE1GameInPath(const std::string& ue1_g
 			continue;
 
 		// Now check whether there is a match within the database or not
-		const auto it = !sha1sum.empty() ? SHA1Database.find(sha1sum) : SHA1Database.find(sha1sum64);
+		const auto it = !sha1sum64.empty() ? SHA1Database.find(sha1sum64) : SHA1Database.find(sha1sum);
 		
 		if (it == SHA1Database.end())
 			return std::make_pair(KnownUE1Games::UE1_GAME_NOT_FOUND, "");
