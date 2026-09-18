@@ -1223,6 +1223,11 @@ if(WIN32)
 endif()
 
 if(APPLE)
+	set_target_properties(SurrealEngine PROPERTIES
+		MACOSX_BUNDLE_GUI_IDENTIFIER "com.surrealengine.SurrealEngine"
+		MACOSX_BUNDLE_BUNDLE_NAME "SurrealEngine"
+	)
+
 	foreach(bundle_target SurrealEngine SurrealEditor)
 		set_property(TARGET ${bundle_target} APPEND PROPERTY BUILD_RPATH "@executable_path/../Frameworks")
 		set_property(TARGET ${bundle_target} APPEND PROPERTY INSTALL_RPATH "@executable_path/../Frameworks")
