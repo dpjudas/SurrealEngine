@@ -35,13 +35,19 @@ struct InitDbgHelp
 	bool bHasSymbols;
 };
 
-#elif defined __linux__ || defined __APPLE__ || defined __HAIKU__
+#elif defined __linux__ || defined __APPLE__
 
 #include <execinfo.h>
 #include <cxxabi.h>
 #include <cstring>
 #include <cstdlib>
 #include <memory>
+
+#elif defined __HAIKU__
+
+// Haiku has no <execinfo.h>/backtrace(). CaptureStackFrames() below just
+// returns 0 native frames here, same as it silently does today on Linux
+// outside of the WIN64 and __APPLE__ cases.
 
 #else
 
