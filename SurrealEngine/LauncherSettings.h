@@ -36,7 +36,12 @@ public:
 
 	struct
 	{
+#ifdef __HAIKU__
+		// Haiku has no Vulkan ICD available, so default to OpenGL instead.
+		RenderDeviceType Type = RenderDeviceType::OpenGL;
+#else
 		RenderDeviceType Type = RenderDeviceType::Vulkan;
+#endif
 		bool UseVSync = true;
 		AntialiasMode Antialias = AntialiasMode::MSAA4x;
 		LightMode Light = LightMode::Normal;

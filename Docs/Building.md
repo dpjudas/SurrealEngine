@@ -48,3 +48,31 @@ Once you've installed all prerequisites, enter these commands in the given order
     make -j 16
 
 When compilation is successfully finished, `build` folder should contain these 3 executables: `SurrealEngine`, `SurrealEditor` and `SurrealDebugger`
+
+## Haiku
+
+Use CMake to build the project. Haiku has no ALSA/OSS/D-Bus and no Vulkan driver, so
+the build talks to audio and video through SDL2 instead, and the launcher defaults to
+the OpenGL renderer rather than Vulkan.
+
+Install the prerequisites from HaikuDepot / `pkgman`:
+
+    pkgman install cmake sdl2_devel
+
+`sdl3_devel` will also be picked up automatically if it's installed (and preferred over
+SDL2 for windowing if both are present), but SDL2 alone is enough to build and run.
+
+Then, from the folder you want to clone the repo to:
+
+    git clone https://github.com/dpjudas/SurrealEngine.git
+    cd SurrealEngine
+    mkdir build
+    cd build
+    cmake -DCMAKE_BUILD_TYPE=Release ..
+    make -j $(nproc)
+
+> [!NOTE]
+> Vulkan isn't available on Haiku, so the `Vulkan` render device option in the launcher
+> won't work. Make sure `OpenGL` is selected under the Video settings page (this is the
+> default on Haiku already, but double check if you're carrying over an existing
+> `~/.config/SurrealEngine/Settings.json`).

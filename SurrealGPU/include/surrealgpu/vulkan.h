@@ -18,6 +18,10 @@
 #elif defined(__APPLE__)
 	#define VK_USE_PLATFORM_MACOS_MVK
 	#define VK_USE_PLATFORM_METAL_EXT
+#elif defined(__HAIKU__)
+	// Haiku has no Vulkan loader/ICD and no native Vulkan surface extension.
+	// SurrealWidgets only offers the SDL2/SDL3 window backends on Haiku, and
+	// those don't need any of the Xlib/Wayland surface declarations below.
 #else
 	#define VK_USE_PLATFORM_XLIB_KHR
 	#define VK_USE_PLATFORM_WAYLAND_KHR

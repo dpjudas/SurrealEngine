@@ -6,7 +6,13 @@ add_subdirectory(Thirdparty/openmpt)
 add_subdirectory(SurrealGPU)
 add_subdirectory(SurrealWidgets)
 
-if (WIN32 OR APPLE)
+if(HAIKU)
+	# Haiku has no ALSA/PulseAudio/OSS. Build openal-soft ourselves (like Windows/macOS do)
+	# and make it talk to the audio hardware through SDL2, which has a native Haiku backend.
+	set(ALSOFT_BACKEND_SDL2 ON CACHE BOOL "Enable SDL2 backend" FORCE)
+endif()
+
+if (WIN32 OR APPLE OR HAIKU)
 	add_subdirectory(Thirdparty/openal-soft)
 endif()
 
@@ -1113,6 +1119,12 @@ elseif(APPLE)
 	set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${CMAKE_DL_LIBS} OpenAL::OpenAL)
 	add_definitions(-DUNIX -D_UNIX)
 	add_link_options(-pthread)
+elseif(HAIKU)
+	set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES} ${SURREALCOMMON_UNIX_SOURCES})
+	set(THIRDPARTY_SOURCES ${THIRDPARTY_SOURCES} ${THIRDPARTY_UNIX_SOURCES})
+	set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${CMAKE_DL_LIBS} OpenAL::OpenAL -lnetwork)
+	add_definitions(-DUNIX -D_UNIX)
+	add_link_options(-pthread)
 else()
 	set(SURREALCOMMON_SOURCES ${SURREALCOMMON_SOURCES})
 	set(SURREALCOMMON_LIBS ${SURREALCOMMON_LIBS} ${SURREALCOMMON_UNIX_LIBS} ${CMAKE_DL_LIBS} -lasound)
@@ -1220,6 +1232,13 @@ add_dependencies(SurrealEditor Resources)
 
 if(WIN32)
 	add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:OpenAL::OpenAL>" $<TARGET_FILE_DIR:SurrealEngine>)
+endif()
+
+if(HAIKU)
+	# The runtime loader looks next to the executable, so put our self-built libopenal.so there.
+	add_custom_command(TARGET SurrealEngine POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:OpenAL::OpenAL>" $<TARGET_FILE_DIR:SurrealEngine>)
+	add_custom_command(TARGET SurrealEditor POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:OpenAL::OpenAL>" $<TARGET_FILE_DIR:SurrealEditor>)
+	add_custom_command(TARGET SurrealDebugger POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy_if_different "$<TARGET_FILE:OpenAL::OpenAL>" $<TARGET_FILE_DIR:SurrealDebugger>)
 endif()
 
 if(APPLE)

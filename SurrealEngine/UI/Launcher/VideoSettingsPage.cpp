@@ -222,6 +222,11 @@ void VideoSettingsPage::Save()
 
 void VideoSettingsPage::OnResetButtonClicked()
 {
+#ifdef __HAIKU__
+	// Haiku has no Vulkan ICD available, so default to OpenGL instead.
+	Vulkan->SetChecked(false);
+	OpenGL->SetChecked(true);
+#else
 	Vulkan->SetChecked(true);
 #ifdef WIN32
 	D3D11->SetChecked(false);
@@ -229,6 +234,7 @@ void VideoSettingsPage::OnResetButtonClicked()
 #endif
 #ifndef __APPLE__
 	OpenGL->SetChecked(false);
+#endif
 #endif
 	UseVSync->SetChecked(true);
 	AntialiasModes->SetSelectedItem(0);

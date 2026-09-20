@@ -19,6 +19,9 @@
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #endif
+#ifdef __HAIKU__
+#include <image.h>
+#endif
 #ifdef EXTERN___PROGNAME
 extern const char* __progname;
 #endif
@@ -410,6 +413,22 @@ std::string OS::executable_path()
 	}
 
 	Exception::Throw("get_exe_path failed");
+#elif defined(__HAIKU__)
+	// Haiku has no /proc filesystem, so walk the list of loaded images to find our own.
+	int32 cookie = 0;
+	image_info info;
+	while (get_next_image_info(0, &cookie, &info) == B_OK)
+	{
+		if (info.type == B_APP_IMAGE)
+		{
+			char exe_file[PATH_MAX];
+			strncpy(exe_file, info.name, PATH_MAX - 1);
+			exe_file[PATH_MAX - 1] = '\0';
+			return std::string(dirname(exe_file)) + "/";
+		}
+	}
+
+	Exception::Throw("get_exe_path: could not find running app image");
 #else
 	#ifndef PROC_EXE_PATH
 	#define PROC_EXE_PATH "/proc/self/exe"
@@ -486,6 +505,8 @@ std::string OS::get_default_font_name()
 	return "segoeui.ttf";
 #elif defined(APPLE)
 	return "SFUIDisplay-Regular.otf"; // Guess this is the default on Apple?
+#elif defined(__HAIKU__)
+	return "NotoSans-Regular.ttf";
 #else
 	return "DejaVuSans.ttf";
 #endif
@@ -504,6 +525,12 @@ std::string OS::find_truetype_font(const std::string& font_name_and_extension)
 		"~/Library/Fonts",
 		"/Library/Fonts",
 		"/System/Library/Fonts"
+	};
+#elif defined(__HAIKU__)
+	const Array<std::string> possible_fonts_folders = {
+		"/boot/system/data/fonts",
+		"/boot/system/non-packaged/data/fonts",
+		"/boot/home/config/non-packaged/data/fonts"
 	};
 #else
 	// Linux is Linux and as always, how the fonts stored can be wholly different

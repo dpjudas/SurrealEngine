@@ -12,7 +12,7 @@ else()
 	option(ENABLE_SDL2 "Enable SDL2 backend. Optional on all platforms" ON)
 endif()
 
-if (UNIX AND NOT APPLE)
+if (UNIX AND NOT APPLE AND NOT HAIKU)
 	include(FindPkgConfig)
 	pkg_check_modules(DBUS dbus-1)
 	if (!DBUS_FOUND)
