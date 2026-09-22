@@ -322,6 +322,7 @@ void PackageStreamWriter::EndProperty(PropertyHeader header)
 	{
 		if (header.boolValue)
 			info |= 0x80;
+		info |= 5 << 4;
 	}
 	else
 	{
