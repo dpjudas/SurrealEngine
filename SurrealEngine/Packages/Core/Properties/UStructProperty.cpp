@@ -62,10 +62,18 @@ void UStructProperty::SaveHeader(void* data, PropertyHeader& header)
 
 void UStructProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
+	SaveStructMemberValue(data, stream);
+}
+
+void UStructProperty::SaveStructMemberValue(void* data, PackageStreamWriter* stream)
+{
+	if (Struct->Properties.empty())
+		throw std::runtime_error("Struct has no properties");
+
 	for (UProperty* fieldprop : Struct->Properties)
 	{
 		void* fielddata = (uint8_t*)data + fieldprop->DataOffset.DataOffset;
-		fieldprop->SaveValue(fielddata, stream);
+		fieldprop->SaveStructMemberValue(fielddata, stream);
 	}
 }
 
