@@ -28,6 +28,11 @@ void UBoolProperty::SaveValue(void* data, PackageStreamWriter* stream)
 {
 }
 
+void UBoolProperty::SaveStructMemberValue(void* data, PackageStreamWriter* stream)
+{
+	stream->WriteUInt8(GetBool(data) ? 1 : 0);
+}
+
 size_t UBoolProperty::ElementAlignment()
 {
 	return alignof(uint32_t);
