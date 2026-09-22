@@ -34,7 +34,7 @@ void NPawn::RegisterFunctions()
 	RegisterVMNativeFunc_2("Pawn", "MoveTo", &NPawn::MoveTo, 500);
 	RegisterLatentAction(501, LatentRunState::MoveTo);
 	RegisterVMNativeFunc_2("Pawn", "MoveToward", &NPawn::MoveToward, 502);
-	RegisterLatentAction(502, LatentRunState::MoveToward);
+	RegisterLatentAction(503, LatentRunState::MoveToward);
 	RegisterVMNativeFunc_5("Pawn", "PickAnyTarget", &NPawn::PickAnyTarget, 534);
 	RegisterVMNativeFunc_5("Pawn", "PickTarget", &NPawn::PickTarget, 531);
 	RegisterVMNativeFunc_1("Pawn", "PickWallAdjust", &NPawn::PickWallAdjust, 526);
