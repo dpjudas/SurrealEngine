@@ -371,7 +371,7 @@ void UModel::Save(PackageStreamWriter* stream)
 
 		stream->WriteInt32(NumSharedSides);
 
-		stream->WriteIndex((int)Zones.size());
+		stream->WriteInt32((int)Zones.size());
 		for (const ZoneProperties& zone : Zones)
 		{
 			stream->WriteObject(zone.ZoneActor);
