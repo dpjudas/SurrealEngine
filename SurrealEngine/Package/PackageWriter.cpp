@@ -92,12 +92,9 @@ void PackageWriter::WriteHeader(PackageStreamWriter* stream)
 	else
 	{
 		stream->WriteBytes(Source->Guid, 16);
-		stream->WriteInt32(0); // GenerationCount
-		/*for (uint32_t i = 0; i < GenerationCount; i++)
-		{
-			stream->WriteInt32(genExportCount);
-			stream->WriteInt32(genNameCount);
-		}*/
+		stream->WriteInt32(1); // GenerationCount
+		stream->WriteInt32((int)ExportTable.size());
+		stream->WriteInt32((int)NameTable.size());
 	}
 }
 
@@ -185,7 +182,8 @@ int PackageWriter::GetNameIndex(NameString name)
 	int index = (int)NameTable.size();
 	NameTableEntry entry;
 	entry.Name = name;
-	entry.Flags = 0;
+	entry.Flags = (int)(ObjectFlags::TagExp | ObjectFlags::LoadForClient |
+	                    ObjectFlags::LoadForServer | ObjectFlags::LoadForEdit);
 	NameTable.push_back(entry);
 	NameHash[name] = index;
 	return index;
