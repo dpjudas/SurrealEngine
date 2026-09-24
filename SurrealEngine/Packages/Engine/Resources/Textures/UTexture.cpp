@@ -61,12 +61,12 @@ void UTexture::Save(PackageStreamWriter* stream)
 			stream->BeginSkipOffset();
 		stream->WriteIndex((int)mipmap.Data.size());
 		stream->WriteBytes(mipmap.Data.data(), (int)mipmap.Data.size());
+		if (stream->GetVersion() >= 63)
+			stream->EndSkipOffset();
 		stream->WriteUInt32(mipmap.Width);
 		stream->WriteUInt32(mipmap.Height);
 		stream->WriteUInt8(mipmap.UBits);
 		stream->WriteUInt8(mipmap.VBits);
-		if (stream->GetVersion() >= 63)
-			stream->EndSkipOffset();
 	}
 
 	if (HasProperty("bHasComp") && GetBool("bHasComp"))
@@ -78,12 +78,12 @@ void UTexture::Save(PackageStreamWriter* stream)
 				stream->BeginSkipOffset();
 			stream->WriteIndex((int)mipmap.Data.size());
 			stream->WriteBytes(mipmap.Data.data(), (int)mipmap.Data.size());
+			if (stream->GetVersion() >= 68)
+				stream->EndSkipOffset();
 			stream->WriteUInt32(mipmap.Width);
 			stream->WriteUInt32(mipmap.Height);
 			stream->WriteUInt8(mipmap.UBits);
 			stream->WriteUInt8(mipmap.VBits);
-			if (stream->GetVersion() >= 68)
-				stream->EndSkipOffset();
 		}
 	}
 }
