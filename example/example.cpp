@@ -202,6 +202,7 @@ LauncherWindowTab3::LauncherWindowTab3(Widget parent)
 	TextInputPopup = new PushButton(this);
 	m_TreeView = new TreeView(this);
 	m_Slider = new Slider(this);
+	m_ProgressBar = new ProgressBar(this);
 
 	m_Slider->SetTickPosition(TicksBothSides);
 
@@ -230,6 +231,7 @@ LauncherWindowTab3::LauncherWindowTab3(Widget parent)
 	m_Slider->ValueChanged = [this] (int newValue)
 	{
 		std::cout << "Slider value changed to: " << newValue << std::endl;
+		m_ProgressBar->SetValue(newValue);
 	};
 
 	QuestionPopup->OnClick = [this]{
@@ -270,6 +272,7 @@ LauncherWindowTab3::LauncherWindowTab3(Widget parent)
 	layout->AddWidget(TextInputPopup);
 	layout->AddWidget(m_TreeView);
 	layout->AddWidget(m_Slider);
+	layout->AddWidget(m_ProgressBar);
 
 	SetLayout(layout);
 }

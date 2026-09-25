@@ -463,6 +463,19 @@ slider {
 	tick-color: var(--secondary-300);
 }
 
+progressbar {
+	background-color: var(--textarea-bg);
+	progress-color: #47df37;
+}
+
+progressbar:paused {
+	progress-color: #ffed59;
+}
+
+progressbar:error {
+	progress-color: #d62a2b;
+}
+
 )xxxx";
 // compilers suck!
 static const char* theme_default_stylesheet2 = R"xxxx(

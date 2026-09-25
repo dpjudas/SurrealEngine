@@ -380,7 +380,6 @@ void SDL2DisplayWindow::ProcessEvents()
 
 void SDL2DisplayWindow::RunLoop()
 {
-	ExitRunLoop = false;
 	while (!ExitRunLoop)
 	{
 		SDL_Event event = {};
@@ -388,6 +387,7 @@ void SDL2DisplayWindow::RunLoop()
 		if (result == 1)
 			DispatchEvent(event); // Silently ignore if it fails and pray it doesn't busy loop, because SDL and Linux utterly sucks!
 	}
+	ExitRunLoop = false; // So that closing a dialog doesn't close everything else
 }
 
 void SDL2DisplayWindow::ExitLoop()
