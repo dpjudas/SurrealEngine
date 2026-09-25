@@ -95,6 +95,7 @@ set(SURREALWIDGETS_SOURCES
 	src/widgets/imagebox/imagebox.cpp
 	src/widgets/textlabel/textlabel.cpp
 	src/widgets/pushbutton/pushbutton.cpp
+	src/widgets/progressbar/progressbar.cpp
 	src/widgets/checkboxlabel/checkboxlabel.cpp
 	src/widgets/radiobuttonlabel/radiobuttonlabel.cpp
 	src/widgets/dropdown/dropdown.cpp
@@ -145,6 +146,7 @@ set(SURREALWIDGETS_INCLUDES
 	include/surrealwidgets/widgets/imagebox/imagebox.h
 	include/surrealwidgets/widgets/textlabel/textlabel.h
 	include/surrealwidgets/widgets/pushbutton/pushbutton.h
+	include/surrealwidgets/widgets/progressbar/progressbar.h
 	include/surrealwidgets/widgets/checkboxlabel/checkboxlabel.h
 	include/surrealwidgets/widgets/radiobuttonlabel/radiobuttonlabel.h
 	include/surrealwidgets/widgets/listview/listview.h

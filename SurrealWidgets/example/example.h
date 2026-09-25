@@ -22,6 +22,7 @@
 #include <surrealwidgets/widgets/dialog/textinputdialog.h>
 #include <surrealwidgets/widgets/treeview/treeview.h>
 #include <surrealwidgets/widgets/slider/slider.h>
+#include <surrealwidgets/widgets/progressbar/progressbar.h>
 
 class LauncherWindowTab1 : public Widget
 {
@@ -65,6 +66,8 @@ private:
 	TreeView* m_TreeView = nullptr;
 
 	Slider* m_Slider = nullptr;
+
+	ProgressBar* m_ProgressBar = nullptr;
 };
 
 class LauncherWindow : public Widget
