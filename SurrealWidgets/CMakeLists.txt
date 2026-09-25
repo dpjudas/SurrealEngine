@@ -4,7 +4,7 @@ project(surrealwidgets)
 option(ENABLE_METAL "Enable Metal support for application rendering" ON)
 option(ENABLE_OPENGL "Enable OpenGL support for application rendering" ON)
 
-if(WIN32)
+if(WIN32 OR APPLE)
 	option(ENABLE_SDL3 "Enable SDL3 backend. Optional on all platforms" OFF)
 	option(ENABLE_SDL2 "Enable SDL2 backend. Optional on all platforms" OFF)
 else()
@@ -14,20 +14,22 @@ endif()
 
 if (UNIX AND NOT APPLE)
 	include(FindPkgConfig)
-	pkg_check_modules(DBUS dbus-1)
-	if (!DBUS_FOUND)
-		pkg_check_modules(DBUS REQUIRED dbus) # Fedora Linux looks for dbus instead
+	if (NOT HAIKU)
+		pkg_check_modules(DBUS dbus-1)
+		if (!DBUS_FOUND)
+			pkg_check_modules(DBUS REQUIRED dbus) # Fedora Linux looks for dbus instead
+		endif()
+		find_package(OpenGL REQUIRED COMPONENTS EGL)
+		pkg_check_modules(WAYLANDPP
+			wayland-client
+			wayland-client++
+			wayland-client-extra++
+			wayland-client-unstable++
+			wayland-cursor++
+			wayland-egl++
+			xkbcommon>=0.5.0
+		)
 	endif()
-	find_package(OpenGL REQUIRED COMPONENTS EGL)
-	pkg_check_modules(WAYLANDPP
-		wayland-client
-		wayland-client++
-		wayland-client-extra++
-		wayland-client-unstable++
-		wayland-cursor++
-		wayland-egl++
-		xkbcommon>=0.5.0
-	)
 	pkg_check_modules(GLIB glib-2.0)
 	pkg_check_modules(FONTCONFIG fontconfig)
 endif()
@@ -360,7 +362,9 @@ elseif(APPLE)
 	endif()
 elseif(HAIKU)
 	set(SURREALWIDGETS_SOURCES ${SURREALWIDGETS_SOURCES} ${SURREALWIDGETS_UNIX_SOURCES})
-	set(SURREALWIDGETS_LIBS ${CMAKE_DL_LIBS})
+	set(SURREALWIDGETS_INCLUDE_DIRS ${SURREALWIDGETS_INCLUDE_DIRS} ${GLIB_INCLUDE_DIRS} ${FONTCONFIG_INCLUDE_DIRS})
+	set(SURREALWIDGETS_LIBS ${CMAKE_DL_LIBS} ${GLIB_LDFLAGS} -lgio-2.0 ${FONTCONFIG_LDFLAGS})
+
 	set(SURREALWIDGETS_DEFINES -DUNIX -D_UNIX)
 	set(SURREALWIDGETS_LINK_OPTIONS -pthread)
 else()
