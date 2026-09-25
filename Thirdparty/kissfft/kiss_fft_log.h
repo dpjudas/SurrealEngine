@@ -9,6 +9,8 @@
 #ifndef kiss_fft_log_h
 #define kiss_fft_log_h
 
+#undef DEBUG /* Win32 builds often sets this */
+
 #define ERROR 1
 #define WARNING 2
 #define INFO 3
