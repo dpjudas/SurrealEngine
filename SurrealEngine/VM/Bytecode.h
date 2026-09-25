@@ -4,6 +4,7 @@
 #include "Packages/Core/Properties/UProperty.h"
 #include "Package/Package.h"
 #include "Expression.h"
+#include "Utils/MemoryArena.h"
 
 class BytecodeStream;
 
@@ -50,14 +51,13 @@ private:
 	template<typename T>
 	T* Create(uint16_t offset)
 	{
-		Allocations.push_back(std::make_unique<T>());
-		T* obj = static_cast<T*>(Allocations.back().get());
+		T* obj = arena.Create<T>();
 		OffsetToExpression[offset] = obj;
 		return obj;
 	}
 
 	std::map<uint16_t, Expression*> OffsetToExpression;
-	Array<std::unique_ptr<Expression>> Allocations;
+	static MemoryArena arena;
 };
 
 class BytecodeStream

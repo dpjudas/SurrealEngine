@@ -4,6 +4,10 @@
 #include "Engine.h"
 #include "Packages/Core/UFunction.h"
 
+// Note: this never frees the memory again.
+// We may want to maintain a list of Bytecode instances in the process and compact if it grows too big
+MemoryArena Bytecode::arena(1024 * 1024);
+
 Bytecode::Bytecode(const Array<uint8_t>& bytecode, Package* package)
 {
 	BytecodeStream stream(bytecode.data(), bytecode.size(), package);

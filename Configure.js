@@ -57,6 +57,7 @@ var commonSources = [
 	"SurrealEngine/Utils/CrashReporter.cpp",
 	"SurrealEngine/Utils/CrashReporter.h",
 	"SurrealEngine/Utils/AlignedAlloc.h",
+	"SurrealEngine/Utils/MemoryArena.h",
 	"SurrealEngine/Commandlet/Commandlet.cpp",
 	"SurrealEngine/Commandlet/Commandlet.h",
 	"SurrealEngine/Commandlet/Native/NativeCommandlet.cpp",
