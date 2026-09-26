@@ -631,6 +631,690 @@ void Frame::ProcessSwitch(const ExpressionValue& condition)
 	}
 }
 
+#if 0
+
+ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UObject* context, void* localVariables)
+{
+	auto oldExpr = Frame::StepExpression;
+
+	ExpressionEvalResult result;
+	Expression* exprStack[64];
+	Expression* expr;
+	int exprIndex = 0;
+	exprStack[exprIndex++] = statementExpr;
+
+	while (exprIndex > 0)
+	{
+		exprIndex--;
+		expr = exprStack[exprIndex];
+		Frame::StepExpression = expr;
+		switch (expr->Type)
+		{
+		default:
+			break;
+		case ExpressionType::LocalVariable:
+			result.Value = ExpressionValue::Variable(localVariables, static_cast<LocalVariableExpression*>(expr)->Variable);
+			break;
+
+		case ExpressionType::InstanceVariable:
+			result.Value = ExpressionValue::Variable(context->PropertyData.Data, static_cast<InstanceVariableExpression*>(expr)->Variable);
+			break;
+
+		case ExpressionType::DefaultVariable:
+			if (UObject::TryCast<UClass>(context))
+				result.Value = ExpressionValue::Variable(context->PropertyData.Data, static_cast<DefaultVariableExpression*>(expr)->Variable);
+			else
+				result.Value = ExpressionValue::Variable(context->Class->GetDefaultObject<UObject>()->PropertyData.Data, static_cast<DefaultVariableExpression*>(expr)->Variable);
+			break;
+
+		case ExpressionType::Return:
+			if (static_cast<ReturnExpression*>(expr)->Value)
+				result.Value = Eval(static_cast<ReturnExpression*>(expr)->Value).Value;
+			else
+				result.Value = ExpressionValue::NothingValue();
+			result.Result = StatementResult::Return;
+			break;
+
+		case ExpressionType::Switch:
+			result.Value = Eval(static_cast<SwitchExpression*>(expr)->Condition).Value;
+			result.Result = StatementResult::Switch;
+			break;
+
+		case ExpressionType::Jump:
+			result.Result = StatementResult::Jump;
+			result.JumpAddress = static_cast<JumpExpression*>(expr)->Offset;
+			break;
+
+		case ExpressionType::JumpIfNot:
+			if (!Eval(static_cast<JumpIfNotExpression*>(expr)->Condition).Value.ToBool())
+			{
+				result.Result = StatementResult::Jump;
+				result.JumpAddress = static_cast<JumpIfNotExpression*>(expr)->Offset;
+			}
+			break;
+
+		case ExpressionType::Stop:
+			result.Result = StatementResult::Stop;
+			break;
+
+		case ExpressionType::Assert:
+			if (!Eval(static_cast<AssertExpression*>(expr)->Condition).Value.ToBool())
+			{
+				Frame::ThrowException("Script assert failed for " + self->Name.ToString() + " line " + std::to_string(static_cast<AssertExpression*>(expr)->Line));
+			}
+			break;
+
+		case ExpressionType::Case:
+			result.Value = ExpressionValue::NothingValue();
+			break;
+
+		case ExpressionType::Nothing:
+			result.Value = ExpressionValue::NothingValue();
+			break;
+
+		case ExpressionType::LabelTable:
+			// Klingon honor guard has this! (UE 251)
+			Frame::ThrowException("Label table expression is not implemented");
+			break;
+
+		case ExpressionType::GotoLabel:
+			result.Result = StatementResult::GotoLabel;
+			result.Label = Eval(static_cast<GotoLabelExpression*>(expr)->Value).Value.ToName();
+			break;
+
+		case ExpressionType::EatString:
+			Eval(static_cast<EatStringExpression*>(expr)->Value);
+			result.Value = ExpressionValue::NothingValue();
+			break;
+
+		case ExpressionType::Let:
+		{
+			ExpressionValue lvalue = Eval(static_cast<LetExpression*>(expr)->LeftSide).Value;
+			ExpressionValue rvalue = Eval(static_cast<LetExpression*>(expr)->RightSide).Value;
+			if (lvalue.GetType() != ExpressionValueType::Nothing)
+			{
+				lvalue.Store(rvalue);
+				result.Value = std::move(lvalue);
+			}
+			else
+			{
+				result.Value = std::move(rvalue);
+			}
+			break;
+		}
+
+		case ExpressionType::LetBool:
+		{
+			ExpressionValue lvalue = Eval(static_cast<LetBoolExpression*>(expr)->LeftSide).Value;
+			ExpressionValue rvalue = Eval(static_cast<LetBoolExpression*>(expr)->RightSide).Value;
+			if (lvalue.GetType() != ExpressionValueType::Nothing)
+			{
+				lvalue.Store(rvalue);
+				result.Value = std::move(lvalue);
+			}
+			else
+			{
+				result.Value = std::move(rvalue);
+			}
+			break;
+		}
+
+		case ExpressionType::DynArrayElement:
+		{
+			int index = Eval(static_cast<DynArrayElementExpression*>(expr)->Index).Value.ToInt();
+			auto arrayval = Eval(static_cast<DynArrayElementExpression*>(expr)->Array).Value;
+			if (arrayval.IsVariable())
+			{
+				if (index < 0)
+				{
+					LogMessage("Negative index used");
+					result.Value = ExpressionValue::NothingValue();
+				}
+				else
+				{
+					result.Value = arrayval.DynArrayItemAt(index);
+				}
+			}
+			else
+			{
+				Frame::ThrowException("Array is not a variable in DynArrayElementExpression");
+			}
+			break;
+		}
+
+		case ExpressionType::New:
+		{
+			auto newExpr = static_cast<NewExpression*>(expr);
+			ExpressionValue outer = Eval(newExpr->ParentExpr).Value;
+			ExpressionValue name = Eval(newExpr->NameExpr).Value;
+			ExpressionValue flags = Eval(newExpr->FlagsExpr).Value;
+			UClass* cls = UObject::Cast<UClass>(Eval(newExpr->ClassExpr).Value.ToObject());
+
+			// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
+			Package* package = engine->packages->GetPackage("Engine");
+
+			UObject* newObj = package->NewObject(
+				name.GetType() == ExpressionValueType::Nothing ? NameString() : name.ToName(),
+				cls,
+				flags.GetType() == ExpressionValueType::Nothing ? ObjectFlags::NoFlags : (ObjectFlags)flags.ToInt(),
+				true);
+
+			if (outer.GetType() != ExpressionValueType::Nothing)
+				newObj->Outer() = outer.ToObject();
+
+			result.Value = ExpressionValue::ObjectValue(newObj);
+			break;
+		}
+
+		case ExpressionType::ClassContext:
+		{
+			ExpressionValue object = Eval(static_cast<ClassContextExpression*>(expr)->ObjectExpr).Value;
+			UClass* cls = UObject::TryCast<UClass>(object.ToObject());
+			if (cls)
+			{
+				result = Eval(static_cast<ClassContextExpression*>(expr)->ContextExpr, self, cls->GetDefaultObject<UObject>(), localVariables);
+			}
+			else
+			{
+				Frame::ThrowException("Class reference is None");
+			}
+			break;
+		}
+
+		case ExpressionType::MetaCast:
+		{
+			auto castExpr = static_cast<MetaCastExpression*>(expr);
+			UObject* value = Eval(castExpr->Value).Value.ToObject();
+			if (value && value != castExpr->Class)
+			{
+				UClass* cls = UObject::TryCast<UClass>(value);
+				while (cls)
+				{
+					if (cls == castExpr->Class)
+						break;
+					cls = static_cast<UClass*>(cls->BaseStruct);
+				}
+				if (!cls)
+					value = nullptr;
+			}
+			result.Value = ExpressionValue::ObjectValue(value);
+			break;
+		}
+
+		case ExpressionType::Unknown0x15:
+			// Klingon honor guard has this! (UE 251)
+			//Frame::ThrowException("Unknown0x15 expression encountered");
+			result.Result = StatementResult::Stop;
+			break;
+
+		case ExpressionType::Self:
+			result.Value = ExpressionValue::ObjectValue(self);
+			break;
+
+		case ExpressionType::Skip:
+			result = Eval(static_cast<SkipExpression*>(expr)->Value);
+			break;
+
+		case ExpressionType::Context:
+		{
+			auto value = Eval(static_cast<ContextExpression*>(expr)->ObjectExpr).Value;
+			UObject* context = value.ToObject();
+			if (context)
+			{
+				result = Eval(static_cast<ContextExpression*>(expr)->ContextExpr, self, context, localVariables);
+			}
+			else
+			{
+				result.Result = StatementResult::AccessedNone;
+			}
+			break;
+		}
+
+		case ExpressionType::ArrayElement:
+		{
+			int index = Eval(static_cast<ArrayElementExpression*>(expr)->Index).Value.ToInt();
+			auto arrayval = Eval(static_cast<ArrayElementExpression*>(expr)->Array).Value;
+			if (arrayval.IsVariable())
+			{
+				result.Value = arrayval.ItemAt(index);
+			}
+			else
+			{
+				Frame::ThrowException("Array is not a variable in ArrayElementExpression");
+			}
+			break;
+		}
+
+		case ExpressionType::IntConst:
+			result.Value = ExpressionValue::IntValue(static_cast<IntConstExpression*>(expr)->Value);
+			break;
+
+		case ExpressionType::FloatConst:
+			result.Value = ExpressionValue::FloatValue(static_cast<FloatConstExpression*>(expr)->Value);
+			break;
+
+		case ExpressionType::StringConst:
+			result.Value = ExpressionValue::StringValue(static_cast<StringConstExpression*>(expr)->Value);
+			break;
+
+		case ExpressionType::ObjectConst:
+			result.Value = ExpressionValue::ObjectValue(static_cast<ObjectConstExpression*>(expr)->Object);
+			break;
+
+		case ExpressionType::NameConst:
+			result.Value = ExpressionValue::NameValue(static_cast<NameConstExpression*>(expr)->Value);
+			break;
+
+		case ExpressionType::RotationConst:
+			result.Value = ExpressionValue::RotatorValue({
+				static_cast<RotationConstExpression*>(expr)->Pitch,
+				static_cast<RotationConstExpression*>(expr)->Yaw,
+				static_cast<RotationConstExpression*>(expr)->Roll
+				});
+			break;
+
+		case ExpressionType::VectorConst:
+			result.Value = ExpressionValue::VectorValue({
+				static_cast<VectorConstExpression*>(expr)->X,
+				static_cast<VectorConstExpression*>(expr)->Y,
+				static_cast<VectorConstExpression*>(expr)->Z
+				});
+			break;
+
+		case ExpressionType::ByteConst:
+			result.Value = ExpressionValue::ByteValue(static_cast<ByteConstExpression*>(expr)->Value);
+			break;
+
+		case ExpressionType::IntZero:
+			result.Value = ExpressionValue::IntValue(0);
+			break;
+
+		case ExpressionType::IntOne:
+			result.Value = ExpressionValue::IntValue(1);
+			break;
+
+		case ExpressionType::True:
+			result.Value = ExpressionValue::BoolValue(true);
+			break;
+
+		case ExpressionType::False:
+			result.Value = ExpressionValue::BoolValue(false);
+			break;
+
+		case ExpressionType::NativeParm:
+			Frame::ThrowException("Native parm expression is not implemented");
+			break;
+
+		case ExpressionType::NoObject:
+			result.Value = ExpressionValue::ObjectValue(nullptr);
+			break;
+
+		case ExpressionType::Unknown0x2b:
+			result = Eval(static_cast<Unknown0x2bExpression*>(expr)->Value); // This may have been a truncating instruction from back when strings had a fixed size (package version 61 and earlier)
+			break;
+
+		case ExpressionType::IntConstByte:
+			result.Value = ExpressionValue::ByteValue(static_cast<IntConstByteExpression*>(expr)->Value);
+			break;
+
+		case ExpressionType::BoolVariable:
+			result.Value = Eval(static_cast<BoolVariableExpression*>(expr)->Variable).Value;
+			break;
+
+		case ExpressionType::DynamicCast:
+		{
+			UObject* value = Eval(static_cast<DynamicCastExpression*>(expr)->Value).Value.ToObject();
+			if (value && !value->IsA(static_cast<DynamicCastExpression*>(expr)->Class->Name))
+				value = nullptr;
+			result.Value = ExpressionValue::ObjectValue(value);
+		}
+
+		case ExpressionType::Iterator:
+		{
+			Eval(static_cast<IteratorExpression*>(expr)->Value);
+			result.Result = StatementResult::Iterator;
+			result.Iter = std::move(Frame::CreatedIterator);
+			result.JumpAddress = static_cast<IteratorExpression*>(expr)->Offset;
+			break;
+		}
+
+		case ExpressionType::IteratorPop:
+			result.Result = StatementResult::IteratorPop;
+			break;
+
+		case ExpressionType::IteratorNext:
+			result.Result = StatementResult::IteratorNext;
+			break;
+
+		case ExpressionType::StructCmpEq:
+		{
+			ExpressionValue val1 = Eval(static_cast<StructCmpEqExpression*>(expr)->Value1).Value;
+			ExpressionValue val2 = Eval(static_cast<StructCmpEqExpression*>(expr)->Value2).Value;
+			result.Value = ExpressionValue::BoolValue(val1.IsEqual(val2));
+			break;
+		}
+
+		case ExpressionType::StructCmpNe:
+		{
+			ExpressionValue val1 = Eval(static_cast<StructCmpNeExpression*>(expr)->Value1).Value;
+			ExpressionValue val2 = Eval(static_cast<StructCmpNeExpression*>(expr)->Value2).Value;
+			result.Value = ExpressionValue::BoolValue(!val1.IsEqual(val2));
+			break;
+		}
+
+		case ExpressionType::StructMember:
+			if (static_cast<StructMemberExpression*>(expr)->Field)
+				result.Value = Eval(static_cast<StructMemberExpression*>(expr)->Value).Value.Member(static_cast<StructMemberExpression*>(expr)->Field);
+			else
+				Frame::ThrowException("Null field encountered in struct member expression");
+			break;
+
+		case ExpressionType::UnicodeStringConst:
+		{
+			std::string s;
+			s.reserve(static_cast<UnicodeStringConstExpression*>(expr)->Value.size());
+			for (wchar_t c : static_cast<UnicodeStringConstExpression*>(expr)->Value)
+				s.push_back(c < 128 ? c : '?');
+			result.Value = ExpressionValue::StringValue(s);
+			break;
+		}
+
+		case ExpressionType::RotatorToVector:
+		{
+			Rotator rot = Eval(static_cast<RotatorToVectorExpression*>(expr)->Value).Value.ToRotator();
+			result.Value = ExpressionValue::VectorValue(Coords::Rotation(rot).XAxis);
+			break;
+		}
+
+		case ExpressionType::ByteToInt:
+			result.Value = ExpressionValue::IntValue(Eval(static_cast<ByteToIntExpression*>(expr)->Value).Value.ToByte());
+			break;
+
+		case ExpressionType::ByteToBool:
+			result.Value = ExpressionValue::BoolValue(Eval(static_cast<ByteToBoolExpression*>(expr)->Value).Value.ToByte() != 0);
+			break;
+
+		case ExpressionType::ByteToFloat:
+			result.Value = ExpressionValue::FloatValue(Eval(static_cast<ByteToFloatExpression*>(expr)->Value).Value.ToByte());
+			break;
+
+		case ExpressionType::IntToByte:
+			result.Value = ExpressionValue::ByteValue(Eval(static_cast<IntToByteExpression*>(expr)->Value).Value.ToInt());
+			break;
+
+		case ExpressionType::IntToBool:
+			result.Value = ExpressionValue::BoolValue(Eval(static_cast<IntToBoolExpression*>(expr)->Value).Value.ToInt());
+			break;
+
+		case ExpressionType::IntToFloat:
+			result.Value = ExpressionValue::FloatValue((float)Eval(static_cast<IntToFloatExpression*>(expr)->Value).Value.ToInt());
+			break;
+
+		case ExpressionType::BoolToByte:
+			result.Value = ExpressionValue::ByteValue(Eval(static_cast<BoolToByteExpression*>(expr)->Value).Value.ToBool());
+			break;
+
+		case ExpressionType::BoolToInt:
+			result.Value = ExpressionValue::IntValue(Eval(static_cast<BoolToIntExpression*>(expr)->Value).Value.ToBool());
+			break;
+
+		case ExpressionType::BoolToFloat:
+			result.Value = ExpressionValue::FloatValue(Eval(static_cast<BoolToFloatExpression*>(expr)->Value).Value.ToBool());
+			break;
+
+		case ExpressionType::FloatToByte:
+			result.Value = ExpressionValue::ByteValue((int)Eval(static_cast<FloatToByteExpression*>(expr)->Value).Value.ToFloat());
+			break;
+
+		case ExpressionType::FloatToInt:
+			result.Value = ExpressionValue::IntValue((int)Eval(static_cast<FloatToIntExpression*>(expr)->Value).Value.ToFloat());
+			break;
+
+		case ExpressionType::FloatToBool:
+			result.Value = ExpressionValue::BoolValue((bool)Eval(static_cast<FloatToBoolExpression*>(expr)->Value).Value.ToFloat());
+			break;
+
+		case ExpressionType::Unknown0x46:
+			Frame::ThrowException("Unknown0x46 expression encountered");
+			break;
+
+		case ExpressionType::ObjectToBool:
+			result.Value = ExpressionValue::BoolValue(Eval(static_cast<ObjectToBoolExpression*>(expr)->Value).Value.ToObject() != nullptr);
+			break;
+
+		case ExpressionType::NameToBool:
+			result.Value = ExpressionValue::BoolValue(Eval(static_cast<NameToBoolExpression*>(expr)->Value).Value.ToName() != "None");
+			break;
+
+		case ExpressionType::StringToByte:
+			result.Value = ExpressionValue::ByteValue(std::atoi(Eval(static_cast<StringToByteExpression*>(expr)->Value).Value.ToString().c_str()));
+			break;
+
+		case ExpressionType::StringToInt:
+			result.Value = ExpressionValue::IntValue(std::atoi(Eval(static_cast<StringToIntExpression*>(expr)->Value).Value.ToString().c_str()));
+			break;
+
+		case ExpressionType::StringToBool:
+			result.Value = ExpressionValue::BoolValue(std::atoi(Eval(static_cast<StringToBoolExpression*>(expr)->Value).Value.ToString().c_str()));
+			break;
+
+		case ExpressionType::StringToFloat:
+			result.Value = ExpressionValue::FloatValue((float)std::atof(Eval(static_cast<StringToFloatExpression*>(expr)->Value).Value.ToString().c_str()));
+			break;
+
+		case ExpressionType::StringToVector:
+		{
+			std::string v = Eval(static_cast<StringToVectorExpression*>(expr)->Value).Value.ToString();
+			auto pos1 = v.find_first_of(',');
+			auto pos2 = v.find_first_of(',', pos1 + 1);
+			if (pos1 != std::string::npos && pos2 != std::string::npos)
+			{
+				result.Value = ExpressionValue::VectorValue({ (float)std::atof(v.substr(0, pos1).c_str()), (float)std::atof(v.substr(pos1 + 1, pos2 - pos1 - 1).c_str()), (float)std::atof(v.substr(pos2 + 1).c_str()) });
+			}
+			else
+			{
+				result.Value = ExpressionValue::VectorValue({ 0.0f });
+			}
+			break;
+		}
+
+		case ExpressionType::StringToRotator:
+		{
+			std::string v = Eval(static_cast<StringToRotatorExpression*>(expr)->Value).Value.ToString();
+			auto pos1 = v.find_first_of(',');
+			auto pos2 = v.find_first_of(',', pos1 + 1);
+			if (pos1 != std::string::npos && pos2 != std::string::npos)
+			{
+				result.Value = ExpressionValue::RotatorValue({ std::atoi(v.substr(0, pos1).c_str()), std::atoi(v.substr(pos1 + 1, pos2 - pos1 - 1).c_str()), std::atoi(v.substr(pos2 + 1).c_str()) });
+			}
+			else
+			{
+				result.Value = ExpressionValue::RotatorValue({ 0, 0, 0 });
+			}
+			break;
+		}
+
+		case ExpressionType::VectorToBool:
+			result.Value = ExpressionValue::BoolValue(Eval(static_cast<VectorToBoolExpression*>(expr)->Value).Value.ToVector() != vec3(0.0f));
+			break;
+
+		case ExpressionType::VectorToRotator:
+			result.Value = ExpressionValue::RotatorValue(Rotator::FromVector(Eval(static_cast<VectorToRotatorExpression*>(expr)->Value).Value.ToVector()));
+			break;
+
+		case ExpressionType::RotatorToBool:
+			result.Value = ExpressionValue::BoolValue(Eval(static_cast<RotatorToBoolExpression*>(expr)->Value).Value.ToRotator() != Rotator(0, 0, 0));
+			break;
+
+		case ExpressionType::ByteToString:
+			result.Value = ExpressionValue::StringValue(std::to_string(Eval(static_cast<ByteToStringExpression*>(expr)->Value).Value.ToByte()));
+			break;
+
+		case ExpressionType::IntToString:
+			result.Value = ExpressionValue::StringValue(std::to_string(Eval(static_cast<IntToStringExpression*>(expr)->Value).Value.ToInt()));
+			break;
+
+		case ExpressionType::BoolToString:
+			result.Value = ExpressionValue::StringValue(std::to_string(Eval(static_cast<BoolToStringExpression*>(expr)->Value).Value.ToBool()));
+			break;
+
+		case ExpressionType::FloatToString:
+			result.Value = ExpressionValue::StringValue(std::to_string(Eval(static_cast<FloatToStringExpression*>(expr)->Value).Value.ToFloat()));
+			break;
+
+		case ExpressionType::ObjectToString:
+		{
+			UObject* obj = Eval(static_cast<ObjectToStringExpression*>(expr)->Value).Value.ToObject();
+			result.Value = ExpressionValue::StringValue(obj ? obj->package->GetPackageName().ToString() + "." + obj->Name.ToString() : "None");
+		}
+
+		case ExpressionType::NameToString:
+			result.Value = ExpressionValue::StringValue(Eval(static_cast<NameToStringExpression*>(expr)->Value).Value.ToName().ToString());
+			break;
+
+		case ExpressionType::VectorToString:
+		{
+			vec3 v = Eval(static_cast<VectorToStringExpression*>(expr)->Value).Value.ToVector();
+			result.Value = ExpressionValue::StringValue(std::to_string(v.x) + "," + std::to_string(v.y) + "," + std::to_string(v.z));
+			break;
+		}
+
+		case ExpressionType::RotatorToString:
+		{
+			Rotator v = Eval(static_cast<RotatorToStringExpression*>(expr)->Value).Value.ToRotator();
+			result.Value = ExpressionValue::StringValue(std::to_string(v.Pitch & 0xffff) + "," + std::to_string(v.Yaw & 0xffff) + "," + std::to_string(v.Roll & 0xffff));
+			break;
+		}
+
+		case ExpressionType::StringToName:
+		{
+			std::string v = Eval(static_cast<StringToNameExpression*>(expr)->Value).Value.ToString();
+			result.Value = ExpressionValue::NameValue(v);
+			break;
+		}
+
+		case ExpressionType::DynArrayToInt:
+		{
+			size_t count = Eval(static_cast<DynArrayToIntExpression*>(expr)->Value).Value.ToArray().GetSize();
+			result.Value = ExpressionValue::IntValue((int)count);
+			break;
+		}
+
+		case ExpressionType::VirtualFunction:
+		{
+			UClass* contextClass = UObject::TryCast<UClass>(context);
+			if (!contextClass)
+				contextClass = context->Class;
+
+			// Search states first
+
+			NameString stateName = context->GetStateName();
+			for (UClass* cls = contextClass; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
+			{
+				UState* state = cls->GetState(stateName);
+				if (state)
+				{
+					UFunction* func = state->GetFunction(static_cast<VirtualFunctionExpression*>(expr)->Name);
+					if (func)
+					{
+						CallExpr(func, static_cast<VirtualFunctionExpression*>(expr)->Args);
+						return;
+					}
+				}
+			}
+
+			// Search normal member functions next
+
+			for (UClass* cls = contextClass; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
+			{
+				for (UField* field = cls->Children; field != nullptr; field = field->Next)
+				{
+					UFunction* func = UObject::TryCast<UFunction>(field);
+					if (func && func->Name == static_cast<VirtualFunctionExpression*>(expr)->Name)
+					{
+						CallExpr(func, static_cast<VirtualFunctionExpression*>(expr)->Args);
+						return;
+					}
+				}
+			}
+
+			Frame::ThrowException("Script virtual function " + static_cast<VirtualFunctionExpression*>(expr)->Name.ToString() + " not found!");
+			break;
+		}
+
+		case ExpressionType::FinalFunction:
+			CallExpr(static_cast<FinalFunctionExpression*>(expr)->Func, static_cast<FinalFunctionExpression*>(expr)->Args);
+			break;
+
+		case ExpressionType::GlobalFunction:
+		{
+			// Global function calls skip the states and only searches normal member functions
+
+			UClass* contextClass = UObject::TryCast<UClass>(context);
+			if (!contextClass)
+				contextClass = context->Class;
+
+			for (UClass* cls = contextClass; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
+			{
+				UFunction* func = cls->GetFunction(static_cast<GlobalFunctionExpression*>(expr)->Name);
+				if (func)
+				{
+					CallExpr(func, static_cast<GlobalFunctionExpression*>(expr)->Args);
+					return;
+				}
+			}
+
+			Frame::ThrowException("Script global function " + static_cast<GlobalFunctionExpression*>(expr)->Name.ToString() + " not found!");
+			break;
+		}
+
+		case ExpressionType::NativeFunction:
+			if (static_cast<NativeFunctionExpression*>(expr)->nativeindex == 130) // conditional operator &&
+			{
+				result.Value = ExpressionValue::BoolValue(
+					Eval(static_cast<NativeFunctionExpression*>(expr)->Args[0], self, self, localVariables).Value.ToBool() &&
+					Eval(static_cast<NativeFunctionExpression*>(expr)->Args[1], self, self, localVariables).Value.ToBool());
+			}
+			else if (static_cast<NativeFunctionExpression*>(expr)->nativeindex == 132) // conditional operator ||
+			{
+				result.Value = ExpressionValue::BoolValue(
+					Eval(static_cast<NativeFunctionExpression*>(expr)->Args[0], self, self, localVariables).Value.ToBool() ||
+					Eval(static_cast<NativeFunctionExpression*>(expr)->Args[1], self, self, localVariables).Value.ToBool());
+			}
+			else
+			{
+				CallExpr(NativeFunctions::FuncByIndex[static_cast<NativeFunctionExpression*>(expr)->nativeindex], static_cast<NativeFunctionExpression*>(expr)->Args);
+			}
+			break;
+
+		case ExpressionType::Construct:
+			Frame::ThrowException("Construct expression not implemented");
+			break;
+
+		case ExpressionType::FunctionArguments:
+			result.Value = ExpressionValue::NothingValue();
+			break;
+		}
+	}
+
+	Frame::StepExpression = oldExpr;
+	return result;
+}
+
+ExpressionValue Frame::CallExpr(UFunction* func, const Array<Expression*>& exprArgs)
+{
+	/*
+	Array<ExpressionValue> args;
+	args.reserve(exprArgs.size());
+	for (Expression* arg : exprArgs)
+		args.push_back(Eval(arg, self, self, localVariables).Value);
+	return Frame::Call(func, context, std::move(args));
+	*/
+	return {};
+}
+
+#endif
+
 /////////////////////////////////////////////////////////////////////////////
 
 LocalVariables::LocalVariables(UStruct* func) : Func(func)

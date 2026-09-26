@@ -101,6 +101,10 @@ public:
 private:
 	ExpressionEvalResult Run();
 	void ProcessSwitch(const ExpressionValue& condition);
+#if 0
+	static ExpressionEvalResult RunExpr(Expression* expr, UObject* self, UObject* context, void* localVariables);
+	static ExpressionValue CallExpr(UFunction* func, const Array<Expression*>& exprArgs);
+#endif
 
 	static ExpressionValue CallNative(UFunction* func, UObject* instance, Array<ExpressionValue> args);
 	static ExpressionValue CallScript(UFunction* func, UObject* instance, Array<ExpressionValue> args);

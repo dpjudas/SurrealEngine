@@ -9,7 +9,7 @@ class UStruct;
 class UFunction;
 class UProperty;
 
-enum class ExpressionType
+enum class ExpressionType : uint8_t
 {
 	LocalVariable,
 	InstanceVariable,
