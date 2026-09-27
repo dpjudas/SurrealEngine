@@ -347,7 +347,7 @@ public:
 
 	int GetSamples() override
 	{
-		return 0; // To do: how to get this
+		return stb_vorbis_stream_length_in_seconds(handle);
 	}
 
 	void SeekToSample(uint64_t pos) override
