@@ -660,3 +660,20 @@ namespace std
 		lhs.swap(rhs);
 	}
 }
+
+template <typename T>
+class ArrayView
+{
+public:
+	ArrayView() : _data(nullptr), _size(0) {}
+	ArrayView(T* data, size_t size) : _data(data), _size(size) {}
+	T* data() { return _data; }
+	size_t size() const { return _size; }
+	T* begin() { return _data; }
+	T* end() { return _data + _size; }
+	T& operator[](size_t index) { return _data[index]; }
+
+private:
+	T* _data;
+	size_t _size;
+};
