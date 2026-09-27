@@ -513,6 +513,7 @@ ExpressionEvalResult Frame::Run()
 
 		Expression* statement = Func->Code->Statements[curStatementIndex];
 		ExpressionEvalResult result = ExpressionEvaluator::Eval(statement, Object, Object, Variables->Data);
+		//ExpressionEvalResult result = RunExpr(statement, Object, Object, Variables->Data);
 		if (!Func)
 			return result;
 		switch (result.Result)
@@ -629,6 +630,7 @@ void Frame::ProcessSwitch(const ExpressionValue& condition)
 		if (caseexpr->Value)
 		{
 			ExpressionValue casevalue = ExpressionEvaluator::Eval(caseexpr->Value, Object, Object, Variables->Data).Value;
+			//ExpressionValue casevalue = RunExpr(caseexpr->Value, Object, Object, Variables->Data).Value;
 			if (condition.IsEqual(casevalue))
 				break;
 			else
@@ -653,7 +655,7 @@ struct VMStackFrame // To do: include local variables in this
 #define PopExpr() --exprEnd
 #define PushValue(v) stack.value[valueEnd++] = (v)
 #define PopValue() stack.value[--valueEnd]
-#define PushContext(c) stack.context[contextEnd++] = context; context = c
+#define PushContext(c) stack.context[contextEnd++] = context; context = (c)
 #define PopContext() context = stack.context[--contextEnd]
 
 ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UObject* context, void* localVariables)
@@ -825,8 +827,8 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			}
 			else
 			{
-				ExpressionValue rvalue = std::move(PopValue());
 				ExpressionValue lvalue = std::move(PopValue());
+				ExpressionValue rvalue = std::move(PopValue());
 				if (lvalue.GetType() != ExpressionValueType::Nothing)
 				{
 					lvalue.Store(rvalue);
@@ -848,8 +850,8 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			}
 			else
 			{
-				ExpressionValue rvalue = std::move(PopValue());
 				ExpressionValue lvalue = std::move(PopValue());
+				ExpressionValue rvalue = std::move(PopValue());
 				if (lvalue.GetType() != ExpressionValueType::Nothing)
 				{
 					lvalue.Store(rvalue);
@@ -871,8 +873,8 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			}
 			else
 			{
-				ExpressionValue arrayval = std::move(PopValue());
 				int index = PopValue().ToInt();
+				ExpressionValue arrayval = std::move(PopValue());
 				if (arrayval.IsVariable())
 				{
 					if (index < 0)
@@ -905,10 +907,10 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			else
 			{
 				auto newExpr = static_cast<NewExpression*>(expr);
-				UClass* cls = UObject::Cast<UClass>(PopValue().ToObject());
-				ExpressionValue flags = std::move(PopValue());
-				ExpressionValue name = std::move(PopValue());
 				ExpressionValue outer = std::move(PopValue());
+				ExpressionValue name = std::move(PopValue());
+				ExpressionValue flags = std::move(PopValue());
+				UClass* cls = UObject::Cast<UClass>(PopValue().ToObject());
 
 				// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
 				Package* package = engine->packages->GetPackage("Engine");
@@ -944,6 +946,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 				{
 					Frame::ThrowException("Class reference is None");
 					PushValue(ExpressionValue::NothingValue());
+					PopExpr();
 				}
 			}
 			else
@@ -1010,10 +1013,10 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			}
 			else if (pass == 1)
 			{
-				UObject* context = PopValue().ToObject();
-				if (context)
+				UObject* newContext = PopValue().ToObject();
+				if (newContext)
 				{
-					PushContext(context);
+					PushContext(newContext);
 					PushExpr(static_cast<ContextExpression*>(expr)->ContextExpr);
 				}
 				else
@@ -1038,8 +1041,8 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			}
 			else
 			{
-				ExpressionValue arrayval = std::move(PopValue());
 				int index = PopValue().ToInt();
+				ExpressionValue arrayval = std::move(PopValue());
 				if (arrayval.IsVariable())
 				{
 					PushValue(arrayval.ItemAt(index));
@@ -1208,8 +1211,8 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			}
 			else
 			{
-				ExpressionValue val2 = std::move(PopValue());
 				ExpressionValue val1 = std::move(PopValue());
+				ExpressionValue val2 = std::move(PopValue());
 				PushValue(ExpressionValue::BoolValue(val1.IsEqual(val2)));
 				PopExpr();
 			}
@@ -1223,8 +1226,8 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			}
 			else
 			{
-				ExpressionValue val2 = std::move(PopValue());
 				ExpressionValue val1 = std::move(PopValue());
+				ExpressionValue val2 = std::move(PopValue());
 				PushValue(ExpressionValue::BoolValue(!val1.IsEqual(val2)));
 				PopExpr();
 			}
@@ -1788,7 +1791,10 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 				}
 
 				if (!found)
+				{
 					Frame::ThrowException("Script virtual function " + funcExpr->Name.ToString() + " not found!");
+					PushValue(ExpressionValue::NothingValue());
+				}
 			}
 			break;
 
