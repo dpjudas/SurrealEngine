@@ -14,6 +14,10 @@
 #include <libgen.h>
 #include <unistd.h>
 #include <limits.h>
+#ifdef __HAIKU__
+#include <image.h>
+#include <Path.h>
+#endif
 #ifndef PATH_MAX
 #include <linux/limits.h>
 #endif
