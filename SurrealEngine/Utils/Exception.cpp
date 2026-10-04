@@ -45,7 +45,7 @@ struct InitDbgHelp
 
 #else
 
-#error "Exception.cpp: Unsupported Target"
+#warning "Exception.cpp: Unsupported Target. Exception::CaptureStackFrames() won\'t print any info on this platform."
 
 #endif
 
@@ -131,7 +131,7 @@ int Exception::CaptureStackFrames(std::ostringstream& sstream, int maxframes)
 
 
 /////////////////////////////////////////////////////////////////////
-#elif defined __APPLE__
+#elif defined __linux__ || defined __OpenBSD__ || defined __APPLE__
 
 	if (maxframes <= 0)
 		return 0;
