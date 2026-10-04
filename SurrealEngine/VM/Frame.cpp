@@ -512,8 +512,8 @@ ExpressionEvalResult Frame::Run()
 		}
 
 		Expression* statement = Func->Code->Statements[curStatementIndex];
-		ExpressionEvalResult result = ExpressionEvaluator::Eval(statement, Object, Object, Variables->Data);
-		//ExpressionEvalResult result = RunExpr(statement, Object, Object, Variables->Data);
+		//ExpressionEvalResult result = ExpressionEvaluator::Eval(statement, Object, Object, Variables->Data);
+		ExpressionEvalResult result = RunExpr(statement, Object, Object, Variables->Data);
 		if (!Func)
 			return result;
 		switch (result.Result)
@@ -629,8 +629,8 @@ void Frame::ProcessSwitch(const ExpressionValue& condition)
 		CaseExpression* caseexpr = static_cast<CaseExpression*>(Func->Code->Statements[StatementIndex++]);
 		if (caseexpr->Value)
 		{
-			ExpressionValue casevalue = ExpressionEvaluator::Eval(caseexpr->Value, Object, Object, Variables->Data).Value;
-			//ExpressionValue casevalue = RunExpr(caseexpr->Value, Object, Object, Variables->Data).Value;
+			//ExpressionValue casevalue = ExpressionEvaluator::Eval(caseexpr->Value, Object, Object, Variables->Data).Value;
+			ExpressionValue casevalue = RunExpr(caseexpr->Value, Object, Object, Variables->Data).Value;
 			if (condition.IsEqual(casevalue))
 				break;
 			else
@@ -660,9 +660,6 @@ struct VMStackFrame // To do: include local variables in this
 
 ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UObject* context, void* localVariables)
 {
-	// To do: check that PushExpr + PopValue calls are in correct order
-	// To do: check that the function args are in correct order
-
 	auto oldExpr = Frame::StepExpression;
 
 	ExpressionEvalResult result;
@@ -1735,6 +1732,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 		case ExpressionType::VirtualFunction:
 			if (pass == 0)
 			{
+				PushContext(self);
 				const auto& args = static_cast<VirtualFunctionExpression*>(expr)->Args;
 				for (auto it = args.rbegin(); it != args.rend(); ++it)
 				{
@@ -1743,6 +1741,8 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			}
 			else
 			{
+				PopContext();
+
 				auto funcExpr = static_cast<VirtualFunctionExpression*>(expr);
 				ArrayView<ExpressionValue> funcArgs(&stack.value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
 				valueEnd -= (int)funcArgs.size();
@@ -1801,6 +1801,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 		case ExpressionType::FinalFunction:
 			if (pass == 0)
 			{
+				PushContext(self);
 				const auto& args = static_cast<VirtualFunctionExpression*>(expr)->Args;
 				for (auto it = args.rbegin(); it != args.rend(); ++it)
 				{
@@ -1809,6 +1810,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			}
 			else
 			{
+				PopContext();
 				auto funcExpr = static_cast<FinalFunctionExpression*>(expr);
 				ArrayView<ExpressionValue> funcArgs(&stack.value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
 				valueEnd -= (int)funcArgs.size();
@@ -1821,6 +1823,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 		case ExpressionType::GlobalFunction:
 			if (pass == 0)
 			{
+				PushContext(self);
 				const auto& args = static_cast<GlobalFunctionExpression*>(expr)->Args;
 				for (auto it = args.rbegin(); it != args.rend(); ++it)
 				{
@@ -1829,6 +1832,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			}
 			else
 			{
+				PopContext();
 				auto funcExpr = static_cast<GlobalFunctionExpression*>(expr);
 				ArrayView<ExpressionValue> funcArgs(&stack.value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
 				valueEnd -= (int)funcArgs.size();
@@ -1864,6 +1868,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 				auto funcExpr = static_cast<NativeFunctionExpression*>(expr);
 				if (pass == 0)
 				{
+					PushContext(self);
 					PushExpr(funcExpr->Args[0]);
 				}
 				else if (pass == 1)
@@ -1874,12 +1879,14 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 					}
 					else
 					{
+						PopContext();
 						PushValue(ExpressionValue::BoolValue(false));
 						PopExpr();
 					}
 				}
 				else
 				{
+					PopContext();
 					bool value = PopValue().ToBool();
 					PushValue(ExpressionValue::BoolValue(value));
 					PopExpr();
@@ -1890,6 +1897,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 				auto funcExpr = static_cast<NativeFunctionExpression*>(expr);
 				if (pass == 0)
 				{
+					PushContext(self);
 					PushExpr(funcExpr->Args[0]);
 				}
 				else if (pass == 1)
@@ -1900,12 +1908,14 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 					}
 					else
 					{
+						PopContext();
 						PushValue(ExpressionValue::BoolValue(true));
 						PopExpr();
 					}
 				}
 				else
 				{
+					PopContext();
 					bool value = PopValue().ToBool();
 					PushValue(ExpressionValue::BoolValue(value));
 					PopExpr();
@@ -1915,6 +1925,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			{
 				if (pass == 0)
 				{
+					PushContext(self);
 					const auto& args = static_cast<NativeFunctionExpression*>(expr)->Args;
 					for (auto it = args.rbegin(); it != args.rend(); ++it)
 					{
@@ -1923,6 +1934,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 				}
 				else
 				{
+					PopContext();
 					auto funcExpr = static_cast<NativeFunctionExpression*>(expr);
 					ArrayView<ExpressionValue> funcArgs(&stack.value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
 					valueEnd -= (int)funcArgs.size();
