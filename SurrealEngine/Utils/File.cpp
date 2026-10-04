@@ -16,6 +16,10 @@
 #include <dirent.h>
 #include <cstdio>
 #include <unistd.h>
+#ifdef __HAIKU__
+#include <image.h>
+#include <Path.h>
+#endif
 #ifdef __APPLE__
 #include <CoreFoundation/CoreFoundation.h>
 #endif
@@ -410,6 +414,22 @@ std::string OS::executable_path()
 	}
 
 	Exception::Throw("get_exe_path failed");
+#elif defined(__HAIKU__)
+	image_info info;
+	int32 cookie = 0;
+	char exePath[PATH_MAX];
+
+	while (get_next_image_info(B_CURRENT_TEAM, &cookie, &info) >= B_OK) {
+		if (info.type == B_APP_IMAGE) {
+			// info.name includes the executable name too, so we need to go "one directory" up
+			BPath exeFullPath(info.name);
+			exeFullPath.GetParent(&exeFullPath);
+			strlcpy(exePath, exeFullPath.Path(), sizeof(exePath));
+			break;
+		}
+	}
+
+	return std::string(exePath);
 #else
 	#ifndef PROC_EXE_PATH
 	#define PROC_EXE_PATH "/proc/self/exe"
