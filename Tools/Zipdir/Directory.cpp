@@ -341,7 +341,7 @@ std::string Directory::exePath()
 		else
 			return std::string(exe_file);
 #else
-		throw std::runtime_error("get_exe_path: proc file system not accesible");
+		throw std::runtime_error("get_exe_path: proc file system not accessible");
 #endif
 	}
 	else
