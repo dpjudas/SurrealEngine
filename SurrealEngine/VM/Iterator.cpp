@@ -171,27 +171,26 @@ bool ChildActorsIterator::Next()
 }
 
 /////////////////////////////////////////////////////////////////////////////
-CycleActorsIterator::CycleActorsIterator(UObject* BaseClass, UObject** Actor, int* outIndex)  : BaseClass(BaseClass), Actor(Actor), outIndex(outIndex)  
+
+CycleActorsIterator::CycleActorsIterator(UObject* BaseClass, UObject** Actor, int* outIndex)  : BaseClass(BaseClass), Actor(Actor), outIndex(outIndex)
 {  
-	for (UActor* levelActor : engine->Level->Actors)  
-	{  
-		if (levelActor && levelActor->IsA(BaseClass->Name))  
-			matchedActors.push_back(levelActor); 
-	}  
-	totalActors = matchedActors.size();  
 }  
 
 bool CycleActorsIterator::Next()  
-{  
-	if (matchedActors.empty()) return false;  
-	if (currentIndex >= matchedActors.size())  
-	{  
-		return false;  
-	}  
-	*Actor = matchedActors[currentIndex];  
-	if (outIndex) *outIndex = static_cast<int>(currentIndex);  
-	++currentIndex;  
-	return true;  
+{
+	auto& actors = engine->Level->Actors;
+	while (actorsIndex < actors.size())
+	{
+		UActor* levelActor = actors[actorsIndex++];
+		if (levelActor && levelActor->IsA(BaseClass->Name))
+		{
+			*Actor = levelActor;
+			if (outIndex) *outIndex = currentIndex;
+			++currentIndex;
+			return true;
+		}
+	}
+	return false;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -335,15 +334,17 @@ bool TraceActorsIterator::Next()
 
 VisibleActorsIterator::VisibleActorsIterator(UActor* Caller, UObject* BaseClass, UObject** Actor, float Radius, const vec3& Location) : BaseClass(BaseClass), Actor(Actor), Radius(Radius), Location(Location)
 {
+	double sqrRadius = Radius * Radius;
 	for (auto levelActor : engine->Level->Actors)
 	{
 		// Our checks:
 		// * Whether the actor we're dealing with is not hidden and is the class of BaseClass
 		// * Then whether the distance of the actor from our given Location is no more than Radius
-		if (levelActor && !levelActor->bHidden() && levelActor->IsA(BaseClass->Name) &&
-			length(levelActor->Location() - Location) <= Radius && Caller->FastTrace(levelActor->Location(), Location))
+		if (levelActor && !levelActor->bHidden() && levelActor->IsA(BaseClass->Name))
 		{
-			VisibleActors.push_back(levelActor);
+			vec3 d = levelActor->Location() - Location;
+			if (dot(d, d) <= sqrRadius && Caller->FastTrace(levelActor->Location(), Location))
+				VisibleActors.push_back(levelActor);
 		}
 	}
 

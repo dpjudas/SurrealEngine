@@ -120,9 +120,8 @@ private:
 	UObject* BaseClass = nullptr;
 	UObject** Actor = nullptr;
 	int* outIndex = nullptr;
-	size_t currentIndex = 0;
-	size_t totalActors = 0;
-	Array<UActor*> matchedActors;
+	int currentIndex = 0;
+	size_t actorsIndex = 0;
 };
 
 class IntDescIterator : public Iterator
