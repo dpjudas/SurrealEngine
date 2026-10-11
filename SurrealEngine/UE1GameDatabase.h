@@ -104,6 +104,8 @@ static const std::map<std::string, KnownUE1Games> SHA1Database = {
 	{"4325ca919d7fc807848aa8338d8d32ea43734c89", KnownUE1Games::UT99_436},
 	// Unreal Tournament, v436, Unpatched OldUnreal version
 	{"9e1aa180faaa0a92f0bd33462e05cbcb2101f6a6", KnownUE1Games::UT99_436},
+	// Unreal Tournament, v436, Windows EU version
+	{"27d2d9c7ab6baa843222804ad78892646edb9983", KnownUE1Games::UT99_436},
 
 	// Unreal Tournament, v451b, Windows + Linux versions
 	// Windows
