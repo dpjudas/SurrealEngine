@@ -31,6 +31,8 @@ public:
 
 	int FindLabelIndex(const NameString& label)
 	{
+		if (Statements.empty())
+			return -1;
 		LabelTableExpression* labels = dynamic_cast<LabelTableExpression*>(Statements.back());
 		if (labels)
 		{
