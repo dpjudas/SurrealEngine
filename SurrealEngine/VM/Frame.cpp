@@ -553,7 +553,13 @@ ExpressionEvalResult Frame::Run()
 						}
 					}
 					if (!found)
-						ThrowException("Could not find label: " + result.Label.ToString());
+					{
+						if (Object->Class)
+							LogMessage(Object->Class->Name.ToString() + "." + Func->Name.ToString() + ": GotoLabel (" + result.Label.ToString() + "): Label not found");
+						LatentState = LatentRunState::Stop;
+						result.Result = StatementResult::Stop;
+						return result;
+					}
 				}
 			}
 			break;
