@@ -340,10 +340,11 @@ VisibleActorsIterator::VisibleActorsIterator(UActor* Caller, UObject* BaseClass,
 		// Our checks:
 		// * Whether the actor we're dealing with is not hidden and is the class of BaseClass
 		// * Then whether the distance of the actor from our given Location is no more than Radius
+		// * A zero Radius means infinite range (To do: is this actually true? Seems expensive!)
 		if (levelActor && !levelActor->bHidden() && levelActor->IsA(BaseClass->Name))
 		{
 			vec3 d = levelActor->Location() - Location;
-			if (dot(d, d) <= sqrRadius && Caller->FastTrace(levelActor->Location(), Location))
+			if ((Radius == 0.0f || dot(d, d) <= sqrRadius) && Caller->FastTrace(levelActor->Location(), Location))
 				VisibleActors.push_back(levelActor);
 		}
 	}
