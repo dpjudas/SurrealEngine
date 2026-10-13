@@ -255,11 +255,19 @@ void LightmapBuilder::CalcWorldLocations(Coords MapCoords, const LightMapIndex& 
 	float LMUMult = 1.0f / lmindex.UScale;
 	float LMVMult = 1.0f / lmindex.VScale;
 
+	vec3 uStep = MapCoords.XAxis;
+	vec3 vStep = MapCoords.YAxis;
+	float det = dot(MapCoords.XAxis, cross(MapCoords.YAxis, MapCoords.ZAxis));
+	if (std::abs(det) > FLT_EPSILON)
+	{
+		uStep = cross(MapCoords.YAxis, MapCoords.ZAxis) / det;
+		vStep = cross(MapCoords.ZAxis, MapCoords.XAxis) / det;
+	}
 	vec3 p[3] =
 	{
 		MapCoords.Origin,
-		MapCoords.Origin + MapCoords.XAxis,
-		MapCoords.Origin + MapCoords.YAxis
+		MapCoords.Origin + uStep,
+		MapCoords.Origin + vStep
 	};
 
 	vec2 uv[3];
