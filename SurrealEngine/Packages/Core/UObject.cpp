@@ -758,7 +758,7 @@ ScriptArray::ScriptArray(UProperty* type) : Type(type)
 {
 }
 
-ScriptArray::ScriptArray(const ScriptArray& other)
+ScriptArray::ScriptArray(const ScriptArray& other) : Type(other.Type)
 {
 	Reserve(other.Size);
 	try
@@ -778,7 +778,7 @@ ScriptArray::ScriptArray(const ScriptArray& other)
 	}
 }
 
-ScriptArray::ScriptArray(ScriptArray&& other)
+ScriptArray::ScriptArray(ScriptArray&& other) : Type(other.Type)
 {
 	Data = other.Data;
 	Size = other.Size;
@@ -786,6 +786,7 @@ ScriptArray::ScriptArray(ScriptArray&& other)
 	other.Data = nullptr;
 	other.Size = 0;
 	other.Capacity = 0;
+	other.Type = nullptr;
 }
 
 ScriptArray::~ScriptArray()
@@ -812,9 +813,11 @@ ScriptArray& ScriptArray::operator=(ScriptArray&& other) noexcept
 		Data = other.Data;
 		Size = other.Size;
 		Capacity = other.Capacity;
+		Type = other.Type;
 		other.Data = nullptr;
 		other.Size = 0;
 		other.Capacity = 0;
+		other.Type = nullptr;
 	}
 	return *this;
 }
