@@ -105,6 +105,7 @@ private:
 	void LoadEngineIniFiles();
 	void LoadFileExtensions();
 	void LoadIntFiles();
+	void LoadLocalizationFilesFromFolder(const fs::path& baseDir, const std::string& localeExt);
 	void LoadPackageRemaps();
 	std::map<NameString, std::string> ParseIntPublicValue(const std::string& value);
 
@@ -130,13 +131,13 @@ private:
 	std::map<NameString, std::string> packageFilenames;
 	std::map<NameString, GCRoot<Package>> packages;
 	std::map<NameString, std::unique_ptr<IniFile>> iniFiles;
-	std::map<NameString, std::unique_ptr<IniFile>> intFiles;
+	std::map<NameString, std::shared_ptr<IniFile>> intFiles;
 	std::map<std::string, std::string> packageRemaps;
 	std::map<NameString, Package*> saveInfos;
 
 	std::map<NameString, std::string> aviFilenames;
 
-	std::map<NameString, Array<IntObject>> IntObjects;
+	std::map<NameString, std::map<NameString, Array<IntObject>>> IntObjects;
 
 	std::unique_ptr<IniFile> defaultIniFile;  // Holds Default.ini
 	std::unique_ptr<IniFile> defaultUserFile; // Holds DefUser.ini

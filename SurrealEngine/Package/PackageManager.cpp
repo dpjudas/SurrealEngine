@@ -870,15 +870,32 @@ void PackageManager::LoadFileExtensions()
 
 void PackageManager::LoadIntFiles()
 {
-	for (const auto& dir_entry: fs::directory_iterator{gameSystemFolderPath})
+	if (IsUnreal1_227k() || (IsUnrealTournament_469() && launchInfo.gameSubVersion >= 4))
+	{
+		LoadLocalizationFilesFromFolder(gameRootFolderPath / "SystemLocalized" / languageExtension, "." + languageExtension);
+		if (languageExtension != "int")
+			LoadLocalizationFilesFromFolder(gameRootFolderPath / "SystemLocalized" / "int", ".int");
+	}
+
+	LoadLocalizationFilesFromFolder(gameSystemFolderPath, languageExtension);
+	if (languageExtension != "int")
+		LoadLocalizationFilesFromFolder(gameSystemFolderPath, ".int");
+}
+
+void PackageManager::LoadLocalizationFilesFromFolder(const fs::path& baseDir, const std::string& localeExt)
+{
+	for (const auto& dir_entry: fs::directory_iterator{baseDir})
 	{
 		try
 		{
-			if (dir_entry.is_regular_file() && dir_entry.path().extension().string() == ".int")
+			if (dir_entry.is_regular_file() && dir_entry.path().extension().string() == "." + localeExt)
 			{
 				const auto intFileName = dir_entry.path().filename();
 
-				auto intFile = std::make_unique<IniFile>((gameSystemFolderPath / intFileName).string());
+				if (intFiles.find(intFileName.string()) != intFiles.end())
+					continue;
+
+				auto intFile = std::make_unique<IniFile>((baseDir / intFileName).string());
 
 				for (const std::string& value: intFile->GetValues("Public", "Object"))
 				{
@@ -897,7 +914,7 @@ void PackageManager::LoadIntFiles()
 						if (pos != std::string::npos)
 							metaClass = NameString(metaClass.ToString().substr(pos + 1));
 
-						IntObjects[metaClass].push_back(std::move(obj));
+						IntObjects[languageExtension][metaClass].push_back(std::move(obj));
 					}
 					else if (!desc["Name"].empty() && !desc["Class"].empty()) // Used by Actor.GetNextSkin
 					{
@@ -912,11 +929,11 @@ void PackageManager::LoadIntFiles()
 						if (pos != std::string::npos)
 							cls = NameString(cls.ToString().substr(pos + 1));
 
-						IntObjects[cls].push_back(std::move(obj));
+						IntObjects[languageExtension][cls].push_back(std::move(obj));
 					}
 				}
 
-				intFiles[intFileName.stem().string()] = std::move(intFile);
+				intFiles[intFileName.filename().string()] = std::move(intFile);
 			}
 		}
 		catch (...)
@@ -929,9 +946,19 @@ Array<IntObject>& PackageManager::GetIntObjects(const NameString& metaclass)
 {
 	size_t pos = metaclass.ToString().find_last_of('.');
 	if (pos == std::string::npos)
-		return IntObjects[metaclass];
-	else
-		return IntObjects[NameString(metaclass.ToString().substr(pos + 1))];
+	{
+		auto langFind = IntObjects[languageExtension].find(metaclass);
+		if (langFind != IntObjects[languageExtension].end())
+			return IntObjects[languageExtension][metaclass];
+
+		return IntObjects["int"][metaclass];
+	}
+
+	auto langFind = IntObjects[languageExtension].find(metaclass.ToString().substr(pos + 1));
+	if (langFind != IntObjects[languageExtension].end())
+		return IntObjects[languageExtension][NameString(metaclass.ToString().substr(pos + 1))];
+
+	return IntObjects["int"][NameString(metaclass.ToString().substr(pos + 1))];
 }
 
 std::string PackageManager::Localize(NameString packageName, const NameString& sectionName, const NameString& keyName, const int index)
@@ -943,17 +970,43 @@ std::string PackageManager::Localize(NameString packageName, const NameString& s
 		else if (sectionName == "SurrealNetworkDevice") return "Surreal Network";
 	}
 
-	auto& intFile = intFiles[packageName];
+	auto& intFile = intFiles[packageName.ToString() + "." + languageExtension];
+
+	if (!intFile)
+		intFile = intFiles[packageName.ToString() + ".int"];
+
 	if (!intFile)
 	{
 		try
 		{
-			const auto intFileName = fs::path(packageName.ToString() + ".int");
-			intFile = std::make_unique<IniFile>((gameSystemFolderPath / intFileName).string());
+			auto localizedFileName = fs::path(packageName.ToString() + "." + languageExtension);
+			auto intFileName = fs::path(packageName.ToString() + ".int");
+
+			if (IsUnreal1_227k() || (IsUnrealTournament_469() && launchInfo.gameSubVersion >= 4))
+			{
+				// Check SystemLocalized folder first for the games that have it
+				const auto localeFolder = gameRootFolderPath / "SystemLocalized" / languageExtension;
+				const auto intFolder = gameRootFolderPath / "SystemLocalized" / "int";
+
+				if (fs::exists(localeFolder / localizedFileName) && fs::is_regular_file(localeFolder / localizedFileName))
+					intFile = std::make_shared<IniFile>((localeFolder / localizedFileName).string());
+				else if (fs::exists(intFolder / intFileName) && fs::is_regular_file(intFolder / intFileName))
+					intFile = std::make_shared<IniFile>((intFolder / intFileName).string());
+			}
+
+			if (!intFile)
+			{
+				// Check the System path
+				if (fs::exists(gameSystemFolderPath / localizedFileName) && !fs::is_directory(gameSystemFolderPath / localizedFileName))
+					intFile = std::make_shared<IniFile>((gameSystemFolderPath / localizedFileName).string());
+				else
+					// Try the global localization
+					intFile = std::make_shared<IniFile>((gameSystemFolderPath / intFileName).string());
+			}
 		}
 		catch (...)
 		{
-			intFile = std::make_unique<IniFile>();
+			intFile = std::make_shared<IniFile>();
 		}
 	}
 
