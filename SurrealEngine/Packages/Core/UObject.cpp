@@ -532,6 +532,8 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 	if (oldState != newState)
 		StateFrame->SetState(newState);
 
+	DisabledEvents.clear();
+
 	if (newState)
 	{
 		// HasStack is otherwise only ever inherited from the original package's export table at
