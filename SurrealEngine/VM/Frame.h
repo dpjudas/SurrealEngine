@@ -67,8 +67,7 @@ struct VMStackFrame
 class Frame
 {
 public:
-	static ExpressionValue Call(UFunction* func, UObject* instance, Array<ExpressionValue> args);
-	static ExpressionValue Call(UFunction* func, UObject* instance, ArrayView<ExpressionValue> args);
+	static ExpressionValue Call(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args);
 	static std::string GetCallstack();
 	static std::string GetDisassembly(Expression* statement);
 
@@ -114,9 +113,9 @@ private:
 
 	static ExpressionEvalResult RunExpr(Expression* expr, UObject* self, UObject* context, VMStackFrame* stack);
 
-	static ExpressionValue CallNative(UFunction* func, UObject* instance, Array<ExpressionValue> args);
-	static ExpressionValue CallScript(UFunction* func, UObject* instance, Array<ExpressionValue> args);
-	static void TraceCall(UFunction* func, UObject* instance, const Array<ExpressionValue>& args);
+	static ExpressionValue CallNative(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args);
+	static ExpressionValue CallScript(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args);
+	static void TraceCall(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args);
 
 	struct ActiveCallStackFrame
 	{

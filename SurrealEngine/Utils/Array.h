@@ -668,10 +668,14 @@ public:
 	ArrayView() : _data(nullptr), _size(0) {}
 	ArrayView(T* data, size_t size) : _data(data), _size(size) {}
 	T* data() { return _data; }
+	const T* data() const { return _data; }
 	size_t size() const { return _size; }
 	T* begin() { return _data; }
 	T* end() { return _data + _size; }
+	const T* begin() const { return _data; }
+	const T* end() const { return _data + _size; }
 	T& operator[](size_t index) { return _data[index]; }
+	T& operator[](size_t index) const { return _data[index]; }
 
 private:
 	T* _data;

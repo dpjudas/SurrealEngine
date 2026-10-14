@@ -78,7 +78,7 @@ ExpressionValue CallEvent(UObject* Context, EventName eventname, Array<Expressio
 
 	UFunction* func = FindEventFunction(Context, ToNameString(eventname));
 	if (func)
-		return Frame::Call(func, Context, std::move(args));
+		return Frame::Call(func, Context, { args.data(), args.size() });
 	else
 		return ExpressionValue::NothingValue();
 }
@@ -96,7 +96,7 @@ ExpressionValue CallEvent(UObject* Context, const NameString& name, Array<Expres
 
 	UFunction* func = FindEventFunction(Context, name);
 	if (func)
-		return Frame::Call(func, Context, std::move(args));
+		return Frame::Call(func, Context, { args.data(), args.size() });
 	else
 		return ExpressionValue::NothingValue();
 }

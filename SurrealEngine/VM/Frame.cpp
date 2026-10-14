@@ -199,17 +199,7 @@ std::string Frame::GetCallstack()
 	return result;
 }
 
-ExpressionValue Frame::Call(UFunction* func, UObject* instance, ArrayView<ExpressionValue> args)
-{
-	// To do: fix this as it produces a memory allocation
-	Array<ExpressionValue> args2;
-	args2.reserve(args.size());
-	for (auto& arg : args)
-		args2.push_back(std::move(arg));
-	return Call(func, instance, args2);
-}
-
-ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<ExpressionValue> args)
+ExpressionValue Frame::Call(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args)
 {
 	if (!instance)
 	{
@@ -225,32 +215,17 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, Array<Expression
 		return ExpressionValue::NothingValue();
 	}
 
-	// Trailing optional args may be missing. Add nothing values so the args list matches the function signature.
-	int argindex = 0;
-	for (UField* field = func->Children; field != nullptr; field = field->Next)
-	{
-		UProperty* prop = UObject::TryCast<UProperty>(field);
-		if (prop)
-		{
-			if (argindex == args.size() && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OptionalParm))
-				args.push_back(ExpressionValue::NothingValue());
-
-			if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
-				argindex++;
-		}
-	}
-
 	if (AllFlags(func->FuncFlags, FunctionFlags::Native))
 	{
-		return CallNative(func, instance, std::move(args));
+		return CallNative(func, instance, args);
 	}
 	else
 	{
-		return CallScript(func, instance, std::move(args));
+		return CallScript(func, instance, args);
 	}
 }
 
-ExpressionValue Frame::CallScript(UFunction* func, UObject* instance, Array<ExpressionValue> args)
+ExpressionValue Frame::CallScript(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args)
 {
 	Frame frame(instance, func);
 
@@ -267,6 +242,11 @@ ExpressionValue Frame::CallScript(UFunction* func, UObject* instance, Array<Expr
 				if (argindex < args.size())
 				{
 					lvalue.Store(args[argindex]);
+				}
+				else
+				{
+					// Trailing optional args may be missing.
+					lvalue.Store(ExpressionValue::NothingValue());
 				}
 
 				argindex++;
@@ -307,8 +287,13 @@ ExpressionValue Frame::CallScript(UFunction* func, UObject* instance, Array<Expr
 	return result;
 }
 
-ExpressionValue Frame::CallNative(UFunction* func, UObject* instance, Array<ExpressionValue> args)
+ExpressionValue Frame::CallNative(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& funcArgs)
 {
+	Array<ExpressionValue> args;
+	args.reserve(func->NumParms + 1);
+	for (const auto& arg : funcArgs)
+		args.push_back(arg);
+
 	// Native functions expect the last parameter to be the return value
 	bool returnparmfound = false;
 	int argindex = 0;
@@ -317,12 +302,19 @@ ExpressionValue Frame::CallNative(UFunction* func, UObject* instance, Array<Expr
 		UProperty* prop = UObject::TryCast<UProperty>(field);
 		if (prop)
 		{
+			if (argindex == args.size() && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OptionalParm))
+			{
+				// Trailing optional args may be missing. Add nothing values so the args list matches the function signature.
+				args.push_back(ExpressionValue::NothingValue());
+			}
+
 			if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
 			{
 				ExpressionValue retval = ExpressionValue::PropertyValue(prop);
 				args.push_back(std::move(retval));
 				returnparmfound = true;
 			}
+
 			if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
 				argindex++;
 		}
@@ -386,7 +378,7 @@ ExpressionValue Frame::CallNative(UFunction* func, UObject* instance, Array<Expr
 	return returnparmfound ? std::move(args.back()) : ExpressionValue::NothingValue();
 }
 
-void Frame::TraceCall(UFunction* func, UObject* instance, const Array<ExpressionValue>& args)
+void Frame::TraceCall(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args)
 {
 #if 0 // To do: create a commandlet that lets us do this
 	static NameString TraceActorClass = "CTFGame";

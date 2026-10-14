@@ -707,7 +707,7 @@ void ExpressionEvaluator::Call(UFunction* func, const Array<Expression*>& exprAr
 		args.reserve(exprArgs.size());
 		for (Expression* arg : exprArgs)
 			args.push_back(Eval(arg, Self, Self, LocalVariables).Value);
-		Result.Value = Frame::Call(func, Context, std::move(args));
+		Result.Value = Frame::Call(func, Context, { args.data(), args.size() });
 	}
 }
 
