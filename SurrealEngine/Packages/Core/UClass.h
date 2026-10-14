@@ -65,7 +65,10 @@ public:
 	NameString ClassConfigName;
 
 	UState* GetState(const NameString& name) { auto it = States.find(name); if (it != States.end()) return it->second; else return nullptr; }
+	UFunction* GetFunction(const NameString& name) { auto it = Functions.find(name); if (it != Functions.end()) return it->second; else return nullptr; }
+
 	std::map<NameString, UState*> States;
+	std::map<NameString, UFunction*> Functions;
 
 private:
 	std::map<NameString, std::string> ParseStructValue(const std::string& text);

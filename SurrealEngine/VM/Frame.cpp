@@ -1768,16 +1768,12 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 					// Search normal member functions next
 					for (UClass* cls = contextClass; !found && cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
 					{
-						for (UField* field = cls->Children; field != nullptr; field = field->Next)
+						if (UFunction* func = cls->GetFunction(funcExpr->Name))
 						{
-							UFunction* func = UObject::TryCast<UFunction>(field);
-							if (func && func->Name == funcExpr->Name)
-							{
-								PushValue(Frame::Call(func, context, funcArgs));
-								PopExpr();
-								found = true;
-								break;
-							}
+							PushValue(Frame::Call(func, context, funcArgs));
+							PopExpr();
+							found = true;
+							break;
 						}
 					}
 				}

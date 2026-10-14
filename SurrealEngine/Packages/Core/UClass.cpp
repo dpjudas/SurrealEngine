@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "UClass.h"
 #include "UEnum.h"
+#include "UFunction.h"
 #include "Properties/UPointerProperty.h"
 #include "Properties/UIntProperty.h"
 #include "Properties/UClassProperty.h"
@@ -112,6 +113,10 @@ void UClass::Load(ObjectStream* stream)
 		if (auto state = UObject::TryCast<UState>(child))
 		{
 			States[child->Name] = state;
+		}
+		else if (auto func = UObject::TryCast<UFunction>(child))
+		{
+			Functions[child->Name] = func;
 		}
 	}
 }
