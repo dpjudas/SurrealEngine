@@ -454,6 +454,14 @@ void PackageManager::ScanFolder(const std::string& packagedir, const std::string
 	if (fs::exists(packageDirPath))
 	{
 		const auto searchExt = fs::path(search).extension();
+		// Packages can have language specific overrides (like for voices). It is done with adding the language name in front of the extension.
+		// e.g.: .uax -> .frt_uax (for French)
+		fs::path langSearchExt;
+		if (searchExt.string().starts_with('.'))
+			langSearchExt = fs::path("." + languageExtension + "_" + searchExt.string().substr(1));
+		else
+			langSearchExt = fs::path("." + languageExtension + "_" + searchExt.string());
+
 		for (const auto& dir_entry: fs::directory_iterator{packageDirPath})
 		{
 			// Do not add the package again if it exists
@@ -464,7 +472,14 @@ void PackageManager::ScanFolder(const std::string& packagedir, const std::string
 				NameString fileNameString(dir_entry.path().stem().string());
 				auto it = packageFilenames.find(fileNameString);
 				if (it == packageFilenames.end())
-					packageFilenames[fileNameString] = (packageDirPath / dir_entry.path().filename()).string();
+				{
+					auto langPath = dir_entry.path().parent_path() / (dir_entry.path().stem().string() + langSearchExt.string());
+					if (fs::exists(langPath) && fs::is_regular_file(langPath))
+						// Prioritize the language specific file
+						packageFilenames[fileNameString] = (packageDirPath / langPath).string();
+					else
+						packageFilenames[fileNameString] = (packageDirPath / dir_entry.path().filename()).string();
+				}
 			}
 		}
 	}
