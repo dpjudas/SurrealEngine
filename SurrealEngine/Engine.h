@@ -146,26 +146,28 @@ public:
 
 	UFloatProperty* floatprop = nullptr;
 
-	ULevelInfo* EntryLevelInfo = nullptr;
-	ULevel* EntryLevel = nullptr;
-	UGameInfo* EntryGameInfo = nullptr;
-	Package* EntryLevelPackage = nullptr;
-
 	double TotalTime = 0.0;
 
-	ULevelInfo* LevelInfo = nullptr;
+	Package* EntryLevelPackage = nullptr;
+	ULevel* EntryLevel = nullptr;
+	ULevelInfo* EntryLevelInfo = nullptr;
+	UGameInfo* EntryGameInfo = nullptr;
+
+	Package* LevelPackage = nullptr;
 	ULevel* Level = nullptr;
-	Package* LevelPackage;
+	ULevelInfo* LevelInfo = nullptr;
 	UGameInfo* GameInfo = nullptr;
+	UDeusExLevelInfo* DeusExLevelInfo = nullptr;
+
 	UTexture* DefaultTexture = nullptr;
 
 	Package* deusExPackage = nullptr;
-	UDeusExLevelInfo* DeusExLevelInfo = nullptr;
 	struct
 	{
 		UnrealURL URL;
 		ETravelType TravelType = ETravelType::TRAVEL_Absolute;
 		bool TransferItems = false;
+		bool TravelToEntryLevel = false;
 	} ClientTravelInfo;
 
 	struct
