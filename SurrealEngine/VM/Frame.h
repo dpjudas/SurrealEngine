@@ -55,6 +55,15 @@ public:
 	void* Data = nullptr;
 };
 
+struct VMStackFrame
+{
+	Expression* expr[32];
+	int pass[32];
+	ExpressionValue value[32];
+	UObject* context[32];
+	void* localVariables;
+};
+
 class Frame
 {
 public:
@@ -101,9 +110,9 @@ public:
 
 private:
 	ExpressionEvalResult Run();
-	void ProcessSwitch(const ExpressionValue& condition);
+	void ProcessSwitch(const ExpressionValue& condition, VMStackFrame* stack);
 
-	static ExpressionEvalResult RunExpr(Expression* expr, UObject* self, UObject* context, void* localVariables);
+	static ExpressionEvalResult RunExpr(Expression* expr, UObject* self, UObject* context, VMStackFrame* stack);
 
 	static ExpressionValue CallNative(UFunction* func, UObject* instance, Array<ExpressionValue> args);
 	static ExpressionValue CallScript(UFunction* func, UObject* instance, Array<ExpressionValue> args);

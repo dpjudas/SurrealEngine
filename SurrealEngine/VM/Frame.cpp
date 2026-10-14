@@ -482,6 +482,9 @@ ExpressionEvalResult Frame::Run()
 		Break();
 	}
 
+	VMStackFrame stack;
+	stack.localVariables = Variables->Data;
+
 	const int maxInstructions = 500'000;
 	int instructionsRetired = 0;
 	while (true)
@@ -513,7 +516,7 @@ ExpressionEvalResult Frame::Run()
 
 		Expression* statement = Func->Code->Statements[curStatementIndex];
 		//ExpressionEvalResult result = ExpressionEvaluator::Eval(statement, Object, Object, Variables->Data);
-		ExpressionEvalResult result = RunExpr(statement, Object, Object, Variables->Data);
+		ExpressionEvalResult result = RunExpr(statement, Object, Object, &stack);
 		if (!Func)
 			return result;
 		switch (result.Result)
@@ -524,7 +527,7 @@ ExpressionEvalResult Frame::Run()
 			StatementIndex = Func->Code->FindStatementIndex(result.JumpAddress);
 			break;
 		case StatementResult::Switch:
-			ProcessSwitch(result.Value);
+			ProcessSwitch(result.Value, &stack);
 			break;
 		case StatementResult::GotoLabel:
 			{
@@ -627,7 +630,7 @@ ExpressionEvalResult Frame::Run()
 	}
 }
 
-void Frame::ProcessSwitch(const ExpressionValue& condition)
+void Frame::ProcessSwitch(const ExpressionValue& condition, VMStackFrame* stack)
 {
 	SwitchExpression* switchexpr = static_cast<SwitchExpression*>(Func->Code->Statements[StatementIndex - 1]);
 	while (true)
@@ -636,7 +639,7 @@ void Frame::ProcessSwitch(const ExpressionValue& condition)
 		if (caseexpr->Value)
 		{
 			//ExpressionValue casevalue = ExpressionEvaluator::Eval(caseexpr->Value, Object, Object, Variables->Data).Value;
-			ExpressionValue casevalue = RunExpr(caseexpr->Value, Object, Object, Variables->Data).Value;
+			ExpressionValue casevalue = RunExpr(caseexpr->Value, Object, Object, stack).Value;
 			if (condition.IsEqual(casevalue))
 				break;
 			else
@@ -649,22 +652,14 @@ void Frame::ProcessSwitch(const ExpressionValue& condition)
 	}
 }
 
-struct VMStackFrame // To do: include local variables in this
-{
-	Expression* expr[32];
-	int pass[32];
-	ExpressionValue value[32];
-	UObject* context[32];
-};
-
-#define PushExpr(e) stack.pass[exprEnd] = 0; stack.expr[exprEnd++] = (e);
+#define PushExpr(e) stack->pass[exprEnd] = 0; stack->expr[exprEnd++] = (e);
 #define PopExpr() --exprEnd
-#define PushValue(v) stack.value[valueEnd++] = (v)
-#define PopValue() stack.value[--valueEnd]
-#define PushContext(c) stack.context[contextEnd++] = context; context = (c)
-#define PopContext() context = stack.context[--contextEnd]
+#define PushValue(v) stack->value[valueEnd++] = (v)
+#define PopValue() stack->value[--valueEnd]
+#define PushContext(c) stack->context[contextEnd++] = context; context = (c)
+#define PopContext() context = stack->context[--contextEnd]
 
-ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UObject* context, void* localVariables)
+ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UObject* context, VMStackFrame* stack)
 {
 	auto oldExpr = Frame::StepExpression;
 
@@ -672,21 +667,20 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 	int exprEnd = 0;
 	int valueEnd = 0;
 	int contextEnd = 0;
-	VMStackFrame stack;
 
 	PushExpr(statementExpr);
 
 	while (exprEnd > 0)
 	{
-		Expression* expr = stack.expr[exprEnd - 1];
-		int pass = stack.pass[exprEnd - 1]++;
+		Expression* expr = stack->expr[exprEnd - 1];
+		int pass = stack->pass[exprEnd - 1]++;
 		Frame::StepExpression = expr;
 		switch (expr->Type)
 		{
 		default:
 			break;
 		case ExpressionType::LocalVariable:
-			PushValue(ExpressionValue::Variable(localVariables, static_cast<LocalVariableExpression*>(expr)->Variable));
+			PushValue(ExpressionValue::Variable(stack->localVariables, static_cast<LocalVariableExpression*>(expr)->Variable));
 			PopExpr();
 			break;
 
@@ -1750,7 +1744,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 				PopContext();
 
 				auto funcExpr = static_cast<VirtualFunctionExpression*>(expr);
-				ArrayView<ExpressionValue> funcArgs(&stack.value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
+				ArrayView<ExpressionValue> funcArgs(&stack->value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
 				valueEnd -= (int)funcArgs.size();
 
 				UClass* contextClass = UObject::TryCast<UClass>(context);
@@ -1818,7 +1812,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			{
 				PopContext();
 				auto funcExpr = static_cast<FinalFunctionExpression*>(expr);
-				ArrayView<ExpressionValue> funcArgs(&stack.value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
+				ArrayView<ExpressionValue> funcArgs(&stack->value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
 				valueEnd -= (int)funcArgs.size();
 
 				PushValue(Frame::Call(funcExpr->Func, context, funcArgs));
@@ -1840,7 +1834,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 			{
 				PopContext();
 				auto funcExpr = static_cast<GlobalFunctionExpression*>(expr);
-				ArrayView<ExpressionValue> funcArgs(&stack.value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
+				ArrayView<ExpressionValue> funcArgs(&stack->value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
 				valueEnd -= (int)funcArgs.size();
 
 				// Global function calls skip the states and only searches normal member functions
@@ -1942,7 +1936,7 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 				{
 					PopContext();
 					auto funcExpr = static_cast<NativeFunctionExpression*>(expr);
-					ArrayView<ExpressionValue> funcArgs(&stack.value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
+					ArrayView<ExpressionValue> funcArgs(&stack->value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
 					valueEnd -= (int)funcArgs.size();
 
 					PushValue(Frame::Call(NativeFunctions::FuncByIndex[funcExpr->nativeindex], context, funcArgs));
