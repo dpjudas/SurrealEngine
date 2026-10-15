@@ -221,20 +221,11 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, const ArrayView<
 	}
 	else
 	{
-		return CallScript(func, instance, args);
-	}
-}
+		Frame frame(instance, func);
 
-ExpressionValue Frame::CallScript(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args)
-{
-	Frame frame(instance, func);
-
-	// Store args in function frame local variables
-	int argindex = 0;
-	for (UField* field = func->Children; field != nullptr; field = field->Next)
-	{
-		UProperty* prop = UObject::TryCast<UProperty>(field);
-		if (prop)
+		// Store args in function frame local variables
+		int argindex = 0;
+		for (UProperty* prop : func->Properties)
 		{
 			ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables->Data, prop);
 			if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
@@ -252,20 +243,16 @@ ExpressionValue Frame::CallScript(UFunction* func, UObject* instance, const Arra
 				argindex++;
 			}
 		}
-	}
 
-	// Run the function
-	ExpressionValue result = frame.Run().Value;
+		// Run the function
+		ExpressionValue result = frame.Run().Value;
 
-	// Load the result from the frame local result variable
-	result.Load();
+		// Load the result from the frame local result variable
+		result.Load();
 
-	// Copy out params from frame local variables
-	argindex = 0;
-	for (UField* field = func->Children; field != nullptr; field = field->Next)
-	{
-		UProperty* prop = UObject::TryCast<UProperty>(field);
-		if (prop)
+		// Copy out params from frame local variables
+		argindex = 0;
+		for (UProperty* prop : func->Properties)
 		{
 			ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables->Data, prop);
 
@@ -282,9 +269,9 @@ ExpressionValue Frame::CallScript(UFunction* func, UObject* instance, const Arra
 			if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
 				argindex++;
 		}
-	}
 
-	return result;
+		return result;
+	}
 }
 
 ExpressionValue Frame::CallNative(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& funcArgs)
@@ -297,27 +284,23 @@ ExpressionValue Frame::CallNative(UFunction* func, UObject* instance, const Arra
 	// Native functions expect the last parameter to be the return value
 	bool returnparmfound = false;
 	int argindex = 0;
-	for (UField* field = func->Children; field != nullptr; field = field->Next)
+	for (UProperty* prop : func->Properties)
 	{
-		UProperty* prop = UObject::TryCast<UProperty>(field);
-		if (prop)
+		if (argindex == args.size() && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OptionalParm))
 		{
-			if (argindex == args.size() && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OptionalParm))
-			{
-				// Trailing optional args may be missing. Add nothing values so the args list matches the function signature.
-				args.push_back(ExpressionValue::NothingValue());
-			}
-
-			if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
-			{
-				ExpressionValue retval = ExpressionValue::PropertyValue(prop);
-				args.push_back(std::move(retval));
-				returnparmfound = true;
-			}
-
-			if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
-				argindex++;
+			// Trailing optional args may be missing. Add nothing values so the args list matches the function signature.
+			args.push_back(ExpressionValue::NothingValue());
 		}
+
+		if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
+		{
+			ExpressionValue retval = ExpressionValue::PropertyValue(prop);
+			args.push_back(std::move(retval));
+			returnparmfound = true;
+		}
+
+		if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
+			argindex++;
 	}
 
 	if (func->NativeFuncIndex != 0)
@@ -565,10 +548,9 @@ ExpressionEvalResult Frame::Run()
 			// Package 61 and earlier transfered the return value in an out parameter
 			if (!static_cast<ReturnExpression*>(statement)->Value)
 			{
-				for (UField* field = Func->Children; field != nullptr; field = field->Next)
+				for (UProperty* prop : Func->Properties)
 				{
-					UProperty* prop = UObject::TryCast<UProperty>(field);
-					if (prop && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
+					if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
 					{
 						result.Value = ExpressionValue::Variable(Variables->Data, prop);
 						result.Value.Load();
