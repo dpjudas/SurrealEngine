@@ -237,7 +237,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, const ArrayView<
 				else
 				{
 					// Trailing optional args may be missing.
-					lvalue.Store(ExpressionValue::NothingValue());
+					lvalue.Store(ExpressionValue::DefaultValue(prop));
 				}
 
 				argindex++;
