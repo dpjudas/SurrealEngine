@@ -1,6 +1,7 @@
 
 #include "Precomp.h"
 #include "UFunction.h"
+#include "VM/ExpressionValue.h"
 
 void UFunction::Load(ObjectStream* stream)
 {
@@ -16,6 +17,14 @@ void UFunction::Load(ObjectStream* stream)
 	FuncFlags = (FunctionFlags)stream->ReadUInt32();
 	if (AllFlags(FuncFlags, FunctionFlags::Net))
 		ReplicationOffset = stream->ReadUInt16();
+
+	if (AllFlags(FuncFlags, FunctionFlags::Native))
+	{
+		// Native functions currently expect their arguments as an ExpressionValue list
+		StructAlignment = alignof(ExpressionValue);
+		StructSize = Properties.size() * sizeof(ExpressionValue);
+		IsNativeFunc = true;
+	}
 }
 
 void UFunction::Save(PackageStreamWriter* stream)

@@ -274,91 +274,76 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, const ArrayView<
 	}
 }
 
-ExpressionValue Frame::CallNative(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& funcArgs)
+ExpressionValue Frame::CallNative(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args)
 {
-	Array<ExpressionValue> args;
-	args.reserve(func->NumParms + 1);
-	for (const auto& arg : funcArgs)
-		args.push_back(arg);
+	Frame frame(instance, func);
+	ActiveCallStackFrame activeFrame(&frame);
 
-	// Native functions expect the last parameter to be the return value
-	bool returnparmfound = false;
+	auto frameArgs = (ExpressionValue*)frame.Variables->Data;
 	int argindex = 0;
 	for (UProperty* prop : func->Properties)
 	{
-		if (argindex == args.size() && AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OptionalParm))
-		{
-			// Trailing optional args may be missing. Add nothing values so the args list matches the function signature.
-			args.push_back(ExpressionValue::NothingValue());
-		}
-
-		if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
-		{
-			ExpressionValue retval = ExpressionValue::PropertyValue(prop);
-			args.push_back(std::move(retval));
-			returnparmfound = true;
-		}
-
 		if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
-			argindex++;
+		{
+			if (AllFlags(prop->PropFlags, PropertyFlags::ReturnParm))
+			{
+				frameArgs[argindex++] = ExpressionValue::PropertyValue(prop);
+			}
+			else if (argindex < args.size())
+			{
+				frameArgs[argindex++] = args[argindex];
+			}
+			else
+			{
+				// Trailing optional args may be missing.
+				frameArgs[argindex++] = ExpressionValue::NothingValue();
+			}
+		}
 	}
 
+	NativeFuncHandler* callback = nullptr;
 	if (func->NativeFuncIndex != 0)
+		callback = &NativeFunctions::NativeByIndex[func->NativeFuncIndex];
+	else
+		callback = &NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }];
+
+	if (callback)
 	{
-		auto& callback = NativeFunctions::NativeByIndex[func->NativeFuncIndex];
-		if (callback)
+		try
 		{
-			Frame frame(instance, func);
-			ActiveCallStackFrame activeFrame(&frame);
-			try
-			{
-				callback(instance, args.data());
-			}
-			catch (const std::exception& e)
-			{
-				LogMessage(std::string("Script error: ") + e.what());
-				return ExpressionValue::NothingValue();
-			}
-			catch (...)
-			{
-				LogMessage("Script error: Unknown error");
-				return ExpressionValue::NothingValue();
-			}
+			(*callback)(instance, frameArgs);
 		}
-		else
+		catch (const std::exception& e)
 		{
-			Exception::Throw("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
+			LogMessage(std::string("Script error: ") + e.what());
+			return ExpressionValue::NothingValue();
+		}
+		catch (...)
+		{
+			LogMessage("Script error: Unknown error");
+			return ExpressionValue::NothingValue();
 		}
 	}
 	else
 	{
-		auto& callback = NativeFunctions::NativeByName[{ func->Name, func->NativeStruct->Name }];
-		if (callback)
-		{
-			Frame frame(instance, func);
-			ActiveCallStackFrame activeFrame(&frame);
-			try
-			{
-				callback(instance, args.data());
-			}
-			catch (const std::exception& e)
-			{
-				LogMessage(std::string("Script error: ") + e.what());
-				return ExpressionValue::NothingValue();
-			}
-			catch (...)
-			{
-				LogMessage("Script error: Unknown error");
-				return ExpressionValue::NothingValue();
-			}
-		}
-		else
-		{
-			Exception::Throw("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
-		}
+		Exception::Throw("Unknown native function " + func->NativeStruct->Name.ToString() + "." + func->Name.ToString());
 	}
 
-	return returnparmfound ? std::move(args.back()) : ExpressionValue::NothingValue();
+	ExpressionValue result = ExpressionValue::NothingValue();
+	argindex = 0;
+	for (UProperty* prop : func->Properties)
+	{
+		if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
+		{
+			if (AllFlags(prop->PropFlags, PropertyFlags::ReturnParm))
+			{
+				result = frameArgs[argindex];
+				break;
+			}
+			argindex++;
+		}
+	}
+	return result;
 }
 
 void Frame::TraceCall(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args)
@@ -1942,9 +1927,20 @@ LocalVariables::LocalVariables(UStruct* func) : Func(func)
 	{
 		Data = AlignedAlloc(func->StructAlignment, func->StructSize);
 
-		for (UProperty* prop : func->Properties)
+		if (!func->IsNativeFunc)
 		{
-			prop->ConstructArray(static_cast<uint8_t*>(Data) + prop->DataOffset.DataOffset);
+			for (UProperty* prop : func->Properties)
+			{
+				prop->ConstructArray(static_cast<uint8_t*>(Data) + prop->DataOffset.DataOffset);
+			}
+		}
+		else
+		{
+			auto v = (char*)Data;
+			for (size_t i = 0, count = func->Properties.size(); i < count; i++)
+			{
+				new(v + i * sizeof(ExpressionValue)) ExpressionValue();
+			}
 		}
 	}
 }
@@ -1953,9 +1949,20 @@ LocalVariables::~LocalVariables()
 {
 	if (Func && Data)
 	{
-		for (UProperty* prop : Func->Properties)
+		if (!Func->IsNativeFunc)
 		{
-			prop->DestructArray(static_cast<uint8_t*>(Data) + prop->DataOffset.DataOffset);
+			for (UProperty* prop : Func->Properties)
+			{
+				prop->DestructArray(static_cast<uint8_t*>(Data) + prop->DataOffset.DataOffset);
+			}
+		}
+		else
+		{
+			auto v = (ExpressionValue*)Data;
+			for (size_t i = 0, count = Func->Properties.size(); i < count; i++)
+			{
+				v[i].~ExpressionValue();
+			}
 		}
 	}
 

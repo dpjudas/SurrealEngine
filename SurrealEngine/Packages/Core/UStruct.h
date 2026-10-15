@@ -38,6 +38,7 @@ public:
 	size_t StructAlignment = 1;
 	size_t StructSize = 0;
 	Array<UProperty*> Properties;
+	bool IsNativeFunc = false;
 
 	int GetStatementLine(Expression* statement);
 	FunctionDebugInfo* GetDebugInfo();
