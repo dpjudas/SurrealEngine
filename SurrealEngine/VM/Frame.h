@@ -71,7 +71,7 @@ public:
 
 	static std::unique_ptr<Iterator> CreatedIterator;
 
-	Frame(UObject* instance, UStruct* func, size_t statementIndex = 0);
+	Frame(UObject* instance, UStruct* func, size_t statementIndex, bool isStateFrame);
 	~Frame();
 
 	void SetState(UStruct* func);
@@ -90,6 +90,7 @@ private:
 	void InitVariables();
 	void DeinitVariables();
 
+	bool IsStateFrame = false;
 	void* Variables = nullptr;
 	UObject* Object = nullptr;
 	UStruct* Func = nullptr;

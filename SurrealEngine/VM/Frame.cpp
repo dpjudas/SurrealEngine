@@ -22,10 +22,9 @@ Expression* Frame::StepExpression = nullptr;
 std::string Frame::ExceptionText;
 std::unique_ptr<Iterator> Frame::CreatedIterator;
 
-Frame::Frame(UObject* instance, UStruct* func, size_t statementIndex) : StatementIndex(statementIndex)
+Frame::Frame(UObject* instance, UStruct* func, size_t statementIndex, bool isStateFrame) :
+	Object(instance), Func(func), StatementIndex(statementIndex), IsStateFrame(isStateFrame)
 {
-	Object = instance;
-	Func = func;
 	InitVariables();
 }
 
@@ -41,11 +40,39 @@ void Frame::SetState(UStruct* func)
 	InitVariables();
 }
 
+#define VM_VARIABLE_STACK_CAPACITY (1024*1024)
+static Array<size_t> VariableStackAllocations;
+static size_t VariableStackOffset = 0;
+static char VariableStack[VM_VARIABLE_STACK_CAPACITY];
+
+static void* VMVariableStackAlloc(size_t alignment, size_t size)
+{
+	char* current_ptr = VariableStack + VariableStackOffset;
+	size_t space = VM_VARIABLE_STACK_CAPACITY - VariableStackOffset;
+	void* aligned_ptr = current_ptr;
+	if (std::align(alignment, size, aligned_ptr, space))
+	{
+		VariableStackAllocations.push_back(VariableStackOffset);
+		VariableStackOffset = static_cast<char*>(aligned_ptr) - VariableStack + size;
+		return aligned_ptr;
+	}
+	return nullptr;
+}
+
+void VMFreeVariables()
+{
+	VariableStackOffset = VariableStackAllocations.back();
+	VariableStackAllocations.pop_back();
+}
+
 void Frame::InitVariables()
 {
 	if (Func)
 	{
-		Variables = AlignedAlloc(Func->StructAlignment, Func->StructSize);
+		if (IsStateFrame)
+			Variables = AlignedAlloc(Func->StructAlignment, Func->StructSize);
+		else
+			Variables = VMVariableStackAlloc(Func->StructAlignment, Func->StructSize);
 
 		if (!Func->IsNativeFunc)
 		{
@@ -84,7 +111,10 @@ void Frame::DeinitVariables()
 				v[i].~ExpressionValue();
 			}
 		}
-		AlignedFree(Variables);
+		if (IsStateFrame)
+			AlignedFree(Variables);
+		else
+			VMFreeVariables();
 		Variables = nullptr;
 	}
 }
@@ -277,7 +307,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, const ArrayView<
 	}
 	else
 	{
-		Frame frame(instance, func);
+		Frame frame(instance, func, 0, false);
 
 		// Store args in function frame local variables
 		int argindex = 0;
@@ -332,7 +362,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, const ArrayView<
 
 ExpressionValue Frame::CallNative(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args)
 {
-	Frame frame(instance, func);
+	Frame frame(instance, func, 0, false);
 	ActiveCallStackFrame activeFrame(&frame);
 
 	auto frameArgs = (ExpressionValue*)frame.Variables;

@@ -79,7 +79,7 @@ void UObject::Load(ObjectStream* stream)
 				int index = func->Code->FindStatementIndex(offset);
 				if (index != -1)
 				{
-					StateFrame = std::make_shared<Frame>(this, func, index);
+					StateFrame = std::make_shared<Frame>(this, func, index, true);
 					if (latentAction >= 0 && (size_t)latentAction < NativeFunctions::LatentActionByIndex.size())
 					{
 						StateFrame->SetLatentState(NativeFunctions::LatentActionByIndex[latentAction]);
@@ -98,7 +98,7 @@ void UObject::Load(ObjectStream* stream)
 			else
 			{
 				state->LoadNow();
-				StateFrame = std::make_shared<Frame>(this, state);
+				StateFrame = std::make_shared<Frame>(this, state, 0, true);
 				StateFrame->SetLatentState(LatentRunState::Stop);
 			}
 		}
@@ -519,7 +519,7 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 	}
 
 	if (!StateFrame)
-		StateFrame = std::make_shared<Frame>(this, nullptr);
+		StateFrame = std::make_shared<Frame>(this, nullptr, 0, true);
 
 	UState* oldState = (UState*)StateFrame->GetFunc();
 
