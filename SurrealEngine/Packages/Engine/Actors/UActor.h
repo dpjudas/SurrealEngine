@@ -399,6 +399,7 @@ public:
 	void TickMovingBrush(float elapsed);
 	void TickSpider(float elapsed);
 	void TickTrailer(float elapsed);
+	void TickLadder(float elapsed);
 
 	void PhysLanded(UActor* hitActor, const vec3& hitNormal);
 
@@ -586,6 +587,9 @@ public:
 	Array<UActor*> ChildActors;
 	// Based actor tracking
 	Array<UActor*> BasedActors;
+
+	bool LadderMode = false;
+	vec3 LadderDirection;
 
 	void AddChildActor(UActor* actor);
 	void RemoveChildActor(UActor* actor);

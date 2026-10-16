@@ -38,8 +38,94 @@ bool UActor::ShouldAbortJumping(UPawn* pawn, vec3 oldPosition, vec3 stepDownDelt
 	return false;
 }
 
+void UActor::TickLadder(float elapsed)
+{
+	UPawn* pawn = PreparePawnMovementTick();
+	if (!pawn)
+		return;
+
+	// Update the actor velocity based on the acceleration and zone
+
+	UZoneInfo* zone = Region().Zone;
+	UPlayerPawn* player = UObject::TryCast<UPlayerPawn>(this);
+
+	bool isCrouching = player && player->bIsWalking();
+	float accelRate = pawn->AccelRate() * (isCrouching ? 0.3f : 1.0f);
+	float maxSpeed = (player ? player->GroundSpeed() : pawn->GroundSpeed() * pawn->DesiredSpeed()) * (isCrouching ? 0.3f : 1.0f);
+	ApplyMovementAcceleration(elapsed, accelRate, zone->ZoneGroundFriction(), maxSpeed);
+
+	float timeLeft = elapsed;
+	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
+
+	vel.z += dot(vel, LadderDirection);
+
+	if (length(vel))
+	{
+		for (int iteration = 0; timeLeft > 0.0f && iteration < 5; iteration++)
+		{
+			if (ShouldAbortMovementTick(PHYS_Walking))
+				break;
+
+			vec3 moveDelta = vel * timeLeft;
+
+			CollisionHit hit = TryMove(moveDelta);
+			timeLeft -= timeLeft * hit.Fraction;
+			moveDelta = vel * timeLeft;
+
+			if (hit.Fraction < 1.0f)
+			{
+				// We hit a wall
+				FireHitWall(hit);
+
+				vec3 alignedDelta = (moveDelta - hit.Normal * dot(moveDelta, hit.Normal)) * (1.0f - hit.Fraction);
+				if (dot(moveDelta, alignedDelta) >= 0.0f) // Don't end up going backwards
+				{
+					hit = TryMove(alignedDelta);
+					timeLeft -= timeLeft * hit.Fraction;
+					if (hit.Fraction < 1.0f)
+					{
+						FireHitWall(hit);
+					}
+				}
+				else
+				{
+					timeLeft = 0.0f;
+				}
+			}
+		}
+	}
+
+	RecomputeVelocityFromDisplacement(elapsed);
+
+	// Is the ladder still there?
+	bool foundLadder = false;
+	TraceFlags flags;
+	flags.world = true;
+	CollisionHitList hits = XLevel()->Collision.Trace(Location(), Location() + LadderDirection * (CollisionRadius() * 2.0f), CollisionHeight(), CollisionRadius(), bCollideActors(), bCollideWorld(), false);
+	for (auto& hit : hits)
+	{
+		if (!hit.Actor && hit.Node && hit.Node->Surf >= 0)
+		{
+			const BspSurface& surface = engine->Level->Model->Surfaces[hit.Node->Surf];
+			if (surface.Material && surface.Material->Outer() && surface.Material->Outer()->Name == "Ladder")
+			{
+				foundLadder = true;
+				break;
+			}
+		}
+	}
+	if (!foundLadder)
+		LadderMode = false;
+}
+
 void UActor::TickWalking(float elapsed)
 {
+	if (LadderMode)
+	{
+		TickLadder(elapsed);
+		return;
+	}
+
 	// Only pawns can walk!
 	UPawn* pawn = PreparePawnMovementTick();
 	if (!pawn)
@@ -92,6 +178,17 @@ void UActor::TickWalking(float elapsed)
 			CollisionHit hit = TryMove(moveDelta);
 			timeLeft -= timeLeft * hit.Fraction;
 			moveDelta = vel * timeLeft;
+
+			if (engine->LaunchInfo.IsDeusEx() && !hit.Actor && hit.Node && hit.Node->Surf >= 0)
+			{
+				const BspSurface& surface = engine->Level->Model->Surfaces[hit.Node->Surf];
+				if (surface.Material && surface.Material->Outer() && surface.Material->Outer()->Name == "Ladder")
+				{
+					LadderMode = true;
+					LadderDirection = -hit.Normal;
+					return;
+				}
+			}
 
 			//check for fall and backtrack
 			if (ShouldAbortJumping(pawn, oldPosition, stepDownDelta))

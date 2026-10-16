@@ -41,6 +41,7 @@ void UActor::TickPhysics(float elapsed)
 void UActor::SetPhysics(uint8_t newPhysics)
 {
 	Physics() = newPhysics;
+	LadderMode = false;
 }
 
 void UActor::SetCollision(bool newColActors, bool newBlockActors, bool newBlockPlayers)
