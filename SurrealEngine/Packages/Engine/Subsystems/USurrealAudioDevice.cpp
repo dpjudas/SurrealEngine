@@ -274,7 +274,7 @@ void USurrealAudioDevice::UpdateLipSync(PlayingSound& Playing)
 		return;
 
 	float elapsedTime = engine->LevelInfo->TimeSeconds() - Playing.StartTime;
-	uint8_t letter = Playing.Sound->GetLipsyncLetterAt(elapsedTime);
+	uint8_t letter = Playing.Sound->GetLipsyncLetterAt(std::round(elapsedTime * 8.0f) / 8.0f); // Update 8 times per second, DX has a tween time of 0.1 seconds
 
 	if (!letter)
 		return;
