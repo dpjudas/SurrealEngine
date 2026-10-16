@@ -7,6 +7,7 @@
 #include "Package/PackageManager.h"
 #include "Packages/Engine/Resources/Level/ULevel.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
+#include "Packages/Engine/Actors/Info/ULevelInfo.h"
 
 #include <algorithm>
 
@@ -438,7 +439,11 @@ bool TraceTextureIterator::Next()
 	{
 		UTexture* foundTexture = nullptr;
 
-		*OutActor = m_Iterator->Actor;
+		UActor* actor = m_Iterator->Actor;
+		if (!actor)
+			actor = engine->LevelInfo;
+
+		*OutActor = actor;
 		const auto node = m_Iterator->Node;
 
 		HitLoc = mix(*Start, End, m_Iterator->Fraction);
