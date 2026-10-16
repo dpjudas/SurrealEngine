@@ -1340,6 +1340,14 @@ std::string Engine::ConsoleCommand(UObject* context, const std::string& commandl
 			return {};
 		}
 
+		if (LaunchInfo.IsDeusEx() && className == "inputext")
+		{
+			// DeusEx version of input handling. How does this differ from the other one?
+			keybindings[propertyName.ToString()] = value;
+			packages->SetIniValue("user", "Engine.Input", propertyName, value);
+			return {};
+		}
+
 		UClass* cls = packages->FindClass(className);
 		if (!cls)
 		{
