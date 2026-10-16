@@ -843,12 +843,12 @@ bool VisibleMesh::DrawLodMeshDX(VisibleFrame* frame, UActor* actor, UActor* ligh
 
 		float frame = animSource->BlendAnimFrame()[i] * seq->NumFrames;
 
-		static bool loggedBlend[4] = {};
+		/*static bool loggedBlend[4] = {};
 		if (!loggedBlend[i])
 		{
 			LogMessage("DrawLodMeshDX blend[" + std::to_string(i) + "]: seq='" + seq->Name.ToString() + "' frame=" + std::to_string(frame) + " StartFrame=" + std::to_string(seq->StartFrame) + " NumFrames=" + std::to_string(seq->NumFrames) + " FrameVerts=" + std::to_string(mesh->FrameVerts) + " weight=1.0");
 			loggedBlend[i] = true;
-		}
+		}*/
 
 		BlendInfo& b = blends[blendCount++];
 
