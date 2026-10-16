@@ -45,15 +45,6 @@ struct Breakpoint
 	bool Enabled = true;
 };
 
-struct VMStackFrame
-{
-	Expression* expr[32];
-	int pass[32];
-	ExpressionValue value[32];
-	UObject* context[32];
-	void* localVariables;
-};
-
 class Frame
 {
 public:
@@ -107,9 +98,9 @@ private:
 	Array<std::unique_ptr<Iterator>> Iterators;
 
 	ExpressionEvalResult Run();
-	void ProcessSwitch(const ExpressionValue& condition, VMStackFrame* stack);
+	void ProcessSwitch(const ExpressionValue& condition);
 
-	static ExpressionEvalResult RunExpr(Expression* expr, UObject* self, UObject* context, VMStackFrame* stack);
+	static ExpressionEvalResult RunExpr(Expression* expr, UObject* self, UObject* context, void* variables);
 	static ExpressionValue CallNative(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args);
 	static void TraceCall(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args);
 

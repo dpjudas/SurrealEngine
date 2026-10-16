@@ -11,6 +11,7 @@
 #include "Package/PackageManager.h"
 #include "Utils/AlignedAlloc.h"
 #include "Commandlet/VM/DisassemblyCommandlet.h"
+#include <cassert>
 
 std::function<void()> Frame::RunDebugger;
 Array<Breakpoint> Frame::Breakpoints;
@@ -497,9 +498,6 @@ ExpressionEvalResult Frame::Run()
 		Break();
 	}
 
-	VMStackFrame stack;
-	stack.localVariables = Variables;
-
 	const int maxInstructions = 500'000;
 	int instructionsRetired = 0;
 	while (true)
@@ -530,8 +528,8 @@ ExpressionEvalResult Frame::Run()
 		}
 
 		Expression* statement = Func->Code->Statements[curStatementIndex];
-		//ExpressionEvalResult result = ExpressionEvaluator::Eval(statement, Object, Object, Variables->Data);
-		ExpressionEvalResult result = RunExpr(statement, Object, Object, &stack);
+		//ExpressionEvalResult result = ExpressionEvaluator::Eval(statement, Object, Object, Variables);
+		ExpressionEvalResult result = RunExpr(statement, Object, Object, Variables);
 		if (!Func)
 			return result;
 		switch (result.Result)
@@ -542,7 +540,7 @@ ExpressionEvalResult Frame::Run()
 			StatementIndex = Func->Code->FindStatementIndex(result.JumpAddress);
 			break;
 		case StatementResult::Switch:
-			ProcessSwitch(result.Value, &stack);
+			ProcessSwitch(result.Value);
 			break;
 		case StatementResult::GotoLabel:
 			{
@@ -644,7 +642,7 @@ ExpressionEvalResult Frame::Run()
 	}
 }
 
-void Frame::ProcessSwitch(const ExpressionValue& condition, VMStackFrame* stack)
+void Frame::ProcessSwitch(const ExpressionValue& condition)
 {
 	SwitchExpression* switchexpr = static_cast<SwitchExpression*>(Func->Code->Statements[StatementIndex - 1]);
 	while (true)
@@ -652,8 +650,8 @@ void Frame::ProcessSwitch(const ExpressionValue& condition, VMStackFrame* stack)
 		CaseExpression* caseexpr = static_cast<CaseExpression*>(Func->Code->Statements[StatementIndex++]);
 		if (caseexpr->Value)
 		{
-			//ExpressionValue casevalue = ExpressionEvaluator::Eval(caseexpr->Value, Object, Object, Variables->Data).Value;
-			ExpressionValue casevalue = RunExpr(caseexpr->Value, Object, Object, stack).Value;
+			//ExpressionValue casevalue = ExpressionEvaluator::Eval(caseexpr->Value, Object, Object, Variables).Value;
+			ExpressionValue casevalue = RunExpr(caseexpr->Value, Object, Object, Variables).Value;
 			if (condition.IsEqual(casevalue))
 				break;
 			else
@@ -666,1277 +664,1125 @@ void Frame::ProcessSwitch(const ExpressionValue& condition, VMStackFrame* stack)
 	}
 }
 
-#define PushExpr(e) stack->pass[exprEnd] = 0; stack->expr[exprEnd++] = (e);
-#define PopExpr() --exprEnd
-#define PushValue(v) stack->value[valueEnd++] = (v)
-#define PopValue() stack->value[--valueEnd]
-#define PushContext(c) stack->context[contextEnd++] = context; context = (c)
-#define PopContext() context = stack->context[--contextEnd]
+#define MAX_VMSTACK_DEPTH 1000
 
-ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UObject* context, VMStackFrame* stack)
+struct alignas(ExpressionValue) ExpressionValueMemory
 {
-	auto oldExpr = Frame::StepExpression;
+	char buffer[sizeof(ExpressionValue)];
+};
 
-	ExpressionEvalResult result;
+static struct VMStack
+{
 	int exprEnd = 0;
 	int valueEnd = 0;
 	int contextEnd = 0;
+	Expression* expr[MAX_VMSTACK_DEPTH];
+	int pass[MAX_VMSTACK_DEPTH];
+	ExpressionValueMemory value[MAX_VMSTACK_DEPTH];
+	UObject* context[MAX_VMSTACK_DEPTH];
+} vmstack;
 
-	PushExpr(statementExpr);
+#define PushExpr(e) vmstack.pass[vmstack.exprEnd] = 0; vmstack.expr[vmstack.exprEnd++] = (e);
+#define PopExpr() --vmstack.exprEnd
+#define PushContext(c) vmstack.context[vmstack.contextEnd++] = context; context = (c)
+#define PopContext() context = vmstack.context[--vmstack.contextEnd]
+#define PushValue(v) new(vmstack.value[vmstack.valueEnd++].buffer) ExpressionValue(v)
 
-	while (exprEnd > 0)
+static ExpressionValue PopValue()
+{
+	--vmstack.valueEnd;
+	ExpressionValue result = std::move(*reinterpret_cast<ExpressionValue*>(vmstack.value[vmstack.valueEnd].buffer));
+	reinterpret_cast<ExpressionValue*>(vmstack.value[vmstack.valueEnd].buffer)->~ExpressionValue();
+	return result;
+}
+
+static void PopValues(size_t count)
+{
+	while (count > 0)
 	{
-		Expression* expr = stack->expr[exprEnd - 1];
-		int pass = stack->pass[exprEnd - 1]++;
-		Frame::StepExpression = expr;
-		switch (expr->Type)
+		reinterpret_cast<ExpressionValue*>(vmstack.value[--vmstack.valueEnd].buffer)->~ExpressionValue();
+		--count;
+	}
+}
+
+ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UObject* context, void* variables)
+{
+	int enterExprEnd = vmstack.exprEnd;
+	int enterValueEnd = vmstack.valueEnd;
+	int enterContextEnd = vmstack.contextEnd;
+
+	try
+	{
+		auto oldExpr = Frame::StepExpression;
+
+		ExpressionEvalResult result;
+
+		PushExpr(statementExpr);
+
+		while (vmstack.exprEnd > enterExprEnd)
 		{
-		default:
-			break;
-		case ExpressionType::LocalVariable:
-			PushValue(ExpressionValue::Variable(stack->localVariables, static_cast<LocalVariableExpression*>(expr)->Variable));
-			PopExpr();
-			break;
-
-		case ExpressionType::InstanceVariable:
-			PushValue(ExpressionValue::Variable(context->PropertyData.Data, static_cast<InstanceVariableExpression*>(expr)->Variable));
-			PopExpr();
-			break;
-
-		case ExpressionType::DefaultVariable:
-			if (UObject::TryCast<UClass>(context))
-				PushValue(ExpressionValue::Variable(context->PropertyData.Data, static_cast<DefaultVariableExpression*>(expr)->Variable));
-			else
-				PushValue(ExpressionValue::Variable(context->Class->GetDefaultObject<UObject>()->PropertyData.Data, static_cast<DefaultVariableExpression*>(expr)->Variable));
-			PopExpr();
-			break;
-
-		case ExpressionType::Return:
-			if (pass == 0)
-			{
-				if (static_cast<ReturnExpression*>(expr)->Value)
-				{
-					PushExpr(static_cast<ReturnExpression*>(expr)->Value);
-				}
-				else
-				{
-					PushValue(ExpressionValue::NothingValue());
-				}
-			}
-			else if (pass == 1)
-			{
-				result.Result = StatementResult::Return;
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::Switch:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<SwitchExpression*>(expr)->Condition);
-			}
-			else
-			{
-				result.Result = StatementResult::Switch;
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::Jump:
-			result.Result = StatementResult::Jump;
-			result.JumpAddress = static_cast<JumpExpression*>(expr)->Offset;
-			PushValue(ExpressionValue::NothingValue());
-			PopExpr();
-			break;
-
-		case ExpressionType::JumpIfNot:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<JumpIfNotExpression*>(expr)->Condition);
-			}
-			else
-			{
-				if (!PopValue().ToBool())
-				{
-					result.Result = StatementResult::Jump;
-					result.JumpAddress = static_cast<JumpIfNotExpression*>(expr)->Offset;
-				}
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::Stop:
-			result.Result = StatementResult::Stop;
-			PushValue(ExpressionValue::NothingValue());
-			PopExpr();
-			break;
-
-		case ExpressionType::Assert:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<AssertExpression*>(expr)->Condition);
-			}
-			else
-			{
-				if (!PopValue().ToBool())
-				{
-					Frame::ThrowException("Script assert failed for " + self->Name.ToString() + " line " + std::to_string(static_cast<AssertExpression*>(expr)->Line));
-				}
-				PushValue(ExpressionValue::NothingValue());
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::Case:
-			PushValue(ExpressionValue::NothingValue());
-			PopExpr();
-			break;
-
-		case ExpressionType::Nothing:
-			PushValue(ExpressionValue::NothingValue());
-			PopExpr();
-			break;
-
-		case ExpressionType::LabelTable:
-			// Klingon honor guard has this! (UE 251)
-			Frame::ThrowException("Label table expression is not implemented");
-			PushValue(ExpressionValue::NothingValue());
-			PopExpr();
-			break;
-
-		case ExpressionType::GotoLabel:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<GotoLabelExpression*>(expr)->Value);
-			}
-			else
-			{
-				result.Result = StatementResult::GotoLabel;
-				result.Label = PopValue().ToName();
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::EatString:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<EatStringExpression*>(expr)->Value);
-			}
-			else
-			{
-				PopValue();
-				PushValue(ExpressionValue::NothingValue());
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::Let:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<LetExpression*>(expr)->LeftSide);
-				PushExpr(static_cast<LetExpression*>(expr)->RightSide);
-			}
-			else
-			{
-				ExpressionValue lvalue = std::move(PopValue());
-				ExpressionValue rvalue = std::move(PopValue());
-				if (lvalue.GetType() != ExpressionValueType::Nothing)
-				{
-					lvalue.Store(rvalue);
-					PushValue(std::move(lvalue));
-				}
-				else
-				{
-					PushValue(std::move(rvalue));
-				}
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::LetBool:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<LetBoolExpression*>(expr)->LeftSide);
-				PushExpr(static_cast<LetBoolExpression*>(expr)->RightSide);
-			}
-			else
-			{
-				ExpressionValue lvalue = std::move(PopValue());
-				ExpressionValue rvalue = std::move(PopValue());
-				if (lvalue.GetType() != ExpressionValueType::Nothing)
-				{
-					lvalue.Store(rvalue);
-					PushValue(std::move(lvalue));
-				}
-				else
-				{
-					PushValue(std::move(rvalue));
-				}
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::DynArrayElement:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<DynArrayElementExpression*>(expr)->Index);
-				PushExpr(static_cast<DynArrayElementExpression*>(expr)->Array);
-			}
-			else
-			{
-				int index = PopValue().ToInt();
-				ExpressionValue arrayval = std::move(PopValue());
-				if (arrayval.IsVariable())
-				{
-					if (index < 0)
-					{
-						LogMessage("Negative index used");
-						PushValue(ExpressionValue::NothingValue());
-					}
-					else
-					{
-						PushValue(arrayval.DynArrayItemAt(index));
-					}
-				}
-				else
-				{
-					Frame::ThrowException("Array is not a variable in DynArrayElementExpression");
-					PushValue(ExpressionValue::NothingValue());
-				}
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::New:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<NewExpression*>(expr)->ParentExpr);
-				PushExpr(static_cast<NewExpression*>(expr)->NameExpr);
-				PushExpr(static_cast<NewExpression*>(expr)->FlagsExpr);
-				PushExpr(static_cast<NewExpression*>(expr)->ClassExpr);
-			}
-			else
-			{
-				auto newExpr = static_cast<NewExpression*>(expr);
-				ExpressionValue outer = std::move(PopValue());
-				ExpressionValue name = std::move(PopValue());
-				ExpressionValue flags = std::move(PopValue());
-				UClass* cls = UObject::Cast<UClass>(PopValue().ToObject());
-
-				// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
-				Package* package = engine->packages->GetPackage("Engine");
-
-				UObject* newObj = package->NewObject(
-					name.GetType() == ExpressionValueType::Nothing ? NameString() : name.ToName(),
-					cls,
-					flags.GetType() == ExpressionValueType::Nothing ? ObjectFlags::NoFlags : (ObjectFlags)flags.ToInt(),
-					true);
-
-				if (outer.GetType() != ExpressionValueType::Nothing)
-					newObj->Outer() = outer.ToObject();
-
-				PushValue(ExpressionValue::ObjectValue(newObj));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::ClassContext:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<ClassContextExpression*>(expr)->ObjectExpr);
-			}
-			else if (pass == 1)
-			{
-				UClass* cls = UObject::TryCast<UClass>(PopValue().ToObject());
-				if (cls)
-				{
-					PushContext(cls->GetDefaultObject<UObject>());
-					PushExpr(static_cast<ClassContextExpression*>(expr)->ContextExpr);
-				}
-				else
-				{
-					Frame::ThrowException("Class reference is None");
-					PushValue(ExpressionValue::NothingValue());
-					PopExpr();
-				}
-			}
-			else
-			{
-				PopContext();
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::MetaCast:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<MetaCastExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto castExpr = static_cast<MetaCastExpression*>(expr);
-				UObject* value = PopValue().ToObject();
-				if (value && value != castExpr->Class)
-				{
-					UClass* cls = UObject::TryCast<UClass>(value);
-					while (cls)
-					{
-						if (cls == castExpr->Class)
-							break;
-						cls = static_cast<UClass*>(cls->BaseStruct);
-					}
-					if (!cls)
-						value = nullptr;
-				}
-				PushValue(ExpressionValue::ObjectValue(value));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::Unknown0x15:
-			// Klingon honor guard has this! (UE 251)
-			//Frame::ThrowException("Unknown0x15 expression encountered");
-			result.Result = StatementResult::Stop;
-			PushValue(ExpressionValue::NothingValue());
-			PopExpr();
-			break;
-
-		case ExpressionType::Self:
-			PushValue(ExpressionValue::ObjectValue(self));
-			PopExpr();
-			break;
-
-		case ExpressionType::Skip:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<SkipExpression*>(expr)->Value);
-			}
-			else
-			{
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::Context:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<ContextExpression*>(expr)->ObjectExpr);
-			}
-			else if (pass == 1)
-			{
-				UObject* newContext = PopValue().ToObject();
-				if (newContext)
-				{
-					PushContext(newContext);
-					PushExpr(static_cast<ContextExpression*>(expr)->ContextExpr);
-				}
-				else
-				{
-					result.Result = StatementResult::AccessedNone;
-					PushValue(ExpressionValue::NothingValue());
-					PopExpr();
-				}
-			}
-			else
-			{
-				PopContext();
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::ArrayElement:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<ArrayElementExpression*>(expr)->Index);
-				PushExpr(static_cast<ArrayElementExpression*>(expr)->Array);
-			}
-			else
-			{
-				int index = PopValue().ToInt();
-				ExpressionValue arrayval = std::move(PopValue());
-				if (arrayval.IsVariable())
-				{
-					PushValue(arrayval.ItemAt(index));
-				}
-				else
-				{
-					Frame::ThrowException("Array is not a variable in ArrayElementExpression");
-					PushValue(ExpressionValue::NothingValue());
-				}
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::IntConst:
-			PushValue(ExpressionValue::IntValue(static_cast<IntConstExpression*>(expr)->Value));
-			PopExpr();
-			break;
-
-		case ExpressionType::FloatConst:
-			PushValue(ExpressionValue::FloatValue(static_cast<FloatConstExpression*>(expr)->Value));
-			PopExpr();
-			break;
-
-		case ExpressionType::StringConst:
-			PushValue(ExpressionValue::StringValue(static_cast<StringConstExpression*>(expr)->Value));
-			PopExpr();
-			break;
-
-		case ExpressionType::ObjectConst:
-			PushValue(ExpressionValue::ObjectValue(static_cast<ObjectConstExpression*>(expr)->Object));
-			PopExpr();
-			break;
-
-		case ExpressionType::NameConst:
-			PushValue(ExpressionValue::NameValue(static_cast<NameConstExpression*>(expr)->Value));
-			PopExpr();
-			break;
-
-		case ExpressionType::RotationConst:
-			PushValue(ExpressionValue::RotatorValue({
-				static_cast<RotationConstExpression*>(expr)->Pitch,
-				static_cast<RotationConstExpression*>(expr)->Yaw,
-				static_cast<RotationConstExpression*>(expr)->Roll
-				}));
-			PopExpr();
-			break;
-
-		case ExpressionType::VectorConst:
-			PushValue(ExpressionValue::VectorValue({
-				static_cast<VectorConstExpression*>(expr)->X,
-				static_cast<VectorConstExpression*>(expr)->Y,
-				static_cast<VectorConstExpression*>(expr)->Z
-				}));
-			PopExpr();
-			break;
-
-		case ExpressionType::ByteConst:
-			PushValue(ExpressionValue::ByteValue(static_cast<ByteConstExpression*>(expr)->Value));
-			PopExpr();
-			break;
-
-		case ExpressionType::IntZero:
-			PushValue(ExpressionValue::IntValue(0));
-			PopExpr();
-			break;
-
-		case ExpressionType::IntOne:
-			PushValue(ExpressionValue::IntValue(1));
-			PopExpr();
-			break;
-
-		case ExpressionType::True:
-			PushValue(ExpressionValue::BoolValue(true));
-			PopExpr();
-			break;
-
-		case ExpressionType::False:
-			PushValue(ExpressionValue::BoolValue(false));
-			PopExpr();
-			break;
-
-		case ExpressionType::NativeParm:
-			Frame::ThrowException("Native parm expression is not implemented");
-			PopExpr();
-			break;
-
-		case ExpressionType::NoObject:
-			PushValue(ExpressionValue::ObjectValue(nullptr));
-			PopExpr();
-			break;
-
-		case ExpressionType::Unknown0x2b:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<Unknown0x2bExpression*>(expr)->Value);
-			}
-			else
-			{
-				// This may have been a truncating instruction from back when strings had a fixed size (package version 61 and earlier)
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::IntConstByte:
-			PushValue(ExpressionValue::ByteValue(static_cast<IntConstByteExpression*>(expr)->Value));
-			PopExpr();
-			break;
-
-		case ExpressionType::BoolVariable:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<BoolVariableExpression*>(expr)->Variable);
-			}
-			else
-			{
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::DynamicCast:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<DynamicCastExpression*>(expr)->Value);
-			}
-			else
-			{
-				UObject* value = PopValue().ToObject();
-				if (value && !value->IsA(static_cast<DynamicCastExpression*>(expr)->Class->Name))
-					value = nullptr;
-				PushValue(ExpressionValue::ObjectValue(value));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::Iterator:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<IteratorExpression*>(expr)->Value);
-			}
-			else
-			{
-				result.Result = StatementResult::Iterator;
-				result.Iter = std::move(Frame::CreatedIterator);
-				result.JumpAddress = static_cast<IteratorExpression*>(expr)->Offset;
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::IteratorPop:
-			result.Result = StatementResult::IteratorPop;
-			PushValue(ExpressionValue::NothingValue());
-			PopExpr();
-			break;
-
-		case ExpressionType::IteratorNext:
-			result.Result = StatementResult::IteratorNext;
-			PushValue(ExpressionValue::NothingValue());
-			PopExpr();
-			break;
-
-		case ExpressionType::StructCmpEq:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<StructCmpEqExpression*>(expr)->Value1);
-				PushExpr(static_cast<StructCmpEqExpression*>(expr)->Value2);
-			}
-			else
-			{
-				ExpressionValue val1 = std::move(PopValue());
-				ExpressionValue val2 = std::move(PopValue());
-				PushValue(ExpressionValue::BoolValue(val1.IsEqual(val2)));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::StructCmpNe:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<StructCmpNeExpression*>(expr)->Value1);
-				PushExpr(static_cast<StructCmpNeExpression*>(expr)->Value2);
-			}
-			else
-			{
-				ExpressionValue val1 = std::move(PopValue());
-				ExpressionValue val2 = std::move(PopValue());
-				PushValue(ExpressionValue::BoolValue(!val1.IsEqual(val2)));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::StructMember:
-			if (pass == 0)
-			{
-				if (!static_cast<StructMemberExpression*>(expr)->Field)
-					Frame::ThrowException("Null field encountered in struct member expression");
-				PushExpr(static_cast<StructMemberExpression*>(expr)->Value);
-			}
-			else
-			{
-				ExpressionValue val = std::move(PopValue());
-				PushValue(val.Member(static_cast<StructMemberExpression*>(expr)->Field));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::UnicodeStringConst:
-		{
-			std::string s;
-			s.reserve(static_cast<UnicodeStringConstExpression*>(expr)->Value.size());
-			for (wchar_t c : static_cast<UnicodeStringConstExpression*>(expr)->Value)
-				s.push_back(c < 128 ? c : '?');
-			PushValue(ExpressionValue::StringValue(s));
-			PopExpr();
-			break;
-		}
-
-		case ExpressionType::RotatorToVector:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<RotatorToVectorExpression*>(expr)->Value);
-			}
-			else
-			{
-				Rotator rot = PopValue().ToRotator();
-				PushValue(ExpressionValue::VectorValue(Coords::Rotation(rot).XAxis));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::ByteToInt:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<ByteToIntExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToByte();
-				PushValue(ExpressionValue::IntValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::ByteToBool:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<ByteToBoolExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToByte() != 0;
-				PushValue(ExpressionValue::BoolValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::ByteToFloat:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<ByteToFloatExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToByte();
-				PushValue(ExpressionValue::FloatValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::IntToByte:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<IntToByteExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToInt();
-				PushValue(ExpressionValue::ByteValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::IntToBool:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<IntToBoolExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToInt();
-				PushValue(ExpressionValue::BoolValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::IntToFloat:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<IntToFloatExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToInt();
-				PushValue(ExpressionValue::FloatValue((float)val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::BoolToByte:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<BoolToByteExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToBool();
-				PushValue(ExpressionValue::ByteValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::BoolToInt:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<BoolToIntExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToBool();
-				PushValue(ExpressionValue::IntValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::BoolToFloat:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<BoolToFloatExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToBool();
-				PushValue(ExpressionValue::FloatValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::FloatToByte:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<FloatToByteExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToFloat();
-				PushValue(ExpressionValue::ByteValue((uint8_t)val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::FloatToInt:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<FloatToIntExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToFloat();
-				PushValue(ExpressionValue::IntValue((int)val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::FloatToBool:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<FloatToBoolExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToFloat();
-				PushValue(ExpressionValue::BoolValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::Unknown0x46:
-			Frame::ThrowException("Unknown0x46 expression encountered");
-			break;
-
-		case ExpressionType::ObjectToBool:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<ObjectToBoolExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToObject() != nullptr;
-				PushValue(ExpressionValue::BoolValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::NameToBool:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<NameToBoolExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = PopValue().ToName() != "None";
-				PushValue(ExpressionValue::BoolValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::StringToByte:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<StringToByteExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = std::atoi(PopValue().ToString().c_str());
-				PushValue(ExpressionValue::ByteValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::StringToInt:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<StringToIntExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = std::atoi(PopValue().ToString().c_str());
-				PushValue(ExpressionValue::IntValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::StringToBool:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<StringToBoolExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = std::atoi(PopValue().ToString().c_str()) != 0;
-				PushValue(ExpressionValue::BoolValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::StringToFloat:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<StringToFloatExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto val = (float)std::atof(PopValue().ToString().c_str());
-				PushValue(ExpressionValue::FloatValue(val));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::StringToVector:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<StringToVectorExpression*>(expr)->Value);
-			}
-			else
-			{
-				std::string v = PopValue().ToString();
-				auto pos1 = v.find_first_of(',');
-				auto pos2 = v.find_first_of(',', pos1 + 1);
-				if (pos1 != std::string::npos && pos2 != std::string::npos)
-				{
-					PushValue(ExpressionValue::VectorValue({
-						(float)std::atof(v.substr(0, pos1).c_str()),
-						(float)std::atof(v.substr(pos1 + 1, pos2 - pos1 - 1).c_str()),
-						(float)std::atof(v.substr(pos2 + 1).c_str())
-						}));
-				}
-				else
-				{
-					PushValue(ExpressionValue::VectorValue({ 0.0f }));
-				}
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::StringToRotator:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<StringToRotatorExpression*>(expr)->Value);
-			}
-			else
-			{
-				std::string v = PopValue().ToString();
-				auto pos1 = v.find_first_of(',');
-				auto pos2 = v.find_first_of(',', pos1 + 1);
-				if (pos1 != std::string::npos && pos2 != std::string::npos)
-				{
-					PushValue(ExpressionValue::RotatorValue({
-						std::atoi(v.substr(0, pos1).c_str()),
-						std::atoi(v.substr(pos1 + 1, pos2 - pos1 - 1).c_str()),
-						std::atoi(v.substr(pos2 + 1).c_str())
-						}));
-				}
-				else
-				{
-					PushValue(ExpressionValue::RotatorValue({ 0, 0, 0 }));
-				}
+			Expression* expr = vmstack.expr[vmstack.exprEnd - 1];
+			int pass = vmstack.pass[vmstack.exprEnd - 1]++;
+			Frame::StepExpression = expr;
+			switch (expr->Type)
+			{
+			default:
+				break;
+			case ExpressionType::LocalVariable:
+				PushValue(ExpressionValue::Variable(variables, static_cast<LocalVariableExpression*>(expr)->Variable));
 				PopExpr();
 				break;
-			}
-			break;
 
-		case ExpressionType::VectorToBool:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<VectorToBoolExpression*>(expr)->Value);
-			}
-			else
-			{
-				vec3 v = PopValue().ToVector();
-				PushValue(ExpressionValue::BoolValue(v != vec3(0.0f)));
+			case ExpressionType::InstanceVariable:
+				PushValue(ExpressionValue::Variable(context->PropertyData.Data, static_cast<InstanceVariableExpression*>(expr)->Variable));
 				PopExpr();
-			}
-			break;
+				break;
 
-		case ExpressionType::VectorToRotator:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<VectorToRotatorExpression*>(expr)->Value);
-			}
-			else
-			{
-				vec3 v = PopValue().ToVector();
-				PushValue(ExpressionValue::RotatorValue(Rotator::FromVector(v)));
+			case ExpressionType::DefaultVariable:
+				if (UObject::TryCast<UClass>(context))
+					PushValue(ExpressionValue::Variable(context->PropertyData.Data, static_cast<DefaultVariableExpression*>(expr)->Variable));
+				else
+					PushValue(ExpressionValue::Variable(context->Class->GetDefaultObject<UObject>()->PropertyData.Data, static_cast<DefaultVariableExpression*>(expr)->Variable));
 				PopExpr();
-			}
-			break;
+				break;
 
-		case ExpressionType::RotatorToBool:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<RotatorToBoolExpression*>(expr)->Value);
-			}
-			else
-			{
-				bool v = PopValue().ToRotator() != Rotator(0, 0, 0);
-				PushValue(ExpressionValue::BoolValue(v));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::ByteToString:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<ByteToStringExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto v = PopValue().ToByte();
-				PushValue(ExpressionValue::StringValue(std::to_string(v)));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::IntToString:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<IntToStringExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto v = PopValue().ToInt();
-				PushValue(ExpressionValue::StringValue(std::to_string(v)));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::BoolToString:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<BoolToStringExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto v = PopValue().ToBool();
-				PushValue(ExpressionValue::StringValue(std::to_string(v)));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::FloatToString:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<FloatToStringExpression*>(expr)->Value);
-			}
-			else
-			{
-				auto v = PopValue().ToFloat();
-				PushValue(ExpressionValue::StringValue(std::to_string(v)));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::ObjectToString:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<ObjectToStringExpression*>(expr)->Value);
-			}
-			else
-			{
-				UObject* obj = PopValue().ToObject();
-				PushValue(ExpressionValue::StringValue(obj ? obj->package->GetPackageName().ToString() + "." + obj->Name.ToString() : "None"));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::NameToString:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<NameToStringExpression*>(expr)->Value);
-			}
-			else
-			{
-				NameString v = PopValue().ToName();
-				PushValue(ExpressionValue::StringValue(v.ToString()));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::VectorToString:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<VectorToStringExpression*>(expr)->Value);
-			}
-			else
-			{
-				vec3 v = PopValue().ToVector();
-				PushValue(ExpressionValue::StringValue(std::to_string(v.x) + "," + std::to_string(v.y) + "," + std::to_string(v.z)));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::RotatorToString:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<RotatorToStringExpression*>(expr)->Value);
-			}
-			else
-			{
-				Rotator v = PopValue().ToRotator();
-				PushValue(ExpressionValue::StringValue(std::to_string(v.Pitch & 0xffff) + "," + std::to_string(v.Yaw & 0xffff) + "," + std::to_string(v.Roll & 0xffff)));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::StringToName:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<StringToNameExpression*>(expr)->Value);
-			}
-			else
-			{
-				std::string v = PopValue().ToString();
-				PushValue(ExpressionValue::NameValue(v));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::DynArrayToInt:
-			if (pass == 0)
-			{
-				PushExpr(static_cast<DynArrayToIntExpression*>(expr)->Value);
-			}
-			else
-			{
-				size_t count = PopValue().ToArray().GetSize();
-				PushValue(ExpressionValue::IntValue((int)count));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::VirtualFunction:
-			if (pass == 0)
-			{
-				PushContext(self);
-				const auto& args = static_cast<VirtualFunctionExpression*>(expr)->Args;
-				for (auto it = args.rbegin(); it != args.rend(); ++it)
-				{
-					PushExpr(*it);
-				}
-			}
-			else
-			{
-				PopContext();
-
-				auto funcExpr = static_cast<VirtualFunctionExpression*>(expr);
-				ArrayView<ExpressionValue> funcArgs(&stack->value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
-				valueEnd -= (int)funcArgs.size();
-
-				UClass* contextClass = UObject::TryCast<UClass>(context);
-				if (!contextClass)
-					contextClass = context->Class;
-
-				// Search states first
-
-				NameString stateName = context->GetStateName();
-				bool found = false;
-				for (UClass* cls = contextClass; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
-				{
-					UState* state = cls->GetState(stateName);
-					if (state)
-					{
-						UFunction* func = state->GetFunction(funcExpr->Name);
-						if (func)
-						{
-							PushValue(Frame::Call(func, context, funcArgs));
-							PopExpr();
-							found = true;
-							break;
-						}
-					}
-				}
-
-				if (!found)
-				{
-					// Search normal member functions next
-					for (UClass* cls = contextClass; !found && cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
-					{
-						if (UFunction* func = cls->GetFunction(funcExpr->Name))
-						{
-							PushValue(Frame::Call(func, context, funcArgs));
-							PopExpr();
-							found = true;
-							break;
-						}
-					}
-				}
-
-				if (!found)
-				{
-					Frame::ThrowException("Script virtual function " + funcExpr->Name.ToString() + " not found!");
-					PushValue(ExpressionValue::NothingValue());
-				}
-			}
-			break;
-
-		case ExpressionType::FinalFunction:
-			if (pass == 0)
-			{
-				PushContext(self);
-				const auto& args = static_cast<VirtualFunctionExpression*>(expr)->Args;
-				for (auto it = args.rbegin(); it != args.rend(); ++it)
-				{
-					PushExpr(*it);
-				}
-			}
-			else
-			{
-				PopContext();
-				auto funcExpr = static_cast<FinalFunctionExpression*>(expr);
-				ArrayView<ExpressionValue> funcArgs(&stack->value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
-				valueEnd -= (int)funcArgs.size();
-
-				PushValue(Frame::Call(funcExpr->Func, context, funcArgs));
-				PopExpr();
-			}
-			break;
-
-		case ExpressionType::GlobalFunction:
-			if (pass == 0)
-			{
-				PushContext(self);
-				const auto& args = static_cast<GlobalFunctionExpression*>(expr)->Args;
-				for (auto it = args.rbegin(); it != args.rend(); ++it)
-				{
-					PushExpr(*it);
-				}
-			}
-			else
-			{
-				PopContext();
-				auto funcExpr = static_cast<GlobalFunctionExpression*>(expr);
-				ArrayView<ExpressionValue> funcArgs(&stack->value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
-				valueEnd -= (int)funcArgs.size();
-
-				// Global function calls skip the states and only searches normal member functions
-
-				UClass* contextClass = UObject::TryCast<UClass>(context);
-				if (!contextClass)
-					contextClass = context->Class;
-
-				bool found = false;
-				for (UClass* cls = contextClass; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
-				{
-					UFunction* func = cls->GetFunction(funcExpr->Name);
-					if (func)
-					{
-						PushValue(Frame::Call(func, context, funcArgs));
-						PopExpr();
-						found = true;
-						break;
-					}
-				}
-
-				if (!found)
-					Frame::ThrowException("Script global function " + static_cast<GlobalFunctionExpression*>(expr)->Name.ToString() + " not found!");
-			}
-			break;
-
-		case ExpressionType::NativeFunction:
-			// To do: conditional operator should probably be handled by the skip expression
-			if (static_cast<NativeFunctionExpression*>(expr)->nativeindex == 130) // conditional operator &&
-			{
-				auto funcExpr = static_cast<NativeFunctionExpression*>(expr);
+			case ExpressionType::Return:
 				if (pass == 0)
 				{
-					PushContext(self);
-					PushExpr(funcExpr->Args[0]);
-				}
-				else if (pass == 1)
-				{
-					if (PopValue().ToBool())
+					if (static_cast<ReturnExpression*>(expr)->Value)
 					{
-						PushExpr(funcExpr->Args[1]);
+						PushExpr(static_cast<ReturnExpression*>(expr)->Value);
 					}
 					else
 					{
-						PopContext();
-						PushValue(ExpressionValue::BoolValue(false));
-						PopExpr();
+						PushValue(ExpressionValue::NothingValue());
 					}
+				}
+				else if (pass == 1)
+				{
+					result.Result = StatementResult::Return;
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::Switch:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<SwitchExpression*>(expr)->Condition);
 				}
 				else
 				{
-					PopContext();
-					bool value = PopValue().ToBool();
-					PushValue(ExpressionValue::BoolValue(value));
+					result.Result = StatementResult::Switch;
 					PopExpr();
 				}
-			}
-			else if (static_cast<NativeFunctionExpression*>(expr)->nativeindex == 132) // conditional operator ||
-			{
-				auto funcExpr = static_cast<NativeFunctionExpression*>(expr);
+				break;
+
+			case ExpressionType::Jump:
+				result.Result = StatementResult::Jump;
+				result.JumpAddress = static_cast<JumpExpression*>(expr)->Offset;
+				PushValue(ExpressionValue::NothingValue());
+				PopExpr();
+				break;
+
+			case ExpressionType::JumpIfNot:
 				if (pass == 0)
 				{
-					PushContext(self);
-					PushExpr(funcExpr->Args[0]);
+					PushExpr(static_cast<JumpIfNotExpression*>(expr)->Condition);
 				}
-				else if (pass == 1)
+				else
 				{
 					if (!PopValue().ToBool())
 					{
-						PushExpr(funcExpr->Args[1]);
+						result.Result = StatementResult::Jump;
+						result.JumpAddress = static_cast<JumpIfNotExpression*>(expr)->Offset;
+					}
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::Stop:
+				result.Result = StatementResult::Stop;
+				PushValue(ExpressionValue::NothingValue());
+				PopExpr();
+				break;
+
+			case ExpressionType::Assert:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<AssertExpression*>(expr)->Condition);
+				}
+				else
+				{
+					if (!PopValue().ToBool())
+					{
+						Frame::ThrowException("Script assert failed for " + self->Name.ToString() + " line " + std::to_string(static_cast<AssertExpression*>(expr)->Line));
+					}
+					PushValue(ExpressionValue::NothingValue());
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::Case:
+				PushValue(ExpressionValue::NothingValue());
+				PopExpr();
+				break;
+
+			case ExpressionType::Nothing:
+				PushValue(ExpressionValue::NothingValue());
+				PopExpr();
+				break;
+
+			case ExpressionType::LabelTable:
+				// Klingon honor guard has this! (UE 251)
+				Frame::ThrowException("Label table expression is not implemented");
+				PushValue(ExpressionValue::NothingValue());
+				PopExpr();
+				break;
+
+			case ExpressionType::GotoLabel:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<GotoLabelExpression*>(expr)->Value);
+				}
+				else
+				{
+					result.Result = StatementResult::GotoLabel;
+					result.Label = PopValue().ToName();
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::EatString:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<EatStringExpression*>(expr)->Value);
+				}
+				else
+				{
+					PopValue();
+					PushValue(ExpressionValue::NothingValue());
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::Let:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<LetExpression*>(expr)->LeftSide);
+					PushExpr(static_cast<LetExpression*>(expr)->RightSide);
+				}
+				else
+				{
+					ExpressionValue lvalue = std::move(PopValue());
+					ExpressionValue rvalue = std::move(PopValue());
+					if (lvalue.GetType() != ExpressionValueType::Nothing)
+					{
+						lvalue.Store(rvalue);
+						PushValue(std::move(lvalue));
 					}
 					else
 					{
-						PopContext();
-						PushValue(ExpressionValue::BoolValue(true));
+						PushValue(std::move(rvalue));
+					}
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::LetBool:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<LetBoolExpression*>(expr)->LeftSide);
+					PushExpr(static_cast<LetBoolExpression*>(expr)->RightSide);
+				}
+				else
+				{
+					ExpressionValue lvalue = std::move(PopValue());
+					ExpressionValue rvalue = std::move(PopValue());
+					if (lvalue.GetType() != ExpressionValueType::Nothing)
+					{
+						lvalue.Store(rvalue);
+						PushValue(std::move(lvalue));
+					}
+					else
+					{
+						PushValue(std::move(rvalue));
+					}
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::DynArrayElement:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<DynArrayElementExpression*>(expr)->Index);
+					PushExpr(static_cast<DynArrayElementExpression*>(expr)->Array);
+				}
+				else
+				{
+					int index = PopValue().ToInt();
+					ExpressionValue arrayval = std::move(PopValue());
+					if (arrayval.IsVariable())
+					{
+						if (index < 0)
+						{
+							LogMessage("Negative index used");
+							PushValue(ExpressionValue::NothingValue());
+						}
+						else
+						{
+							PushValue(arrayval.DynArrayItemAt(index));
+						}
+					}
+					else
+					{
+						Frame::ThrowException("Array is not a variable in DynArrayElementExpression");
+						PushValue(ExpressionValue::NothingValue());
+					}
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::New:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<NewExpression*>(expr)->ParentExpr);
+					PushExpr(static_cast<NewExpression*>(expr)->NameExpr);
+					PushExpr(static_cast<NewExpression*>(expr)->FlagsExpr);
+					PushExpr(static_cast<NewExpression*>(expr)->ClassExpr);
+				}
+				else
+				{
+					auto newExpr = static_cast<NewExpression*>(expr);
+					ExpressionValue outer = std::move(PopValue());
+					ExpressionValue name = std::move(PopValue());
+					ExpressionValue flags = std::move(PopValue());
+					UClass* cls = UObject::Cast<UClass>(PopValue().ToObject());
+
+					// To do: package needs to be grabbed from outer, or the "transient package" if it is None, a virtual package for runtime objects
+					Package* package = engine->packages->GetPackage("Engine");
+
+					UObject* newObj = package->NewObject(
+						name.GetType() == ExpressionValueType::Nothing ? NameString() : name.ToName(),
+						cls,
+						flags.GetType() == ExpressionValueType::Nothing ? ObjectFlags::NoFlags : (ObjectFlags)flags.ToInt(),
+						true);
+
+					if (outer.GetType() != ExpressionValueType::Nothing)
+						newObj->Outer() = outer.ToObject();
+
+					PushValue(ExpressionValue::ObjectValue(newObj));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::ClassContext:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<ClassContextExpression*>(expr)->ObjectExpr);
+				}
+				else if (pass == 1)
+				{
+					UClass* cls = UObject::TryCast<UClass>(PopValue().ToObject());
+					if (cls)
+					{
+						PushContext(cls->GetDefaultObject<UObject>());
+						PushExpr(static_cast<ClassContextExpression*>(expr)->ContextExpr);
+					}
+					else
+					{
+						Frame::ThrowException("Class reference is None");
+						PushValue(ExpressionValue::NothingValue());
 						PopExpr();
 					}
 				}
 				else
 				{
 					PopContext();
-					bool value = PopValue().ToBool();
-					PushValue(ExpressionValue::BoolValue(value));
 					PopExpr();
 				}
-			}
-			else
+				break;
+
+			case ExpressionType::MetaCast:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<MetaCastExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto castExpr = static_cast<MetaCastExpression*>(expr);
+					UObject* value = PopValue().ToObject();
+					if (value && value != castExpr->Class)
+					{
+						UClass* cls = UObject::TryCast<UClass>(value);
+						while (cls)
+						{
+							if (cls == castExpr->Class)
+								break;
+							cls = static_cast<UClass*>(cls->BaseStruct);
+						}
+						if (!cls)
+							value = nullptr;
+					}
+					PushValue(ExpressionValue::ObjectValue(value));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::Unknown0x15:
+				// Klingon honor guard has this! (UE 251)
+				//Frame::ThrowException("Unknown0x15 expression encountered");
+				result.Result = StatementResult::Stop;
+				PushValue(ExpressionValue::NothingValue());
+				PopExpr();
+				break;
+
+			case ExpressionType::Self:
+				PushValue(ExpressionValue::ObjectValue(self));
+				PopExpr();
+				break;
+
+			case ExpressionType::Skip:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<SkipExpression*>(expr)->Value);
+				}
+				else
+				{
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::Context:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<ContextExpression*>(expr)->ObjectExpr);
+				}
+				else if (pass == 1)
+				{
+					UObject* newContext = PopValue().ToObject();
+					if (newContext)
+					{
+						PushContext(newContext);
+						PushExpr(static_cast<ContextExpression*>(expr)->ContextExpr);
+					}
+					else
+					{
+						result.Result = StatementResult::AccessedNone;
+						PushValue(ExpressionValue::NothingValue());
+						PopExpr();
+					}
+				}
+				else
+				{
+					PopContext();
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::ArrayElement:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<ArrayElementExpression*>(expr)->Index);
+					PushExpr(static_cast<ArrayElementExpression*>(expr)->Array);
+				}
+				else
+				{
+					int index = PopValue().ToInt();
+					ExpressionValue arrayval = std::move(PopValue());
+					if (arrayval.IsVariable())
+					{
+						PushValue(arrayval.ItemAt(index));
+					}
+					else
+					{
+						Frame::ThrowException("Array is not a variable in ArrayElementExpression");
+						PushValue(ExpressionValue::NothingValue());
+					}
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::IntConst:
+				PushValue(ExpressionValue::IntValue(static_cast<IntConstExpression*>(expr)->Value));
+				PopExpr();
+				break;
+
+			case ExpressionType::FloatConst:
+				PushValue(ExpressionValue::FloatValue(static_cast<FloatConstExpression*>(expr)->Value));
+				PopExpr();
+				break;
+
+			case ExpressionType::StringConst:
+				PushValue(ExpressionValue::StringValue(static_cast<StringConstExpression*>(expr)->Value));
+				PopExpr();
+				break;
+
+			case ExpressionType::ObjectConst:
+				PushValue(ExpressionValue::ObjectValue(static_cast<ObjectConstExpression*>(expr)->Object));
+				PopExpr();
+				break;
+
+			case ExpressionType::NameConst:
+				PushValue(ExpressionValue::NameValue(static_cast<NameConstExpression*>(expr)->Value));
+				PopExpr();
+				break;
+
+			case ExpressionType::RotationConst:
+				PushValue(ExpressionValue::RotatorValue({
+					static_cast<RotationConstExpression*>(expr)->Pitch,
+					static_cast<RotationConstExpression*>(expr)->Yaw,
+					static_cast<RotationConstExpression*>(expr)->Roll
+					}));
+				PopExpr();
+				break;
+
+			case ExpressionType::VectorConst:
+				PushValue(ExpressionValue::VectorValue({
+					static_cast<VectorConstExpression*>(expr)->X,
+					static_cast<VectorConstExpression*>(expr)->Y,
+					static_cast<VectorConstExpression*>(expr)->Z
+					}));
+				PopExpr();
+				break;
+
+			case ExpressionType::ByteConst:
+				PushValue(ExpressionValue::ByteValue(static_cast<ByteConstExpression*>(expr)->Value));
+				PopExpr();
+				break;
+
+			case ExpressionType::IntZero:
+				PushValue(ExpressionValue::IntValue(0));
+				PopExpr();
+				break;
+
+			case ExpressionType::IntOne:
+				PushValue(ExpressionValue::IntValue(1));
+				PopExpr();
+				break;
+
+			case ExpressionType::True:
+				PushValue(ExpressionValue::BoolValue(true));
+				PopExpr();
+				break;
+
+			case ExpressionType::False:
+				PushValue(ExpressionValue::BoolValue(false));
+				PopExpr();
+				break;
+
+			case ExpressionType::NativeParm:
+				Frame::ThrowException("Native parm expression is not implemented");
+				PopExpr();
+				break;
+
+			case ExpressionType::NoObject:
+				PushValue(ExpressionValue::ObjectValue(nullptr));
+				PopExpr();
+				break;
+
+			case ExpressionType::Unknown0x2b:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<Unknown0x2bExpression*>(expr)->Value);
+				}
+				else
+				{
+					// This may have been a truncating instruction from back when strings had a fixed size (package version 61 and earlier)
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::IntConstByte:
+				PushValue(ExpressionValue::ByteValue(static_cast<IntConstByteExpression*>(expr)->Value));
+				PopExpr();
+				break;
+
+			case ExpressionType::BoolVariable:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<BoolVariableExpression*>(expr)->Variable);
+				}
+				else
+				{
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::DynamicCast:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<DynamicCastExpression*>(expr)->Value);
+				}
+				else
+				{
+					UObject* value = PopValue().ToObject();
+					if (value && !value->IsA(static_cast<DynamicCastExpression*>(expr)->Class->Name))
+						value = nullptr;
+					PushValue(ExpressionValue::ObjectValue(value));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::Iterator:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<IteratorExpression*>(expr)->Value);
+				}
+				else
+				{
+					result.Result = StatementResult::Iterator;
+					result.Iter = std::move(Frame::CreatedIterator);
+					result.JumpAddress = static_cast<IteratorExpression*>(expr)->Offset;
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::IteratorPop:
+				result.Result = StatementResult::IteratorPop;
+				PushValue(ExpressionValue::NothingValue());
+				PopExpr();
+				break;
+
+			case ExpressionType::IteratorNext:
+				result.Result = StatementResult::IteratorNext;
+				PushValue(ExpressionValue::NothingValue());
+				PopExpr();
+				break;
+
+			case ExpressionType::StructCmpEq:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<StructCmpEqExpression*>(expr)->Value1);
+					PushExpr(static_cast<StructCmpEqExpression*>(expr)->Value2);
+				}
+				else
+				{
+					ExpressionValue val1 = std::move(PopValue());
+					ExpressionValue val2 = std::move(PopValue());
+					PushValue(ExpressionValue::BoolValue(val1.IsEqual(val2)));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::StructCmpNe:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<StructCmpNeExpression*>(expr)->Value1);
+					PushExpr(static_cast<StructCmpNeExpression*>(expr)->Value2);
+				}
+				else
+				{
+					ExpressionValue val1 = std::move(PopValue());
+					ExpressionValue val2 = std::move(PopValue());
+					PushValue(ExpressionValue::BoolValue(!val1.IsEqual(val2)));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::StructMember:
+				if (pass == 0)
+				{
+					if (!static_cast<StructMemberExpression*>(expr)->Field)
+						Frame::ThrowException("Null field encountered in struct member expression");
+					PushExpr(static_cast<StructMemberExpression*>(expr)->Value);
+				}
+				else
+				{
+					ExpressionValue val = std::move(PopValue());
+					PushValue(val.Member(static_cast<StructMemberExpression*>(expr)->Field));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::UnicodeStringConst:
 			{
+				std::string s;
+				s.reserve(static_cast<UnicodeStringConstExpression*>(expr)->Value.size());
+				for (wchar_t c : static_cast<UnicodeStringConstExpression*>(expr)->Value)
+					s.push_back(c < 128 ? c : '?');
+				PushValue(ExpressionValue::StringValue(s));
+				PopExpr();
+				break;
+			}
+
+			case ExpressionType::RotatorToVector:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<RotatorToVectorExpression*>(expr)->Value);
+				}
+				else
+				{
+					Rotator rot = PopValue().ToRotator();
+					PushValue(ExpressionValue::VectorValue(Coords::Rotation(rot).XAxis));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::ByteToInt:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<ByteToIntExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToByte();
+					PushValue(ExpressionValue::IntValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::ByteToBool:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<ByteToBoolExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToByte() != 0;
+					PushValue(ExpressionValue::BoolValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::ByteToFloat:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<ByteToFloatExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToByte();
+					PushValue(ExpressionValue::FloatValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::IntToByte:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<IntToByteExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToInt();
+					PushValue(ExpressionValue::ByteValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::IntToBool:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<IntToBoolExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToInt();
+					PushValue(ExpressionValue::BoolValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::IntToFloat:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<IntToFloatExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToInt();
+					PushValue(ExpressionValue::FloatValue((float)val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::BoolToByte:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<BoolToByteExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToBool();
+					PushValue(ExpressionValue::ByteValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::BoolToInt:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<BoolToIntExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToBool();
+					PushValue(ExpressionValue::IntValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::BoolToFloat:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<BoolToFloatExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToBool();
+					PushValue(ExpressionValue::FloatValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::FloatToByte:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<FloatToByteExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToFloat();
+					PushValue(ExpressionValue::ByteValue((uint8_t)val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::FloatToInt:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<FloatToIntExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToFloat();
+					PushValue(ExpressionValue::IntValue((int)val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::FloatToBool:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<FloatToBoolExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToFloat();
+					PushValue(ExpressionValue::BoolValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::Unknown0x46:
+				Frame::ThrowException("Unknown0x46 expression encountered");
+				break;
+
+			case ExpressionType::ObjectToBool:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<ObjectToBoolExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToObject() != nullptr;
+					PushValue(ExpressionValue::BoolValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::NameToBool:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<NameToBoolExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = PopValue().ToName() != "None";
+					PushValue(ExpressionValue::BoolValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::StringToByte:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<StringToByteExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = std::atoi(PopValue().ToString().c_str());
+					PushValue(ExpressionValue::ByteValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::StringToInt:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<StringToIntExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = std::atoi(PopValue().ToString().c_str());
+					PushValue(ExpressionValue::IntValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::StringToBool:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<StringToBoolExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = std::atoi(PopValue().ToString().c_str()) != 0;
+					PushValue(ExpressionValue::BoolValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::StringToFloat:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<StringToFloatExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto val = (float)std::atof(PopValue().ToString().c_str());
+					PushValue(ExpressionValue::FloatValue(val));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::StringToVector:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<StringToVectorExpression*>(expr)->Value);
+				}
+				else
+				{
+					std::string v = PopValue().ToString();
+					auto pos1 = v.find_first_of(',');
+					auto pos2 = v.find_first_of(',', pos1 + 1);
+					if (pos1 != std::string::npos && pos2 != std::string::npos)
+					{
+						PushValue(ExpressionValue::VectorValue({
+							(float)std::atof(v.substr(0, pos1).c_str()),
+							(float)std::atof(v.substr(pos1 + 1, pos2 - pos1 - 1).c_str()),
+							(float)std::atof(v.substr(pos2 + 1).c_str())
+							}));
+					}
+					else
+					{
+						PushValue(ExpressionValue::VectorValue({ 0.0f }));
+					}
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::StringToRotator:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<StringToRotatorExpression*>(expr)->Value);
+				}
+				else
+				{
+					std::string v = PopValue().ToString();
+					auto pos1 = v.find_first_of(',');
+					auto pos2 = v.find_first_of(',', pos1 + 1);
+					if (pos1 != std::string::npos && pos2 != std::string::npos)
+					{
+						PushValue(ExpressionValue::RotatorValue({
+							std::atoi(v.substr(0, pos1).c_str()),
+							std::atoi(v.substr(pos1 + 1, pos2 - pos1 - 1).c_str()),
+							std::atoi(v.substr(pos2 + 1).c_str())
+							}));
+					}
+					else
+					{
+						PushValue(ExpressionValue::RotatorValue({ 0, 0, 0 }));
+					}
+					PopExpr();
+					break;
+				}
+				break;
+
+			case ExpressionType::VectorToBool:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<VectorToBoolExpression*>(expr)->Value);
+				}
+				else
+				{
+					vec3 v = PopValue().ToVector();
+					PushValue(ExpressionValue::BoolValue(v != vec3(0.0f)));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::VectorToRotator:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<VectorToRotatorExpression*>(expr)->Value);
+				}
+				else
+				{
+					vec3 v = PopValue().ToVector();
+					PushValue(ExpressionValue::RotatorValue(Rotator::FromVector(v)));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::RotatorToBool:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<RotatorToBoolExpression*>(expr)->Value);
+				}
+				else
+				{
+					bool v = PopValue().ToRotator() != Rotator(0, 0, 0);
+					PushValue(ExpressionValue::BoolValue(v));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::ByteToString:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<ByteToStringExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto v = PopValue().ToByte();
+					PushValue(ExpressionValue::StringValue(std::to_string(v)));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::IntToString:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<IntToStringExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto v = PopValue().ToInt();
+					PushValue(ExpressionValue::StringValue(std::to_string(v)));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::BoolToString:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<BoolToStringExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto v = PopValue().ToBool();
+					PushValue(ExpressionValue::StringValue(std::to_string(v)));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::FloatToString:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<FloatToStringExpression*>(expr)->Value);
+				}
+				else
+				{
+					auto v = PopValue().ToFloat();
+					PushValue(ExpressionValue::StringValue(std::to_string(v)));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::ObjectToString:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<ObjectToStringExpression*>(expr)->Value);
+				}
+				else
+				{
+					UObject* obj = PopValue().ToObject();
+					PushValue(ExpressionValue::StringValue(obj ? obj->package->GetPackageName().ToString() + "." + obj->Name.ToString() : "None"));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::NameToString:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<NameToStringExpression*>(expr)->Value);
+				}
+				else
+				{
+					NameString v = PopValue().ToName();
+					PushValue(ExpressionValue::StringValue(v.ToString()));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::VectorToString:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<VectorToStringExpression*>(expr)->Value);
+				}
+				else
+				{
+					vec3 v = PopValue().ToVector();
+					PushValue(ExpressionValue::StringValue(std::to_string(v.x) + "," + std::to_string(v.y) + "," + std::to_string(v.z)));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::RotatorToString:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<RotatorToStringExpression*>(expr)->Value);
+				}
+				else
+				{
+					Rotator v = PopValue().ToRotator();
+					PushValue(ExpressionValue::StringValue(std::to_string(v.Pitch & 0xffff) + "," + std::to_string(v.Yaw & 0xffff) + "," + std::to_string(v.Roll & 0xffff)));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::StringToName:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<StringToNameExpression*>(expr)->Value);
+				}
+				else
+				{
+					std::string v = PopValue().ToString();
+					PushValue(ExpressionValue::NameValue(v));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::DynArrayToInt:
+				if (pass == 0)
+				{
+					PushExpr(static_cast<DynArrayToIntExpression*>(expr)->Value);
+				}
+				else
+				{
+					size_t count = PopValue().ToArray().GetSize();
+					PushValue(ExpressionValue::IntValue((int)count));
+					PopExpr();
+				}
+				break;
+
+			case ExpressionType::VirtualFunction:
 				if (pass == 0)
 				{
 					PushContext(self);
-					const auto& args = static_cast<NativeFunctionExpression*>(expr)->Args;
+					const auto& args = static_cast<VirtualFunctionExpression*>(expr)->Args;
 					for (auto it = args.rbegin(); it != args.rend(); ++it)
 					{
 						PushExpr(*it);
@@ -1945,31 +1791,246 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 				else
 				{
 					PopContext();
-					auto funcExpr = static_cast<NativeFunctionExpression*>(expr);
-					ArrayView<ExpressionValue> funcArgs(&stack->value[valueEnd - funcExpr->Args.size()], funcExpr->Args.size());
-					valueEnd -= (int)funcArgs.size();
 
-					PushValue(Frame::Call(NativeFunctions::FuncByIndex[funcExpr->nativeindex], context, funcArgs));
+					auto funcExpr = static_cast<VirtualFunctionExpression*>(expr);
+					ArrayView<ExpressionValue> funcArgs((ExpressionValue*)vmstack.value[vmstack.valueEnd - funcExpr->Args.size()].buffer, funcExpr->Args.size());
+
+					UClass* contextClass = UObject::TryCast<UClass>(context);
+					if (!contextClass)
+						contextClass = context->Class;
+
+					// Search states first
+
+					NameString stateName = context->GetStateName();
+					bool found = false;
+					for (UClass* cls = contextClass; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
+					{
+						UState* state = cls->GetState(stateName);
+						if (state)
+						{
+							UFunction* func = state->GetFunction(funcExpr->Name);
+							if (func)
+							{
+								auto callresult = Frame::Call(func, context, funcArgs);
+								PopValues(funcExpr->Args.size());
+								PushValue(callresult);
+								PopExpr();
+								found = true;
+								break;
+							}
+						}
+					}
+
+					if (!found)
+					{
+						// Search normal member functions next
+						for (UClass* cls = contextClass; !found && cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
+						{
+							if (UFunction* func = cls->GetFunction(funcExpr->Name))
+							{
+								auto callresult = Frame::Call(func, context, funcArgs);
+								PopValues(funcExpr->Args.size());
+								PushValue(callresult);
+								PopExpr();
+								found = true;
+								break;
+							}
+						}
+					}
+
+					if (!found)
+					{
+						Frame::ThrowException("Script virtual function " + funcExpr->Name.ToString() + " not found!");
+						for (size_t i = 0, count = funcExpr->Args.size(); i < count; i++)
+							PopValue();
+						PushValue(ExpressionValue::NothingValue());
+						PopExpr();
+					}
+				}
+				break;
+
+			case ExpressionType::FinalFunction:
+				if (pass == 0)
+				{
+					PushContext(self);
+					const auto& args = static_cast<VirtualFunctionExpression*>(expr)->Args;
+					for (auto it = args.rbegin(); it != args.rend(); ++it)
+					{
+						PushExpr(*it);
+					}
+				}
+				else
+				{
+					PopContext();
+					auto funcExpr = static_cast<FinalFunctionExpression*>(expr);
+					ArrayView<ExpressionValue> funcArgs((ExpressionValue*)vmstack.value[vmstack.valueEnd - funcExpr->Args.size()].buffer, funcExpr->Args.size());
+
+					auto callresult = Frame::Call(funcExpr->Func, context, funcArgs);
+					PopValues(funcExpr->Args.size());
+					PushValue(callresult);
 					PopExpr();
 				}
+				break;
+
+			case ExpressionType::GlobalFunction:
+				if (pass == 0)
+				{
+					PushContext(self);
+					const auto& args = static_cast<GlobalFunctionExpression*>(expr)->Args;
+					for (auto it = args.rbegin(); it != args.rend(); ++it)
+					{
+						PushExpr(*it);
+					}
+				}
+				else
+				{
+					PopContext();
+					auto funcExpr = static_cast<GlobalFunctionExpression*>(expr);
+					ArrayView<ExpressionValue> funcArgs((ExpressionValue*)vmstack.value[vmstack.valueEnd - funcExpr->Args.size()].buffer, funcExpr->Args.size());
+
+					// Global function calls skip the states and only searches normal member functions
+
+					UClass* contextClass = UObject::TryCast<UClass>(context);
+					if (!contextClass)
+						contextClass = context->Class;
+
+					bool found = false;
+					for (UClass* cls = contextClass; cls != nullptr; cls = static_cast<UClass*>(cls->BaseStruct))
+					{
+						UFunction* func = cls->GetFunction(funcExpr->Name);
+						if (func)
+						{
+							auto callresult = Frame::Call(func, context, funcArgs);
+							PopValues(funcExpr->Args.size());
+							PushValue(callresult);
+							PopExpr();
+							found = true;
+							break;
+						}
+					}
+
+					if (!found)
+					{
+						Frame::ThrowException("Script global function " + static_cast<GlobalFunctionExpression*>(expr)->Name.ToString() + " not found!");
+						PopValues(funcExpr->Args.size());
+						PushValue(ExpressionValue::NothingValue());
+					}
+				}
+				break;
+
+			case ExpressionType::NativeFunction:
+				// To do: conditional operator should probably be handled by the skip expression
+				if (static_cast<NativeFunctionExpression*>(expr)->nativeindex == 130) // conditional operator &&
+				{
+					auto funcExpr = static_cast<NativeFunctionExpression*>(expr);
+					if (pass == 0)
+					{
+						PushContext(self);
+						PushExpr(funcExpr->Args[0]);
+					}
+					else if (pass == 1)
+					{
+						if (PopValue().ToBool())
+						{
+							PushExpr(funcExpr->Args[1]);
+						}
+						else
+						{
+							PopContext();
+							PushValue(ExpressionValue::BoolValue(false));
+							PopExpr();
+						}
+					}
+					else
+					{
+						PopContext();
+						bool value = PopValue().ToBool();
+						PushValue(ExpressionValue::BoolValue(value));
+						PopExpr();
+					}
+				}
+				else if (static_cast<NativeFunctionExpression*>(expr)->nativeindex == 132) // conditional operator ||
+				{
+					auto funcExpr = static_cast<NativeFunctionExpression*>(expr);
+					if (pass == 0)
+					{
+						PushContext(self);
+						PushExpr(funcExpr->Args[0]);
+					}
+					else if (pass == 1)
+					{
+						if (!PopValue().ToBool())
+						{
+							PushExpr(funcExpr->Args[1]);
+						}
+						else
+						{
+							PopContext();
+							PushValue(ExpressionValue::BoolValue(true));
+							PopExpr();
+						}
+					}
+					else
+					{
+						PopContext();
+						bool value = PopValue().ToBool();
+						PushValue(ExpressionValue::BoolValue(value));
+						PopExpr();
+					}
+				}
+				else
+				{
+					if (pass == 0)
+					{
+						PushContext(self);
+						const auto& args = static_cast<NativeFunctionExpression*>(expr)->Args;
+						for (auto it = args.rbegin(); it != args.rend(); ++it)
+						{
+							PushExpr(*it);
+						}
+					}
+					else
+					{
+						PopContext();
+						auto funcExpr = static_cast<NativeFunctionExpression*>(expr);
+						ArrayView<ExpressionValue> funcArgs((ExpressionValue*)vmstack.value[vmstack.valueEnd - funcExpr->Args.size()].buffer, funcExpr->Args.size());
+
+						auto callresult = Frame::Call(NativeFunctions::FuncByIndex[funcExpr->nativeindex], context, funcArgs);
+						PopValues(funcExpr->Args.size());
+						PushValue(callresult);
+						PopExpr();
+					}
+				}
+				break;
+
+			case ExpressionType::Construct:
+				Frame::ThrowException("Construct expression not implemented");
+				PushValue(ExpressionValue::NothingValue());
+				PopExpr();
+				break;
+
+			case ExpressionType::FunctionArguments:
+				PushValue(ExpressionValue::NothingValue());
+				PopExpr();
+				break;
 			}
-			break;
-
-		case ExpressionType::Construct:
-			Frame::ThrowException("Construct expression not implemented");
-			PushValue(ExpressionValue::NothingValue());
-			PopExpr();
-			break;
-
-		case ExpressionType::FunctionArguments:
-			PushValue(ExpressionValue::NothingValue());
-			PopExpr();
-			break;
 		}
-	}
 
-	Frame::StepExpression = oldExpr;
-	if (valueEnd > 0)
-		result.Value = std::move(PopValue());
-	return result;
+		Frame::StepExpression = oldExpr;
+		if (vmstack.valueEnd > enterValueEnd)
+			result.Value = std::move(PopValue());
+
+		assert(enterExprEnd == vmstack.exprEnd);
+		assert(enterValueEnd == vmstack.valueEnd);
+		assert(enterContextEnd == vmstack.contextEnd);
+
+		return result;
+	}
+	catch (...)
+	{
+		vmstack.exprEnd = enterExprEnd;
+		vmstack.contextEnd = enterContextEnd;
+		PopValues(vmstack.valueEnd - enterValueEnd);
+		throw;
+	}
 }
