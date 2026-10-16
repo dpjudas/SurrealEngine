@@ -26,7 +26,7 @@ void ListSourceCommandlet::PrintLines(DebuggerApp* console, int statementLine)
 	if (frame)
 	{
 		UTextBuffer* scriptText = nullptr;
-		UStruct* func = frame->Func;
+		UStruct* func = frame->GetFunc();
 		while (func && !scriptText)
 		{
 			scriptText = func->ScriptText;
@@ -83,10 +83,10 @@ void ListSourceCommandlet::OnCommand(DebuggerApp* console, const std::string& ar
 	if (frame)
 	{
 		int statementLine = -1;
-		if (frame->StatementIndex > 0)
-			statementLine = frame->Func->GetStatementLine(frame->Func->Code->Statements[frame->StatementIndex - 1]);
+		if (frame->GetStatementIndex() > 0)
+			statementLine = frame->GetFunc()->GetStatementLine(frame->GetFunc()->Code->Statements[frame->GetStatementIndex() - 1]);
 		if (statementLine == -1)
-			statementLine = (int)frame->Func->Line;
+			statementLine = (int)frame->GetFunc()->Line;
 
 		PrintLines(console, statementLine);
 	}

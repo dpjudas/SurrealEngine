@@ -51,16 +51,16 @@ std::vector<std::pair<std::string, std::string>> PrintCommandlet::FindProperties
 
 	if (frame && chunks[0] == "this")
 	{
-		obj = frame->Object;
+		obj = frame->GetUObject();
 	}
 	else if (frame)
 	{
 		// Search local variables
-		for (UProperty* prop : frame->Func->Properties)
+		for (UProperty* prop : frame->GetFunc()->Properties)
 		{
 			if (prop->Name == chunks[0])
 			{
-				void* ptr = (uint8_t*)frame->Variables->Data + prop->DataOffset.DataOffset;
+				void* ptr = (uint8_t*)frame->GetVariables() + prop->DataOffset.DataOffset;
 				if (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop))
 				{
 					obj = *(UObject**)ptr;
@@ -90,11 +90,11 @@ std::vector<std::pair<std::string, std::string>> PrintCommandlet::FindProperties
 
 	if (!obj && frame)
 	{
-		for (UProperty* prop : frame->Object->PropertyData.Class->Properties)
+		for (UProperty* prop : frame->GetUObject()->PropertyData.Class->Properties)
 		{
 			if (prop->Name == chunks[0])
 			{
-				void* ptr = ((uint8_t*)frame->Object->PropertyData.Data) + prop->DataOffset.DataOffset;
+				void* ptr = ((uint8_t*)frame->GetUObject()->PropertyData.Data) + prop->DataOffset.DataOffset;
 				if (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop))
 				{
 					obj = *(UObject**)ptr;

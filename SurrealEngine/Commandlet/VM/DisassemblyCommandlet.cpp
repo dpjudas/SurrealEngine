@@ -20,11 +20,11 @@ DisassemblyCommandlet::DisassemblyCommandlet()
 void DisassemblyCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 {
 	Frame* frame = console->GetCurrentFrame();
-	if (frame && frame->Func)
+	if (frame && frame->GetFunc())
 	{
 		if (args == "debuginfo")
 		{
-			FunctionDebugInfo* info = frame->Func->GetDebugInfo();
+			FunctionDebugInfo* info = frame->GetFunc()->GetDebugInfo();
 			if (info)
 			{
 				static const char* tokennames[256] =
@@ -77,7 +77,7 @@ void DisassemblyCommandlet::OnCommand(DebuggerApp* console, const std::string& a
 		}
 		if (args == "function")
 		{
-			for (Expression* expr : frame->Func->Code->Statements)
+			for (Expression* expr : frame->GetFunc()->Code->Statements)
 			{
 				PrintPrettyExpression::Print([&](const std::string& text) { console->WriteOutput(text); }, expr);
 				console->WriteOutput(console->NewLine());
@@ -86,7 +86,7 @@ void DisassemblyCommandlet::OnCommand(DebuggerApp* console, const std::string& a
 		else if (args == "full function")
 		{
 			int index = 0;
-			for (Expression* expr : frame->Func->Code->Statements)
+			for (Expression* expr : frame->GetFunc()->Code->Statements)
 			{
 				PrintExpression::Print(console, "Statement[" + std::to_string(index) + "]", expr);
 				index++;
@@ -95,7 +95,7 @@ void DisassemblyCommandlet::OnCommand(DebuggerApp* console, const std::string& a
 		else if (args == "full")
 		{
 			int index = 0;
-			for (Expression* expr : frame->Func->Code->Statements)
+			for (Expression* expr : frame->GetFunc()->Code->Statements)
 			{
 				if (expr == Frame::StepExpression)
 				{
@@ -106,7 +106,7 @@ void DisassemblyCommandlet::OnCommand(DebuggerApp* console, const std::string& a
 		}
 		else
 		{
-			for (Expression* expr : frame->Func->Code->Statements)
+			for (Expression* expr : frame->GetFunc()->Code->Statements)
 			{
 				if (expr == Frame::StepExpression)
 				{

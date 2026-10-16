@@ -45,16 +45,6 @@ struct Breakpoint
 	bool Enabled = true;
 };
 
-class LocalVariables
-{
-public:
-	LocalVariables(UStruct* func);
-	~LocalVariables();
-
-	UStruct* Func = nullptr;
-	void* Data = nullptr;
-};
-
 struct VMStackFrame
 {
 	Expression* expr[32];
@@ -90,31 +80,37 @@ public:
 
 	static std::unique_ptr<Iterator> CreatedIterator;
 
-	Frame(UObject* instance, UStruct* func);
+	Frame(UObject* instance, UStruct* func, size_t statementIndex = 0);
+	~Frame();
 
 	void SetState(UStruct* func);
-
+	void SetLatentState(LatentRunState state) { LatentState = state; }
 	void GotoLabel(const NameString& label);
 	void Tick();
 
+	UStruct* GetFunc() const { return Func; }
+	void* GetVariables() const { return Variables; }
 	std::string GetName();
+	size_t GetStatementIndex() const { return StatementIndex; }
+	UObject* GetUObject() const { return Object; }
+	LatentRunState GetLatentState() const { return LatentState; }
 
-	LatentRunState LatentState = LatentRunState::Continue;
+private:
+	void InitVariables();
+	void DeinitVariables();
 
-	std::unique_ptr<LocalVariables> Variables;
+	void* Variables = nullptr;
 	UObject* Object = nullptr;
 	UStruct* Func = nullptr;
 	size_t StatementIndex = 0;
+	LatentRunState LatentState = LatentRunState::Continue;
 	Array<std::unique_ptr<Iterator>> Iterators;
 
-private:
 	ExpressionEvalResult Run();
 	void ProcessSwitch(const ExpressionValue& condition, VMStackFrame* stack);
 
 	static ExpressionEvalResult RunExpr(Expression* expr, UObject* self, UObject* context, VMStackFrame* stack);
-
 	static ExpressionValue CallNative(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args);
-	static ExpressionValue CallScript(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args);
 	static void TraceCall(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args);
 
 	struct ActiveCallStackFrame
@@ -122,4 +118,7 @@ private:
 		ActiveCallStackFrame(Frame* frame) { Frame::Callstack.push_back(frame); }
 		~ActiveCallStackFrame() { Frame::Callstack.pop_back(); }
 	};
+
+	Frame(const Frame&) = delete;
+	Frame& operator=(const Frame&) = delete;
 };

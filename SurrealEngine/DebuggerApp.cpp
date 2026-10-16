@@ -341,17 +341,17 @@ void DebuggerApp::PrintCurrentFrame()
 	if (auto frame = GetCurrentFrame())
 	{
 		std::string name = frame->GetName();
-		if (frame->StatementIndex > 0) // StatementIndex points at the NEXT statement to be executed
+		if (frame->GetStatementIndex() > 0) // StatementIndex points at the NEXT statement to be executed
 		{
-			Expression* statement = frame->Func->Code->Statements[frame->StatementIndex - 1];
-			int line = frame->Func->GetStatementLine(statement);
+			Expression* statement = frame->GetFunc()->Code->Statements[frame->GetStatementIndex() - 1];
+			int line = frame->GetFunc()->GetStatementLine(statement);
 			if (line == -1)
 			{
-				line = frame->Func->Line;
+				line = frame->GetFunc()->Line;
 
 				WriteOutput("#" + std::to_string(CallstackIndex) + ": " + ColorEscape(96) + name + ResetEscape() + " line " + ColorEscape(96) + std::to_string(line) + ResetEscape());
 				WriteOutput(": ");
-				PrintPrettyExpression::Print([&](const std::string& text) { WriteOutput(text); }, frame->Func->Code->Statements[frame->StatementIndex - 1]);
+				PrintPrettyExpression::Print([&](const std::string& text) { WriteOutput(text); }, frame->GetFunc()->Code->Statements[frame->GetStatementIndex() - 1]);
 				WriteOutput(NewLine());
 			}
 			else

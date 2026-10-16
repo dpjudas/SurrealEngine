@@ -32,7 +32,7 @@ void UActor::FinishAnim()
 	}
 
 	if (StateFrame)
-		StateFrame->LatentState = LatentRunState::FinishAnim;
+		StateFrame->SetLatentState(LatentRunState::FinishAnim);
 }
 
 void UActor::FinishAnim_HP(std::optional<NameString> RootBone)
@@ -329,10 +329,10 @@ void UActor::LoopAnim_HP(const NameString& Sequence, std::optional<float> Rate, 
 
 void UActor::TickAnimation(float elapsed)
 {
-	if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
+	if (StateFrame && StateFrame->GetLatentState() == LatentRunState::FinishAnim)
 	{
 		if (!IsAnimating() || AnimFrame() >= AnimLast())
-			StateFrame->LatentState = LatentRunState::Continue;
+			StateFrame->SetLatentState(LatentRunState::Continue);
 	}
 
 	for (int i = 0; elapsed > 0.0f && i < 10; i++)
@@ -383,8 +383,8 @@ void UActor::TickAnimation(float elapsed)
 				elapsed -= (toAnimTime - fromAnimTime) / animRate;
 				AnimFrame() = toAnimTime;
 
-				if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
-					StateFrame->LatentState = LatentRunState::Continue;
+				if (StateFrame && StateFrame->GetLatentState() == LatentRunState::FinishAnim)
+					StateFrame->SetLatentState(LatentRunState::Continue);
 
 				CallEvent(this, EventName::AnimEnd);
 				continue;
@@ -425,8 +425,8 @@ void UActor::TickAnimation(float elapsed)
 
 			if (!bAnimLoop() && fromAnimTime < animEndTime && toAnimTime >= animEndTime)
 			{
-				if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
-					StateFrame->LatentState = LatentRunState::Continue;
+				if (StateFrame && StateFrame->GetLatentState() == LatentRunState::FinishAnim)
+					StateFrame->SetLatentState(LatentRunState::Continue);
 
 				CallEvent(this, EventName::AnimEnd);
 			}
@@ -454,8 +454,8 @@ void UActor::TickAnimation(float elapsed)
 
 			if (toAnimTime == animEndTime && AnimRate() == 0.0f)
 			{
-				if (StateFrame && StateFrame->LatentState == LatentRunState::FinishAnim)
-					StateFrame->LatentState = LatentRunState::Continue;
+				if (StateFrame && StateFrame->GetLatentState() == LatentRunState::FinishAnim)
+					StateFrame->SetLatentState(LatentRunState::Continue);
 
 				bAnimFinished() = true;
 				//engine->LogMessage("CallEvent(AnimEnd) for " + Class->FriendlyName.ToString() + "");

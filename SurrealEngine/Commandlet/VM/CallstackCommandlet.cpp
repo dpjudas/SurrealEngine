@@ -19,14 +19,14 @@ void CallstackCommandlet::OnCommand(DebuggerApp* console, const std::string& arg
 	for (auto it = Frame::Callstack.rbegin(); it != Frame::Callstack.rend(); ++it)
 	{
 		Frame* frame = *it;
-		UStruct* func = frame->Func;
+		UStruct* func = frame->GetFunc();
 		if (func)
 		{
 			std::string name = frame->GetName();
 
-			if (frame->StatementIndex > 0) // StatementIndex points at the NEXT statement to be executed
+			if (frame->GetStatementIndex() > 0) // StatementIndex points at the NEXT statement to be executed
 			{
-				Expression* statement = func->Code->Statements[frame->StatementIndex - 1];
+				Expression* statement = func->Code->Statements[frame->GetStatementIndex() - 1];
 				int line = func->GetStatementLine(statement);
 				if (line == -1)
 					line = func->Line;

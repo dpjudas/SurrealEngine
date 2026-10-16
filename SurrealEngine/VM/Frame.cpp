@@ -21,16 +21,71 @@ Expression* Frame::StepExpression = nullptr;
 std::string Frame::ExceptionText;
 std::unique_ptr<Iterator> Frame::CreatedIterator;
 
-Frame::Frame(UObject* instance, UStruct* func)
+Frame::Frame(UObject* instance, UStruct* func, size_t statementIndex) : StatementIndex(statementIndex)
 {
 	Object = instance;
-	SetState(func);
+	Func = func;
+	InitVariables();
+}
+
+Frame::~Frame()
+{
+	DeinitVariables();
 }
 
 void Frame::SetState(UStruct* func)
 {
+	DeinitVariables();
 	Func = func;
-	Variables = std::make_unique<LocalVariables>(func);
+	InitVariables();
+}
+
+void Frame::InitVariables()
+{
+	if (Func)
+	{
+		Variables = AlignedAlloc(Func->StructAlignment, Func->StructSize);
+
+		if (!Func->IsNativeFunc)
+		{
+			for (UProperty* prop : Func->Properties)
+			{
+				prop->ConstructArray(static_cast<uint8_t*>(Variables) + prop->DataOffset.DataOffset);
+			}
+		}
+		else
+		{
+			auto v = (char*)Variables;
+			for (size_t i = 0, count = Func->Properties.size(); i < count; i++)
+			{
+				new(v + i * sizeof(ExpressionValue)) ExpressionValue();
+			}
+		}
+	}
+}
+
+void Frame::DeinitVariables()
+{
+	if (Variables)
+	{
+		if (!Func->IsNativeFunc)
+		{
+			for (UProperty* prop : Func->Properties)
+			{
+				prop->DestructArray(static_cast<uint8_t*>(Variables) + prop->DataOffset.DataOffset);
+			}
+		}
+		else
+		{
+			auto v = (ExpressionValue*)Variables;
+			for (size_t i = 0, count = Func->Properties.size(); i < count; i++)
+			{
+				v[i].~ExpressionValue();
+			}
+		}
+		AlignedFree(Variables);
+		Variables = nullptr;
+	}
 }
 
 bool Frame::AddBreakpoint(const NameString& clsName, const NameString& funcName, const NameString& stateName, int statementIndex)
@@ -227,7 +282,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, const ArrayView<
 		int argindex = 0;
 		for (UProperty* prop : func->Properties)
 		{
-			ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables->Data, prop);
+			ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables, prop);
 			if (AllFlags(prop->PropFlags, PropertyFlags::Parm))
 			{
 				if (argindex < args.size())
@@ -254,7 +309,7 @@ ExpressionValue Frame::Call(UFunction* func, UObject* instance, const ArrayView<
 		argindex = 0;
 		for (UProperty* prop : func->Properties)
 		{
-			ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables->Data, prop);
+			ExpressionValue lvalue = ExpressionValue::Variable(frame.Variables, prop);
 
 			if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::OutParm) && argindex < args.size())
 			{
@@ -279,7 +334,7 @@ ExpressionValue Frame::CallNative(UFunction* func, UObject* instance, const Arra
 	Frame frame(instance, func);
 	ActiveCallStackFrame activeFrame(&frame);
 
-	auto frameArgs = (ExpressionValue*)frame.Variables->Data;
+	auto frameArgs = (ExpressionValue*)frame.Variables;
 	int argindex = 0;
 	for (UProperty* prop : func->Properties)
 	{
@@ -443,7 +498,7 @@ ExpressionEvalResult Frame::Run()
 	}
 
 	VMStackFrame stack;
-	stack.localVariables = Variables->Data;
+	stack.localVariables = Variables;
 
 	const int maxInstructions = 500'000;
 	int instructionsRetired = 0;
@@ -537,7 +592,7 @@ ExpressionEvalResult Frame::Run()
 				{
 					if (AllFlags(prop->PropFlags, PropertyFlags::Parm | PropertyFlags::ReturnParm))
 					{
-						result.Value = ExpressionValue::Variable(Variables->Data, prop);
+						result.Value = ExpressionValue::Variable(Variables, prop);
 						result.Value.Load();
 						break;
 					}
@@ -1917,54 +1972,4 @@ ExpressionEvalResult Frame::RunExpr(Expression* statementExpr, UObject* self, UO
 	if (valueEnd > 0)
 		result.Value = std::move(PopValue());
 	return result;
-}
-
-/////////////////////////////////////////////////////////////////////////////
-
-LocalVariables::LocalVariables(UStruct* func) : Func(func)
-{
-	if (func)
-	{
-		Data = AlignedAlloc(func->StructAlignment, func->StructSize);
-
-		if (!func->IsNativeFunc)
-		{
-			for (UProperty* prop : func->Properties)
-			{
-				prop->ConstructArray(static_cast<uint8_t*>(Data) + prop->DataOffset.DataOffset);
-			}
-		}
-		else
-		{
-			auto v = (char*)Data;
-			for (size_t i = 0, count = func->Properties.size(); i < count; i++)
-			{
-				new(v + i * sizeof(ExpressionValue)) ExpressionValue();
-			}
-		}
-	}
-}
-
-LocalVariables::~LocalVariables()
-{
-	if (Func && Data)
-	{
-		if (!Func->IsNativeFunc)
-		{
-			for (UProperty* prop : Func->Properties)
-			{
-				prop->DestructArray(static_cast<uint8_t*>(Data) + prop->DataOffset.DataOffset);
-			}
-		}
-		else
-		{
-			auto v = (ExpressionValue*)Data;
-			for (size_t i = 0, count = Func->Properties.size(); i < count; i++)
-			{
-				v[i].~ExpressionValue();
-			}
-		}
-	}
-
-	AlignedFree(Data);
 }

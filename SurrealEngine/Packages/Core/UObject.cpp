@@ -79,17 +79,15 @@ void UObject::Load(ObjectStream* stream)
 				int index = func->Code->FindStatementIndex(offset);
 				if (index != -1)
 				{
-					StateFrame = std::make_shared<Frame>(this, nullptr);
-					StateFrame->SetState(func);
-					StateFrame->StatementIndex = index;
+					StateFrame = std::make_shared<Frame>(this, func, index);
 					if (latentAction >= 0 && (size_t)latentAction < NativeFunctions::LatentActionByIndex.size())
 					{
-						StateFrame->LatentState = NativeFunctions::LatentActionByIndex[latentAction];
+						StateFrame->SetLatentState(NativeFunctions::LatentActionByIndex[latentAction]);
 					}
 					else
 					{
 						LogMessage("UObject::Load encountered out of bounds latent action index");
-						StateFrame->LatentState = LatentRunState::Continue;
+						StateFrame->SetLatentState(LatentRunState::Continue);
 					}
 				}
 				else
@@ -100,9 +98,8 @@ void UObject::Load(ObjectStream* stream)
 			else
 			{
 				state->LoadNow();
-				StateFrame = std::make_shared<Frame>(this, nullptr);
-				StateFrame->SetState(state);
-				StateFrame->LatentState = LatentRunState::Stop;
+				StateFrame = std::make_shared<Frame>(this, state);
+				StateFrame->SetLatentState(LatentRunState::Stop);
 			}
 		}
 		else if (state)
@@ -139,8 +136,8 @@ void UObject::Save(PackageStreamWriter* stream)
 		// func and state: in this engine's VM, a StateFrame can only ever be suspended in
 		// state code, so func (raw StateFrame->Func) and state (StateFrame->Func cast to
 		// UState) always point at the same object here.
-		UStruct* func = StateFrame ? StateFrame->Func : nullptr;
-		UState* state = StateFrame ? UObject::TryCast<UState>(StateFrame->Func) : nullptr;
+		UStruct* func = StateFrame ? StateFrame->GetFunc() : nullptr;
+		UState* state = StateFrame ? UObject::TryCast<UState>(StateFrame->GetFunc()) : nullptr;
 		int32_t latentAction = 0;
 		int offset = -1;
 
@@ -158,12 +155,12 @@ void UObject::Save(PackageStreamWriter* stream)
 		// whatever it was - and defaults to Continue, never Stop. Func must be checked, or this
 		// dereferences null; Func->Code can likewise be null for a state with no bytecode. Both
 		// cases write a null func below, which is what Load needs to restore the actor dormant.
-		if (StateFrame && StateFrame->Func && StateFrame->LatentState != LatentRunState::Stop)
+		if (StateFrame && StateFrame->GetFunc() && StateFrame->GetLatentState() != LatentRunState::Stop)
 		{
-			auto it = NativeFunctions::IndexForLatentAction.find(StateFrame->LatentState);
+			auto it = NativeFunctions::IndexForLatentAction.find(StateFrame->GetLatentState());
 			latentAction = (it != NativeFunctions::IndexForLatentAction.end()) ? it->second : 0;
-			if (StateFrame->Func->Code)
-				offset = StateFrame->Func->Code->FindOffset((int)StateFrame->StatementIndex);
+			if (StateFrame->GetFunc()->Code)
+				offset = StateFrame->GetFunc()->Code->FindOffset((int)StateFrame->GetStatementIndex());
 		}
 
 		stream->WriteObject(func);
@@ -388,9 +385,9 @@ bool UObject::IsEventEnabled(EventName name) const
 	if (nameIndex < 64) // Probe event
 	{
 		bool foundProbe = false;
-		if (StateFrame && StateFrame->Func)
+		if (StateFrame && StateFrame->GetFunc())
 		{
-			UState* state = static_cast<UState*>(StateFrame->Func);
+			UState* state = static_cast<UState*>(StateFrame->GetFunc());
 
 			// Probe is in the ignore list ('ignores' keyword in unrealscript)
 			if ((state->IgnoreMask & (1ULL << nameIndex)) == 0)
@@ -483,7 +480,7 @@ Array<UProperty*> UObject::GetAllTravelProperties()
 
 NameString UObject::GetStateName() const
 {
-	return StateFrame && StateFrame->Func ? StateFrame->Func->Name : NameString();
+	return StateFrame && StateFrame->GetFunc() ? StateFrame->GetFunc()->Name : NameString();
 }
 
 void UObject::GotoState(NameString stateName, const NameString& labelName)
@@ -524,7 +521,7 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 	if (!StateFrame)
 		StateFrame = std::make_shared<Frame>(this, nullptr);
 
-	UState* oldState = (UState*)StateFrame->Func;
+	UState* oldState = (UState*)StateFrame->GetFunc();
 
 	if (oldState && oldState != newState)
 		CallEvent(this, EventName::EndState);

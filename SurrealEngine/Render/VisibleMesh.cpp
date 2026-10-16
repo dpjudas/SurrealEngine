@@ -1075,19 +1075,20 @@ void VisibleMesh::DrawDebugInfo(VisibleFrame* frame, UActor* actor)
 	// Draw debug line to where pawn is trying to go
 	{
 		vec3 end;
-		if (pawn->StateFrame->LatentState == LatentRunState::MoveTo)
+		LatentRunState latentState = pawn->StateFrame->GetLatentState();
+		if (latentState == LatentRunState::MoveTo)
 		{
 			end = pawn->Destination();
 		}
-		else if (pawn->StateFrame->LatentState == LatentRunState::MoveToward && pawn->MoveTarget())
+		else if (latentState == LatentRunState::MoveToward && pawn->MoveTarget())
 		{
 			end = pawn->MoveTarget()->Location();
 		}
-		else if (pawn->StateFrame->LatentState == LatentRunState::StrafeTo)
+		else if (latentState == LatentRunState::StrafeTo)
 		{
 			end = pawn->Destination();
 		}
-		else if (pawn->StateFrame->LatentState == LatentRunState::StrafeFacing)
+		else if (latentState == LatentRunState::StrafeFacing)
 		{
 			end = pawn->Destination();
 		}

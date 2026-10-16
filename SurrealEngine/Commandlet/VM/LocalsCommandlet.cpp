@@ -15,9 +15,9 @@ void LocalsCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	Frame* frame = console->GetCurrentFrame();
 	if (frame)
 	{
-		for (UProperty* prop : frame->Func->Properties)
+		for (UProperty* prop : frame->GetFunc()->Properties)
 		{
-			void* ptr = (uint8_t*)frame->Variables->Data + prop->DataOffset.DataOffset;
+			void* ptr = (uint8_t*)frame->GetVariables() + prop->DataOffset.DataOffset;
 			for (int i = 0; i < prop->ArrayDimension; i++)
 			{
 				std::string name = prop->Name.ToString();

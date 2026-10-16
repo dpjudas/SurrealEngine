@@ -276,7 +276,7 @@ void NActor::FinishInterpolation(UObject* Self)
 {
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	if (Self->StateFrame)
-		Self->StateFrame->LatentState = LatentRunState::FinishInterpolation;
+		Self->StateFrame->SetLatentState(LatentRunState::FinishInterpolation);
 }
 
 void NActor::GetAnimGroup(UObject* Self, const NameString& Sequence, NameString& ReturnValue)
@@ -667,7 +667,7 @@ void NActor::Sleep(UObject* Self, float Seconds)
 	UActor* SelfActor = UObject::Cast<UActor>(Self);
 	SelfActor->SleepTimeLeft = Seconds;
 	if (Self->StateFrame)
-		Self->StateFrame->LatentState = LatentRunState::Sleep;
+		Self->StateFrame->SetLatentState(LatentRunState::Sleep);
 }
 
 void NActor::Spawn(UObject* Self, UObject* SpawnClass, std::optional<UObject*> SpawnOwner, std::optional<NameString> SpawnTag, std::optional<vec3> SpawnLocation, std::optional<Rotator> SpawnRotation, UObject*& ReturnValue)
