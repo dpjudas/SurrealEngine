@@ -206,6 +206,7 @@ T* UFlagBase::GetOrCreateFlag(const NameString& FlagName, std::optional<bool> bA
 			if (!table[i])
 			{
 				auto flag = UObject::Cast<T>(engine->packages->GetTransientPackage()->NewObject(FlagName, cls, ObjectFlags::Transient));
+				flag->flagType() = (uint8_t)flagType;
 				flag->FlagName() = FlagName;
 				flag->flagHash() = i; // Lets pretend until we have a proper hash
 				table[i] = flag;

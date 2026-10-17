@@ -11,6 +11,16 @@
 #include "Packages/Engine/Resources/UFont.h"
 #include "Packages/Engine/Resources/UPalette.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
+#include "Packages/Extension/UPlayerPawnExt.h"
+#include "Packages/Extension/Flags/UFlag.h"
+#include "Packages/Extension/Flags/UFlagBase.h"
+#include "Packages/Extension/Flags/UFlagBool.h"
+#include "Packages/Extension/Flags/UFlagByte.h"
+#include "Packages/Extension/Flags/UFlagFloat.h"
+#include "Packages/Extension/Flags/UFlagInt.h"
+#include "Packages/Extension/Flags/UFlagName.h"
+#include "Packages/Extension/Flags/UFlagRotator.h"
+#include "Packages/Extension/Flags/UFlagVector.h"
 #include "GameWindow.h"
 #include "VM/ScriptCall.h"
 #include "Engine.h"
@@ -558,6 +568,48 @@ void RenderSubsystem::DrawTimedemoStats()
 		lines.push_back(std::to_string(Stats.Surfaces) + " visible surfaces");
 		lines.push_back(std::to_string(Stats.Actors) + " visible actors");
 		lines.push_back(std::to_string(Stats.LightmapsUpdated) + " lightmaps updated");
+
+		if (auto pawnExt = UObject::TryCast<UPlayerPawnExt>(engine->viewport->Actor()))
+		{
+			if (auto flags = pawnExt->FlagBase())
+			{
+				lines.push_back("-- Flags --");
+				for (const auto flag : flags->hashTable())
+				{
+					if (flag)
+					{
+						NameString name = flag->FlagName();
+						switch ((EFlagType)flag->flagType())
+						{
+						default:
+							lines.push_back(name.ToString() + ": unknown flag type");
+							break;
+						case EFlagType::Bool:
+							lines.push_back(name.ToString() + ": " + (UObject::Cast<UFlagBool>(flag)->bValue() ? "true" : "false"));
+							break;
+						case EFlagType::Byte:
+							lines.push_back(name.ToString() + ": " + std::to_string(UObject::Cast<UFlagByte>(flag)->byteValue()));
+							break;
+						case EFlagType::Int:
+							lines.push_back(name.ToString() + ": " + std::to_string(UObject::Cast<UFlagInt>(flag)->intValue()));
+							break;
+						case EFlagType::Float:
+							lines.push_back(name.ToString() + ": " + std::to_string(UObject::Cast<UFlagFloat>(flag)->floatValue()));
+							break;
+						case EFlagType::Name:
+							lines.push_back(name.ToString() + ": " + UObject::Cast<UFlagName>(flag)->nameValue().ToString());
+							break;
+						case EFlagType::Vector:
+							lines.push_back(name.ToString() + ": vector"/* + std::to_string(UObject::Cast<UFlagVector>(flag)->vectorValue())*/);
+							break;
+						case EFlagType::Rotator:
+							lines.push_back(name.ToString() + ": rotator"/* + std::to_string(UObject::Cast<UFlagRotator>(flag)->rotatorValue())*/);
+							break;
+						}
+					}
+				}
+			}
+		}
 
 		UFont* font = engine->canvas->SmallFont();
 		if (font)
