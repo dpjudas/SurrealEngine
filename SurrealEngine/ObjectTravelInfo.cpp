@@ -34,12 +34,16 @@ std::string ActorTravelInfo::Create(UPlayerPawn* pawn, bool transferItems)
 			{
 				if (auto objProperty = UObject::TryCast<UObjectProperty>(property))
 				{
-					UObject* value = *static_cast<UObject**>(cur->GetProperty(objProperty));
-					if (value && travelObjectNames.find(value) == travelObjectNames.end())
+					UObject** values = static_cast<UObject**>(cur->GetProperty(objProperty));
+					for (int j = 0; j < objProperty->ArrayDimension; j++)
 					{
-						std::string name = "item" + std::to_string(processList.size());
-						travelObjectNames[value] = name;
-						processList.push_back(value);
+						UObject* value = values[j];
+						if (value && travelObjectNames.find(value) == travelObjectNames.end())
+						{
+							std::string name = "item" + std::to_string(processList.size());
+							travelObjectNames[value] = name;
+							processList.push_back(value);
+						}
 					}
 				}
 			}
@@ -59,15 +63,17 @@ std::string ActorTravelInfo::ToString(const Array<TravelObject>& travelActors)
 {
 	// Example:
 	// ClassName#player:prop1=value1;prop2=value2;prop3=value3...?ClassName#item1:prop1=value1;prop2=value2...
-
+	//LogMessage("Travel string begin:");
 	std::string result;
 	for (auto& object : travelActors)
 	{
 		result += object.ClassName + "#" + object.Name + ":";
+		//LogMessage(object.ClassName + "#" + object.Name + ":");
 
 		for (auto it = object.Properties.begin(); it != object.Properties.end(); it++)
 		{
 			result += it->first + "=" + Escape(it->second);
+			//LogMessage("  " + it->first + " = " + Escape(it->second));
 
 			if (it != --object.Properties.end())
 				result += ";";
@@ -75,6 +81,7 @@ std::string ActorTravelInfo::ToString(const Array<TravelObject>& travelActors)
 
 		result += "?";
 	}
+	//LogMessage("Travel string end");
 	return result;
 }
 
@@ -87,24 +94,37 @@ ActorTravelInfo::TravelObject ActorTravelInfo::CreateObject(UObject* travelObjec
 	{
 		if (auto objProperty = UObject::TryCast<UObjectProperty>(property))
 		{
-			UObject* value = *static_cast<UObject**>(travelObject->GetProperty(objProperty));
-			std::string name;
-			if (value)
+			UObject** values = static_cast<UObject**>(travelObject->GetProperty(objProperty));
+			for (int j = 0; j < objProperty->ArrayDimension; j++)
 			{
-				auto it = travelObjects.find(value);
-				if (it != travelObjects.end())
-					name = it->second;
+				UObject* value = static_cast<UObject**>(travelObject->GetProperty(objProperty))[j];
+				std::string name;
+				if (value)
+				{
+					auto it = travelObjects.find(value);
+					if (it != travelObjects.end())
+						name = it->second;
+				}
+				else
+				{
+					// Seems we are not supposed to travel object properties set to None?
+					// 
+					// For Deus Ex, AugmentationSystem can be set to none and then is reinitialized in PostBeginPlay.
+					// Travel happens after PostBeginPlay, so if we set it back to None Deus Ex breaks.
+					// name = "None";
+				}
+				if (!name.empty())
+				{
+					if (objProperty->ArrayDimension > 1)
+					{
+						info.Properties[property->Name.ToString() + "[" + std::to_string(j) + "]"] = name;
+					}
+					else
+					{
+						info.Properties[property->Name.ToString()] = name;
+					}
+				}
 			}
-			else
-			{
-				// Seems we are not supposed to travel object properties set to None?
-				// 
-				// For Deus Ex, AugmentationSystem can be set to none and then is reinitialized in PostBeginPlay.
-				// Travel happens after PostBeginPlay, so if we set it back to None Deus Ex breaks.
-				// name = "None";
-			}
-			if (!name.empty())
-				info.Properties[property->Name.ToString()] = name;
 		}
 		else
 		{
@@ -184,34 +204,48 @@ Array<UObject*> ActorTravelInfo::Accept(UPlayerPawn* pawn, const std::string& tr
 			if (property->Name == "Inventory" && !AllFlags(property->PropFlags, PropertyFlags::Travel))
 				continue;
 
-			auto it = objInfo.Properties.find(property->Name.ToString());
-			if (it == objInfo.Properties.end())
-				continue;
-			const std::string& value = it->second;
-
-			if (auto objProperty = UObject::TryCast<UObjectProperty>(property))
+			for (size_t j = 0; j < property->ArrayDimension; j++)
 			{
-				auto obj = static_cast<UObject**>(acceptedObject->GetProperty(objProperty));
-				if (value != "None")
+				std::string propertyNameStr;
+				if (property->ArrayDimension == 1)
+					propertyNameStr = property->Name.ToString();
+				else
+					propertyNameStr = property->Name.ToString() + "[" + std::to_string(j) + "]";
+
+				auto it = objInfo.Properties.find(propertyNameStr);
+				if (it == objInfo.Properties.end())
+					continue;
+				const std::string& value = it->second;
+
+				if (auto objProperty = UObject::TryCast<UObjectProperty>(property))
 				{
-					auto it = nameToObject.find(value);
-					if (it != nameToObject.end())
+					UObject** objects = static_cast<UObject**>(acceptedObject->GetProperty(objProperty));
+					if (value != "None")
 					{
-						*obj = nameToObject[value];
+						auto it = nameToObject.find(value);
+						if (it != nameToObject.end())
+						{
+							objects[j] = nameToObject[value];
+						}
+						else
+						{
+							LogMessage("Warning: could not find travel object: " + value);
+						}
 					}
 					else
 					{
-						LogMessage("Warning: could not find travel object: " + value);
+						objects[j] = nullptr;
 					}
 				}
 				else
 				{
-					*obj = nullptr;
+					if (j > 0)
+					{
+						LogMessage("ActorTravelInfo.Accept does not travel arrays correctly");
+						break;
+					}
+					property->SetValueFromString(acceptedObject->GetProperty(property), value);
 				}
-			}
-			else
-			{
-				acceptedObject->SetPropertyFromString(property->Name, value);
 			}
 		}
 	}
@@ -283,7 +317,7 @@ std::string ActorTravelInfo::Escape(const std::string& value)
 	result.reserve(value.size());
 	for (char c : value)
 	{
-		if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'))
+		if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9') || c == '.' || c == '-' || c == '_')
 		{
 			result.push_back(c);
 		}
