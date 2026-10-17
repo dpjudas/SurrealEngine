@@ -574,9 +574,9 @@ void RenderSubsystem::DrawTimedemoStats()
 			if (auto flags = pawnExt->FlagBase())
 			{
 				lines.push_back("-- Flags --");
-				for (const auto flag : flags->hashTable())
+				for (UFlag* flag : flags->hashTable())
 				{
-					if (flag)
+					while (flag)
 					{
 						NameString name = flag->FlagName();
 						switch ((EFlagType)flag->flagType())
@@ -606,6 +606,7 @@ void RenderSubsystem::DrawTimedemoStats()
 							lines.push_back(name.ToString() + ": rotator"/* + std::to_string(UObject::Cast<UFlagRotator>(flag)->rotatorValue())*/);
 							break;
 						}
+						flag = flag->nextFlag();
 					}
 				}
 			}

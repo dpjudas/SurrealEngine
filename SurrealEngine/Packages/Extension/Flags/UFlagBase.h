@@ -57,6 +57,7 @@ public:
 	struct FlagIterator
 	{
 		int HashPos = 0;
+		UFlag* Flag = nullptr;
 		uint8_t FlagType = 0;
 		bool FlagTypeSet = false;
 	};
