@@ -142,6 +142,9 @@ bool UActor::SetCollisionSize(float newRadius, float newHeight)
 
 void UActor::PhysLanded(UActor* hitActor, const vec3& hitNormal)
 {
+	if (!hitActor)
+		hitActor = Level();
+
 	// landed on the floor
 	CallEvent(this, EventName::Landed, { ExpressionValue::VectorValue(hitNormal) });
 
