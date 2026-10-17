@@ -67,7 +67,7 @@ std::string ActorTravelInfo::ToString(const Array<TravelObject>& travelActors)
 
 		for (auto it = object.Properties.begin(); it != object.Properties.end(); it++)
 		{
-			result += it->first + "=" + it->second;
+			result += it->first + "=" + Escape(it->second);
 
 			if (it != --object.Properties.end())
 				result += ";";
@@ -269,10 +269,75 @@ ActorTravelInfo::TravelObject ActorTravelInfo::ParseSingleObject(const std::stri
 			Exception::Throw("No = found while parsing property text: " + readProperty);
 
 		std::string propName = readProperty.substr(0, equalsPos);
-		std::string propValue = readProperty.substr(equalsPos + 1);
+		std::string propValue = Unescape(readProperty.substr(equalsPos + 1));
 
 		result.Properties[propName] = propValue;
 	}
 
+	return result;
+}
+
+std::string ActorTravelInfo::Escape(const std::string& value)
+{
+	std::string result;
+	result.reserve(value.size());
+	for (char c : value)
+	{
+		if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || (c >= '0' && c <= '9'))
+		{
+			result.push_back(c);
+		}
+		else if (c == ' ')
+		{
+			result.push_back('+');
+		}
+		else
+		{
+			uint8_t v = c;
+			uint8_t nibbles[2] = { (uint8_t)(v >> 4), (uint8_t)(v & 15) };
+			result.push_back('%');
+			for (int j = 0; j < 2; j++)
+			{
+				if (nibbles[j] < 10)
+					result.push_back('0' + (char)nibbles[j]);
+				else
+					result.push_back('a' + (char)(nibbles[j] - 10));
+			}
+		}
+	}
+	return result;
+}
+
+std::string ActorTravelInfo::Unescape(const std::string& value)
+{
+	std::string result;
+	result.reserve(value.size());
+	for (size_t i = 0, count = value.size(); i < count; i++)
+	{
+		if (value[i] == '+')
+		{
+			result.push_back(' ');
+		}
+		else if (value[i] == '%' && i + 3 <= count)
+		{
+			uint8_t v = 0;
+			for (int j = 0; j < 2; j++)
+			{
+				i++;
+				v <<= 4;
+				if (value[i] >= 'A' && value[i] <= 'Z')
+					v += 10 + (value[i] - 'A');
+				else if (value[i] >= 'a' && value[i] <= 'z')
+					v += 10 + (value[i] - 'a');
+				else if (value[i] >= '0' && value[i] <= '9')
+					v += value[i] - '0';
+			}
+			result.push_back((char)v);
+		}
+		else
+		{
+			result.push_back(value[i]);
+		}
+	}
 	return result;
 }

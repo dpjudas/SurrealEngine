@@ -32,4 +32,7 @@ private:
 	static std::string ToString(const Array<TravelObject>& travelActors);
 	static Array<TravelObject> Parse(const std::string& text);
 	static TravelObject ParseSingleObject(const std::string& singleObjectText);
+
+	static std::string Escape(const std::string& value);
+	static std::string Unescape(const std::string& value);
 };
