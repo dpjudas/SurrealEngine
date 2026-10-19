@@ -7,12 +7,29 @@
 
 void UButtonWindow::DrawWindow(UGC* gc)
 {
-	if (ButtonTextures.Normal)
+	bool hasFocus = GetFocusWindow() == this;
+	bool pressed = bButtonPressed();
+	bool enabled = bIsSensitive();
+
+	ButtonState* state;
+	if (!enabled && pressed)
+		state = &PressedInsensitiveState;
+	else if (!enabled)
+		state = &NormalInsensitiveState;
+	else if (hasFocus && pressed)
+		state = &PressedFocusState;
+	else if (hasFocus)
+		state = &NormalFocusState;
+	else
+		state = &NormalState;
+
+	if (state->Texture)
 	{
+		gc->SetTileColor(state->ButtonColor);
 		gc->DrawStretchedTexture(
 			0.0f, 0.0f, Width(), Height(),
-			0.0f, 0.0f, (float)ButtonTextures.Normal->USize(), (float)ButtonTextures.Normal->VSize(),
-			ButtonTextures.Normal);
+			0.0f, 0.0f, (float)state->Texture->USize(), (float)state->Texture->VSize(),
+			state->Texture);
 	}
 
 	if (normalFont())
@@ -23,7 +40,7 @@ void UButtonWindow::DrawWindow(UGC* gc)
 		float h = Height() - 2.0f * yMargin;
 		if (w > 0.0f && h > 0.0f)
 		{
-			gc->SetTextColor(TextColors.Normal);
+			gc->SetTextColor(state->TextColor);
 			gc->SetAlignments(HAlign(), VAlign());
 			gc->DrawText(xMargin, yMargin, w, h, Text());
 		}
@@ -75,17 +92,17 @@ void UButtonWindow::SetActivateDelay(std::optional<float> newDelay)
 void UButtonWindow::SetButtonColors(std::optional<Color> Normal, std::optional<Color> pressed, std::optional<Color> normalFocus, std::optional<Color> pressedFocus, std::optional<Color> normalInsensitive, std::optional<Color> pressedInsensitive)
 {
 	if (Normal)
-		ButtonColors.Normal = *Normal;
+		NormalState.ButtonColor = *Normal;
 	if (pressed)
-		ButtonColors.Pressed = *pressed;
+		PressedState.ButtonColor = *pressed;
 	if (normalFocus)
-		ButtonColors.NormalFocus = *normalFocus;
+		NormalFocusState.ButtonColor = *normalFocus;
 	if (pressedFocus)
-		ButtonColors.PressedFocus = *pressedFocus;
+		PressedFocusState.ButtonColor = *pressedFocus;
 	if (normalInsensitive)
-		ButtonColors.NormalInsensitive = *normalInsensitive;
+		NormalInsensitiveState.ButtonColor = *normalInsensitive;
 	if (pressedInsensitive)
-		ButtonColors.PressedInsensitive = *pressedInsensitive;
+		PressedInsensitiveState.ButtonColor = *pressedInsensitive;
 }
 
 void UButtonWindow::SetButtonSounds(std::optional<UObject*> newPressSound, std::optional<UObject*> newClickSound)
@@ -99,33 +116,33 @@ void UButtonWindow::SetButtonSounds(std::optional<UObject*> newPressSound, std::
 void UButtonWindow::SetButtonTextures(std::optional<UObject*> Normal, std::optional<UObject*> pressed, std::optional<UObject*> normalFocus, std::optional<UObject*> pressedFocus, std::optional<UObject*> normalInsensitive, std::optional<UObject*> pressedInsensitive)
 {
 	if (Normal)
-		ButtonTextures.Normal = UObject::Cast<UTexture>(*Normal);
+		NormalState.Texture = UObject::Cast<UTexture>(*Normal);
 	if (pressed)
-		ButtonTextures.Pressed = UObject::Cast<UTexture>(*pressed);
+		PressedState.Texture = UObject::Cast<UTexture>(*pressed);
 	if (normalFocus)
-		ButtonTextures.NormalFocus = UObject::Cast<UTexture>(*normalFocus);
+		NormalFocusState.Texture = UObject::Cast<UTexture>(*normalFocus);
 	if (pressedFocus)
-		ButtonTextures.PressedFocus = UObject::Cast<UTexture>(*pressedFocus);
+		PressedFocusState.Texture = UObject::Cast<UTexture>(*pressedFocus);
 	if (normalInsensitive)
-		ButtonTextures.NormalInsensitive = UObject::Cast<UTexture>(*normalInsensitive);
+		NormalInsensitiveState.Texture = UObject::Cast<UTexture>(*normalInsensitive);
 	if (pressedInsensitive)
-		ButtonTextures.PressedInsensitive = UObject::Cast<UTexture>(*pressedInsensitive);
+		PressedInsensitiveState.Texture = UObject::Cast<UTexture>(*pressedInsensitive);
 }
 
 void UButtonWindow::SetTextColors(std::optional<Color> Normal, std::optional<Color> pressed, std::optional<Color> normalFocus, std::optional<Color> pressedFocus, std::optional<Color> normalInsensitive, std::optional<Color> pressedInsensitive)
 {
 	if (Normal)
-		TextColors.Normal = *Normal;
+		NormalState.TextColor = *Normal;
 	if (pressed)
-		TextColors.Pressed = *pressed;
+		PressedState.TextColor = *pressed;
 	if (normalFocus)
-		TextColors.NormalFocus = *normalFocus;
+		NormalFocusState.TextColor = *normalFocus;
 	if (pressedFocus)
-		TextColors.PressedFocus = *pressedFocus;
+		PressedFocusState.TextColor = *pressedFocus;
 	if (normalInsensitive)
-		TextColors.NormalInsensitive = *normalInsensitive;
+		NormalInsensitiveState.TextColor = *normalInsensitive;
 	if (pressedInsensitive)
-		TextColors.PressedInsensitive = *pressedInsensitive;
+		PressedInsensitiveState.TextColor = *pressedInsensitive;
 }
 
 void UButtonWindow::MouseMoved(float newX, float newY)
@@ -166,4 +183,10 @@ bool UButtonWindow::MouseButtonReleased(float pointX, float pointY, EInputKey bu
 	}
 
 	return UTextWindow::MouseButtonReleased(pointX, pointY, button, numClicks);
+}
+
+void UButtonWindow::MouseEnteredWindow()
+{
+	UTextWindow::MouseEnteredWindow();
+	SetFocusWindow(this);
 }
