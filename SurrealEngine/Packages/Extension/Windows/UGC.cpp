@@ -315,9 +315,16 @@ uint32_t UGC::EffectiveTextPolyFlags()
 {
 	uint32_t polyflags = textPolyFlags() | PF_NoSmooth;
 	if (bTextTranslucent())
-		polyflags |= PF_Translucent;
+	{
+		if (bModulated())
+			polyflags |= PF_Modulated;
+		else
+			polyflags |= PF_Translucent;
+	}
 	else
+	{
 		polyflags |= PF_Masked;
+	}
 	return polyflags;
 }
 
@@ -403,7 +410,7 @@ void UGC::GetTextExtent(float destWidth, float& xExtent, float& yExtent, const s
 	UFont* font = normalFont();
 	if (font)
 	{
-		Sizef extents = DrawText(font, 0.0f, 0.0f, destWidth, textStr, TextColor(), 0, true);
+		Sizef extents = DrawText(font, 0.0f, 0.0f, destWidth > 0.0f ? destWidth : 1000000.0f, textStr, TextColor(), 0, true);
 		xExtent = extents.width;
 		yExtent = extents.height;
 	}
@@ -566,11 +573,11 @@ void UGC::SetStyle(EDrawStyle NewStyle)
 		bMasked() = false;
 		bTranslucent() = true;
 		bModulated() = false;
-		bTextTranslucent() = true;
+		bTextTranslucent() = false;
 		break;
 	case EDrawStyle::Modulated:
 		PolyFlags() = 0;
-		textPolyFlags() = PF_Modulated;
+		textPolyFlags() = 0;
 		bDrawEnabled() = true;
 		bMasked() = false;
 		bTranslucent() = false;
