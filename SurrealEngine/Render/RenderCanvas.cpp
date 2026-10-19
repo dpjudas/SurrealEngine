@@ -569,6 +569,7 @@ void RenderSubsystem::DrawTimedemoStats()
 		lines.push_back(std::to_string(Stats.Actors) + " visible actors");
 		lines.push_back(std::to_string(Stats.LightmapsUpdated) + " lightmaps updated");
 
+		/*
 		if (auto pawnExt = UObject::TryCast<UPlayerPawnExt>(engine->viewport->Actor()))
 		{
 			if (auto flags = pawnExt->FlagBase())
@@ -600,10 +601,10 @@ void RenderSubsystem::DrawTimedemoStats()
 							lines.push_back(name.ToString() + ": " + UObject::Cast<UFlagName>(flag)->nameValue().ToString());
 							break;
 						case EFlagType::Vector:
-							lines.push_back(name.ToString() + ": vector"/* + std::to_string(UObject::Cast<UFlagVector>(flag)->vectorValue())*/);
+							lines.push_back(name.ToString() + ": vector");
 							break;
 						case EFlagType::Rotator:
-							lines.push_back(name.ToString() + ": rotator"/* + std::to_string(UObject::Cast<UFlagRotator>(flag)->rotatorValue())*/);
+							lines.push_back(name.ToString() + ": rotator");
 							break;
 						}
 						flag = flag->nextFlag();
@@ -611,6 +612,7 @@ void RenderSubsystem::DrawTimedemoStats()
 				}
 			}
 		}
+		*/
 
 		UFont* font = engine->canvas->SmallFont();
 		if (font)
