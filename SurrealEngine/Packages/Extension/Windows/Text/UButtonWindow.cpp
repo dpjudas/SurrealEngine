@@ -11,25 +11,28 @@ void UButtonWindow::DrawWindow(UGC* gc)
 	bool pressed = bButtonPressed();
 	bool enabled = bIsSensitive();
 
-	ButtonState* state;
+	ButtonState state;
 	if (!enabled && pressed)
-		state = &PressedInsensitiveState;
+		state = PressedInsensitiveState;
 	else if (!enabled)
-		state = &NormalInsensitiveState;
+		state = NormalInsensitiveState;
 	else if (hasFocus && pressed)
-		state = &PressedFocusState;
+		state = PressedFocusState;
 	else if (hasFocus)
-		state = &NormalFocusState;
+		state = NormalFocusState;
 	else
-		state = &NormalState;
+		state = NormalState;
 
-	if (state->Texture)
+	if (!state.Texture)
+		state.Texture = NormalState.Texture;
+
+	if (state.Texture)
 	{
-		gc->SetTileColor(state->ButtonColor);
+		gc->SetTileColor(state.ButtonColor);
 		gc->DrawStretchedTexture(
 			0.0f, 0.0f, Width(), Height(),
-			0.0f, 0.0f, (float)state->Texture->USize(), (float)state->Texture->VSize(),
-			state->Texture);
+			0.0f, 0.0f, (float)state.Texture->USize(), (float)state.Texture->VSize(),
+			state.Texture);
 	}
 
 	if (normalFont())
@@ -40,7 +43,7 @@ void UButtonWindow::DrawWindow(UGC* gc)
 		float h = Height() - 2.0f * yMargin;
 		if (w > 0.0f && h > 0.0f)
 		{
-			gc->SetTextColor(state->TextColor);
+			gc->SetTextColor(state.TextColor);
 			gc->SetAlignments(HAlign(), VAlign());
 			gc->DrawText(xMargin, yMargin, w, h, Text());
 		}
