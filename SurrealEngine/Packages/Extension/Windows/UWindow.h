@@ -301,6 +301,10 @@ public:
 
 	virtual void Tick(float timeElapsed);
 
+	virtual UTexture* GetCursor() { return defaultCursor(); }
+	virtual Color GetCursorColor() { return defaultCursorColor(); }
+	virtual UTexture* GetCursorShadow() { return defaultCursorShadow(); }
+
 	static float GetVirtualWidth();
 	static float GetExtendedVirtualWidth();
 	static float GetVirtualHeight();

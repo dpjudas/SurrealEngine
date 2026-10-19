@@ -128,26 +128,39 @@ void URootWindow::PostDrawWindow(UGC* gc)
 	{
 		// Find the cursor based on where the mouse is hovering:
 		UTexture* cursor = nullptr;
+		UTexture* shadow = nullptr;
+		Color color = { 255, 255, 255, 255 };
 		float relativeX = 0.0f, relativeY = 0.0f;
 		UWindow* focus = GetCursorFocus(relativeX, relativeY);
 		if (!focus)
 			focus = this;
 		while (focus)
 		{
-			if (UTexture* tex = UObject::Cast<UTexture>(focus->defaultCursor()))
+			if (UTexture* tex = focus->GetCursor())
 			{
 				cursor = tex;
+				shadow = focus->GetCursorShadow();
+				color = focus->GetCursorColor();
 				break;
 			}
 			focus = focus->parentOwner();
 		}
 
-		// Draw the cursor if we found one
-		if (cursor)
+		// Draw the cursor and its shadow if we found one
+
+		if (shadow)
 		{
 			Color white = { 255, 255, 255, 255 };
-			gc->SetStyle(EDrawStyle::Masked);
+			gc->SetStyle(EDrawStyle::Modulated);
 			gc->SetTileColor(white);
+			float hotspotX = shadow->USize() * 0.5f;
+			float hotspotY = shadow->VSize() * 0.5f;
+			gc->DrawIcon(MouseX() - hotspotX, MouseY() - hotspotY, shadow);
+		}
+		if (cursor)
+		{
+			gc->SetStyle(EDrawStyle::Masked);
+			gc->SetTileColor(color);
 			float hotspotX = cursor->USize() * 0.5f;
 			float hotspotY = cursor->VSize() * 0.5f;
 			gc->DrawIcon(MouseX() - hotspotX, MouseY() - hotspotY, cursor);

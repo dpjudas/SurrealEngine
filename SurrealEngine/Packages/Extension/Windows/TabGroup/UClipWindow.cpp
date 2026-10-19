@@ -46,7 +46,7 @@ void UClipWindow::ForceChildSize(std::optional<bool> bNewForceChildWidth, std::o
 		bForceChildHeight() = *bNewForceChildHeight;
 }
 
-UObject* UClipWindow::GetChild()
+UWindow* UClipWindow::GetChild()
 {
 	// Not called by script
 	return firstChild();

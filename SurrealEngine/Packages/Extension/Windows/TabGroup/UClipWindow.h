@@ -12,7 +12,7 @@ public:
 
 	void EnableSnapToUnits(std::optional<bool> bNewSnapToUnits);
 	void ForceChildSize(std::optional<bool> bNewForceChildWidth, std::optional<bool> bNewForceChildHeight);
-	UObject* GetChild();
+	UWindow* GetChild();
 	void GetChildPosition(int& pNewX, int& pNewY);
 	void GetUnitSize(int& pAreaHSize, int& pAreaVSize, int& pChildHSize, int& childVSize);
 	void ResetUnitHeight();
@@ -22,6 +22,10 @@ public:
 	void SetUnitHeight(int vUnits);
 	void SetUnitSize(int hUnits, int vUnits);
 	void SetUnitWidth(int hUnits);
+
+	UTexture* GetCursor() override { return GetChild()->GetCursor(); }
+	Color GetCursorColor() override { return GetChild()->GetCursorColor(); }
+	UTexture* GetCursorShadow() override { return GetChild()->GetCursorShadow(); }
 
 	int& areaHSize() { return Value<int>(PropOffsets_ClipWindow.areaHSize); }
 	int& areaVSize() { return Value<int>(PropOffsets_ClipWindow.areaVSize); }
