@@ -296,9 +296,8 @@ TraceActorsIterator::TraceActorsIterator(UActor* SelfActor, UObject* BaseClass, 
 	flags.others = true;
 	flags.onlyProjectiles = false; // Should this be true or false?
 
-	// Why is this tracing backwards? Is that correct?
-	vec3 traceStart = End;
-	vec3 traceEnd = Start;
+	vec3 traceStart = Start;
+	vec3 traceEnd = End;
 
 	for (auto& hit : SelfActor->XLevel()->Collision.Trace(traceStart, traceEnd, Extent.z, Extent.x, flags.traceActors(), flags.traceWorld(), false))
 	{
