@@ -379,12 +379,12 @@ UTexture* UEditWindow::GetCursorShadow()
 
 float UEditWindow::GetCursorHotX()
 {
-	return defaultHotX();// editCursor()->USize() * 0.5f;
+	return defaultHotX();
 }
 
 float UEditWindow::GetCursorHotY()
 {
-	return defaultHotY();// editCursor()->VSize() * 0.5f;
+	return defaultHotY();
 }
 
 void UEditWindow::DrawWindow(UGC* gc)

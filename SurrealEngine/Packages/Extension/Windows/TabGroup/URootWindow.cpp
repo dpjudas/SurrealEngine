@@ -463,8 +463,11 @@ bool URootWindow::OnWindowKeyChar(std::string chars)
 	if (!focus)
 		return IsModalOpen();
 
-	if (focus->KeyPressed(chars))
-		return true;
+	for (UWindow* cur = focus; cur; cur = cur->parentOwner())
+	{
+		if (cur->KeyPressed(chars))
+			return true;
+	}
 
 	// To do: fire these for edit windows
 	// event bool TextChanged(window edit, bool bModified)
@@ -490,11 +493,17 @@ bool URootWindow::OnWindowKeyDown(EInputKey key)
 
 	bool repeat = false; // To do: can surrealwidgets tell us this?
 
-	if (focus->RawKeyPressed(key, EInputType::IST_Press, repeat))
-		return true;
+	for (UWindow* cur = focus; cur; cur = cur->parentOwner())
+	{
+		if (cur->RawKeyPressed(key, EInputType::IST_Press, repeat))
+			return true;
+	}
 
-	if (focus->VirtualKeyPressed(key, repeat))
-		return true;
+	for (UWindow* cur = focus; cur; cur = cur->parentOwner())
+	{
+		if (cur->VirtualKeyPressed(key, repeat))
+			return true;
+	}
 
 	return IsModalOpen();
 }
@@ -505,8 +514,11 @@ bool URootWindow::OnWindowKeyUp(EInputKey key)
 	if (!focus)
 		return IsModalOpen();
 
-	if (focus->RawKeyPressed(key, EInputType::IST_Release, false))
-		return true;
+	for (UWindow* cur = focus; cur; cur = cur->parentOwner())
+	{
+		if (cur->RawKeyPressed(key, EInputType::IST_Release, false))
+			return true;
+	}
 
 	// To do: fire these for specific window types
 	// event bool ButtonActivated(Window button)

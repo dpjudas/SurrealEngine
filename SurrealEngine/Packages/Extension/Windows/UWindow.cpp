@@ -333,6 +333,17 @@ bool UWindow::ConvertVectorToCoordinates(const vec3& Location, float& relativeX,
 
 void UWindow::Destroy()
 {
+	if (auto root = GetRootWindow())
+	{
+		if (root->FocusWindow() == this)
+			root->FocusWindow() = nullptr;
+		if (root->grabbedWindow() == this)
+			root->grabbedWindow() = nullptr;
+		if (root->lastButtonWindow() == this)
+			root->lastButtonWindow() = nullptr;
+		if (root->lastMouseWindow() == this)
+			root->lastMouseWindow() = nullptr;
+	}
 	UWindow* parent = parentOwner();
 	DetachFromParent();
 	if (parent)
