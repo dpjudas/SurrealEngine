@@ -16,8 +16,6 @@ void UPlayerPawnExt::InitRootWindow()
 		engine->dxRootWindow = UObject::Cast<URootWindow>(engine->packages->GetTransientPackage()->NewObject("dxRootWindow", cls, ObjectFlags::Transient));
 		RootWindow() = engine->dxRootWindow;
 		engine->dxRootWindow->parentPawn() = this;
-		engine->dxRootWindow->bIsVisible() = true;
-		engine->dxRootWindow->bIsSensitive() = true;
 		engine->dxRootWindow->InitWindow();
 	}
 }

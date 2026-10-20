@@ -362,6 +362,31 @@ void UEditWindow::Tick(float timeElapsed)
 		blinkDelay() = blinkPeriod();
 }
 
+UTexture* UEditWindow::GetCursor()
+{
+	return editCursor();
+}
+
+Color UEditWindow::GetCursorColor()
+{
+	return editCursorColor();
+}
+
+UTexture* UEditWindow::GetCursorShadow()
+{
+	return editCursorShadow();
+}
+
+float UEditWindow::GetCursorHotX()
+{
+	return defaultHotX();// editCursor()->USize() * 0.5f;
+}
+
+float UEditWindow::GetCursorHotY()
+{
+	return defaultHotY();// editCursor()->VSize() * 0.5f;
+}
+
 void UEditWindow::DrawWindow(UGC* gc)
 {
 	UWindow::DrawWindow(gc);

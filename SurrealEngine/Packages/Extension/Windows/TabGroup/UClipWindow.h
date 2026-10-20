@@ -23,9 +23,13 @@ public:
 	void SetUnitSize(int hUnits, int vUnits);
 	void SetUnitWidth(int hUnits);
 
-	UTexture* GetCursor() override { return GetChild()->GetCursor(); }
-	Color GetCursorColor() override { return GetChild()->GetCursorColor(); }
-	UTexture* GetCursorShadow() override { return GetChild()->GetCursorShadow(); }
+	bool MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks) override;
+
+	UTexture* GetCursor() override;
+	Color GetCursorColor() override;
+	UTexture* GetCursorShadow() override;
+	float GetCursorHotX() override;
+	float GetCursorHotY() override;
 
 	int& areaHSize() { return Value<int>(PropOffsets_ClipWindow.areaHSize); }
 	int& areaVSize() { return Value<int>(PropOffsets_ClipWindow.areaVSize); }

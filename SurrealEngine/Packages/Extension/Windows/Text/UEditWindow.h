@@ -48,9 +48,11 @@ public:
 	bool MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks) override;
 	void TextModifiedByScript() override;
 
-	UTexture* GetCursor() override { return editCursor(); }
-	Color GetCursorColor() override { return editCursorColor(); }
-	UTexture* GetCursorShadow() override { return editCursorShadow(); }
+	UTexture* GetCursor() override;
+	Color GetCursorColor() override;
+	UTexture* GetCursorShadow() override;
+	float GetCursorHotX() override;
+	float GetCursorHotY() override;
 
 	BitfieldBool bCursorShowing() { return BoolValue(PropOffsets_EditWindow.bCursorShowing); }
 	BitfieldBool bDragging() { return BoolValue(PropOffsets_EditWindow.bDragging); }
