@@ -50,12 +50,11 @@ void TraceCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	Array<std::string> params = SplitString(args);
 	if (params.size() == 1)
 	{
-		int index = (int)Frame::Breakpoints.size();
+		int index = (int)Frame::Traces.size();
 		Array<std::string> nameChunks = SplitString(params[0], '.');
 		Frame::AddTrace(nameChunks.back(), [=,this](UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args) {
-			if (nameChunks.size() > 1)
-				if (instance->Name != nameChunks[0] || instance->Class->Name != nameChunks[0])
-					return;
+			if (nameChunks.size() > 1 && (instance->Name != nameChunks[0] && instance->Class->Name != nameChunks[0]))
+				return;
 			LogMessage("Trace hit for " + nameChunks.back());
 			LogMessage(Frame::GetCallstack());
 			});
@@ -63,25 +62,23 @@ void TraceCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 	}
 	else if (params.size() == 2)
 	{
-		int index = (int)Frame::Breakpoints.size();
+		int index = (int)Frame::Traces.size();
 		Array<std::string> nameChunks = SplitString(params[0], '.');
 		Array<std::string> chunks = SplitString(params[1], '.');
 
 		if (chunks.size() == 1 && chunks.front() == "break")
 		{
 			Frame::AddTrace(nameChunks.back(), [=](UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args) {
-				if (nameChunks.size() > 1)
-					if (instance->Name != nameChunks[0] || instance->Class->Name != nameChunks[0])
-						return;
+				if (nameChunks.size() > 1 && (instance->Name != nameChunks[0] && instance->Class->Name != nameChunks[0]))
+					return;
 				Frame::Break();
 				});
 		}
 		else
 		{
 			Frame::AddTrace(nameChunks.back(), [=](UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args) {
-				if (nameChunks.size() > 1)
-					if (instance->Name != nameChunks[0] || instance->Class->Name != nameChunks[0])
-						return;
+				if (nameChunks.size() > 1 && (instance->Name != nameChunks[0] && instance->Class->Name != nameChunks[0]))
+					return;
 
 				UObject* obj = instance;
 				for (auto chunk = chunks.begin(); chunk != chunks.end(); chunk++)
