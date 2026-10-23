@@ -7,6 +7,7 @@
 #include "Packages/Core/UClass.h"
 #include "Packages/Core/Properties/UClassProperty.h"
 #include "Packages/Engine/Resources/Level/ULevel.h"
+#include <regex>
 
 PrintCommandlet::PrintCommandlet()
 {
@@ -22,7 +23,77 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 		for (UObject* actor : engine->Level->Actors)
 		{
 			if (actor)
-				console->WriteOutput(ResetEscape() + actor->Name.ToString() + " - " + ColorEscape(96) + actor->Class->Name.ToString() + ResetEscape() + NewLine());
+			{
+				PrintColumn(console, actor->Name.ToString(), actor->Class->Name.ToString(), true);
+			}
+		}
+	}
+	else if (args[0] == '/')
+	{
+		std::string searchstr;
+		Array<std::string> chunks;
+		size_t pos = args.find(' ');
+		if (pos == std::string::npos)
+		{
+			searchstr = args.substr(1);
+		}
+		else
+		{
+			searchstr = args.substr(1, pos - 1);
+			chunks = SplitString(args.substr(pos + 1), '.');
+		}
+
+		try
+		{
+			std::regex reg(searchstr, std::regex::ECMAScript | std::regex::icase);
+			for (UObject* actor : engine->Level->Actors)
+			{
+				if (std::regex_search(actor->Name.ToString(), reg) || std::regex_search(actor->Class->Name.ToString(), reg))
+				{
+					if (chunks.empty())
+					{
+						PrintColumn(console, actor->Name.ToString(), actor->Class->Name.ToString(), true);
+					}
+					else
+					{
+						UObject* obj = actor;
+						for (auto chunk = chunks.begin(); chunk != chunks.end(); chunk++)
+						{
+							bool bFoundObj = false;
+							for (UProperty* prop : obj->PropertyData.Class->Properties)
+							{
+								if (prop->Name == (*chunk))
+								{
+									void* val = obj->PropertyData.Ptr(prop);
+
+									if (chunk + 1 == chunks.end())
+									{
+										std::string name = prop->Name.ToString();
+										std::string value = prop->PrintValue(val);
+										PrintColumn(console, actor->Name.ToString(), actor->Class->Name.ToString(), false);
+										PrintColumn(console, name, value, true);
+										bFoundObj = true;
+										break;
+									}
+									else if (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop))
+									{
+										obj = *(UObject**)val;
+										bFoundObj = true;
+										break;
+									}
+								}
+							}
+
+							if (!bFoundObj)
+								break;
+						}
+					}
+				}
+			}
+		}
+		catch (const std::exception& e)
+		{
+			console->WriteOutput(e.what() + NewLine());
 		}
 	}
 	else
@@ -162,18 +233,18 @@ std::vector<std::pair<std::string, std::string>> PrintCommandlet::FindProperties
 			{
 				void* val = obj->PropertyData.Ptr(prop);
 
-				if (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop))
-				{
-					obj = *(UObject**)val;
-					bFoundObj = true;
-					break;
-				}
-				else if (chunk+1 == chunks.end())
+				if (chunk + 1 == chunks.end())
 				{
 					name = prop->Name.ToString();
 					value = prop->PrintValue(val);
 					results.push_back({ name, value });
 					return results;
+				}
+				else if (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop))
+				{
+					obj = *(UObject**)val;
+					bFoundObj = true;
+					break;
 				}
 			}
 		}
@@ -219,4 +290,8 @@ void PrintCommandlet::PrintColumn(DebuggerApp* console, const std::string& name,
 
 void PrintCommandlet::OnPrintHelp(DebuggerApp* console)
 {
+	console->WriteOutput("Syntax: print                            - list all objects" + NewLine());
+	console->WriteOutput("        print <object name> <property>   - print object property" + NewLine());
+	console->WriteOutput("        print /<regex>                   - list objects matching regular expression" + NewLine());
+	console->WriteOutput("        print /<regex> <property>        - print property in objects matching regular expression" + NewLine());
 }
