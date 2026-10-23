@@ -5,7 +5,7 @@
 class TraceAABBModel
 {
 public:
-	CollisionHitList Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly);
+	CollisionHitList Trace(UActor* owner, UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly);
 
 private:
 	void Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly, BspNode* node, CollisionHitList& hits);
@@ -145,5 +145,6 @@ private:
 		bool nohit = false;
 	};
 
+	UActor* Owner = nullptr;
 	UModel* Model = nullptr;
 };

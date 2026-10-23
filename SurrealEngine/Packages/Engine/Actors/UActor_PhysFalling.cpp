@@ -87,7 +87,7 @@ void UActor::TickFalling(float elapsed)
 
 		if (hit.Fraction < 1.0f)
 		{
-			if (hit.Actor && hit.Actor->IsA("Pawn"))
+			if (hit.Actor->IsA("Pawn"))
 			{
 				// So projectiles don't think they hit a wall.
 			}

@@ -383,9 +383,9 @@ bool UActor::TraceThisActor(vec3& TraceEnd, vec3 TraceStart, vec3* HitLocation, 
 		.world = true
 	};
 
-	const auto hit = XLevel()->Collision.TraceFirstHit(TraceStart, TraceEnd, this, Extent ? *Extent : vec3(), flags);
+	const auto hit = XLevel()->Collision.TraceFirstHit(TraceStart, TraceEnd, this, Extent ? *Extent : vec3(0.0f), flags);
 
-	if (!hit.Node && !hit.Actor)
+	if (hit.Fraction == 1.0f)
 		return false;
 
 	if (HitLocation)
@@ -422,7 +422,7 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 		{
 			for (auto& hit : hits)
 			{
-				if (hit.Actor)
+				if (hit.Actor != Level())
 				{
 					bool isBlocking;
 					if (useBlockPlayers || UObject::TryCast<UPlayerPawn>(hit.Actor) || UObject::TryCast<UProjectile>(hit.Actor))
@@ -513,7 +513,7 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 	}
 
 	// Send bump notification if we hit an actor
-	if (blockingHit.Actor)
+	if (blockingHit.Actor && blockingHit.Actor != Level())
 	{
 		if (!blockingHit.Actor->IsBasedOn(this))
 		{
@@ -528,7 +528,7 @@ CollisionHit UActor::TryMove(const vec3& delta, bool dryRun, bool isOwnBaseBlock
 		if (hit.Fraction >= blockingHit.Fraction)
 			break;
 
-		if (hit.Actor && !hit.Actor->IsBasedOn(this) && !IsBasedOn(hit.Actor) && bCollideActors() && hit.Actor->bCollideActors())
+		if (hit.Actor != Level() && !hit.Actor->IsBasedOn(this) && !IsBasedOn(hit.Actor) && bCollideActors() && hit.Actor->bCollideActors())
 		{
 			// We can't touch stuff we are blocked by
 			bool isBlocking;

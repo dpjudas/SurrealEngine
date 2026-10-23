@@ -27,6 +27,7 @@ public:
 			return emptyList;
 	}
 
+	ULevelInfo* GetLevelInfo() const { return Collision->LevelInfo; }
 	ULevel* GetLevel() const { return Collision->Level; }
 
 private:

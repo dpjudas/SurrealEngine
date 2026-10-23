@@ -3,8 +3,9 @@
 #include "TraceRayModel.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
 
-CollisionHitList TraceRayModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
+CollisionHitList TraceRayModel::Trace(UActor* owner, UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
 {
+	Owner = owner;
 	Model = model;
 	CollisionHitList hits;
 	Trace(origin, tmin, dirNormalized, tmax, visibilityOnly, &Model->Nodes.front(), hits);
@@ -12,8 +13,9 @@ CollisionHitList TraceRayModel::Trace(UModel* model, const dvec3& origin, double
 	return hits;
 }
 
-bool TraceRayModel::TraceAnyHit(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
+bool TraceRayModel::TraceAnyHit(UActor* owner, UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
 {
+	Owner = owner;
 	Model = model;
 	return TraceAnyHit(origin, tmin, dirNormalized, tmax, visibilityOnly, &Model->Nodes.front());
 }
@@ -28,7 +30,7 @@ void TraceRayModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNorm
 			double t = NodeRayIntersect(origin, tmin, dirNormalized, tmax, polynode);
 			if (t >= tmin && t < tmax)
 			{
-				CollisionHit hit = { (float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ), nullptr, polynode, node };
+				CollisionHit hit = { (float)t, vec3(node->PlaneX, node->PlaneY, node->PlaneZ), Owner, polynode, node };
 				if (dot(to_dvec3(hit.Normal), dirNormalized) > 0.0)
 					hit.Normal = -hit.Normal;
 				hits.push_back(hit);

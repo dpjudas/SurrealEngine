@@ -37,6 +37,8 @@ class ULevel : public ULevelBase
 public:
 	ULevel(NameString name, UClass* base, ObjectFlags flags);
 
+	void SetOwner(ULevelInfo* owner);
+
 	void Load(ObjectStream* stream) override;
 	void Save(PackageStreamWriter* stream) override;
 

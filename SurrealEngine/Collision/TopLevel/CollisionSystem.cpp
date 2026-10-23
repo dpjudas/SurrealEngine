@@ -43,14 +43,14 @@ CollisionHitList CollisionSystem::Trace(const vec3& from, const vec3& to, float 
 CollisionHitList CollisionSystem::TraceDecal(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, bool visibilityOnly)
 {
 	TraceRayModel trace;
-	return trace.Trace(Level->Model, origin, tmin, dirNormalized, tmax, visibilityOnly);
+	return trace.Trace(LevelInfo, Level->Model, origin, tmin, dirNormalized, tmax, visibilityOnly);
 }
 
 CollisionHit CollisionSystem::TraceFirstHit(const vec3& from, const vec3& to, UActor* tracingActor, const vec3& extents, const TraceFlags& flags)
 {
 	for (const CollisionHit& hit : Trace(from, to, extents.z, extents.x, flags.traceActors(), flags.traceWorld(), false))
 	{
-		if (hit.Actor && (!tracingActor || !tracingActor->IsOwnedBy(hit.Actor)))
+		if (hit.Actor != LevelInfo && (!tracingActor || !tracingActor->IsOwnedBy(hit.Actor)))
 		{
 			if (hit.Actor->IsA("Pawn"))
 			{
@@ -73,12 +73,9 @@ CollisionHit CollisionSystem::TraceFirstHit(const vec3& from, const vec3& to, UA
 					return hit;
 			}
 		}
-		else if (flags.world && !hit.Actor)
+		else if (flags.world && hit.Actor == LevelInfo)
 		{
-			CollisionHit worldHit = hit;
-			if (tracingActor)
-				worldHit.Actor = tracingActor->Level();
-			return worldHit;
+			return hit;
 		}
 	}
 	return {};
@@ -102,8 +99,9 @@ Array<UActor*> CollisionSystem::EncroachingActors(UActor* actor)
 	return overlap.EncroachingActors(actor);
 }
 
-void CollisionSystem::SetLevel(ULevel* level)
+void CollisionSystem::SetLevel(ULevelInfo* levelInfo, ULevel* level)
 {
+	LevelInfo = levelInfo;
 	Level = level;
 }
 

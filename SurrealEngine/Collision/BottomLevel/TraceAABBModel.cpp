@@ -3,8 +3,9 @@
 #include "TraceAABBModel.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
 
-CollisionHitList TraceAABBModel::Trace(UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly)
+CollisionHitList TraceAABBModel::Trace(UActor* owner, UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly)
 {
+	Owner = owner;
 	Model = model;
 	CollisionHitList hits;
 	Trace(origin, tmin, dirNormalized, tmax, extents, visibilityOnly, &Model->Nodes.front(), hits);
@@ -95,7 +96,7 @@ void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNor
 			double t = cursor.HitFraction();
 			if (t >= tmin && t < tmax)
 			{
-				CollisionHit hit = { (float)t, vec3(cursor.HitNormal()), nullptr, node, node };
+				CollisionHit hit = { (float)t, vec3(cursor.HitNormal()), Owner, node, node };
 				hits.push_back(hit);
 			}
 		}

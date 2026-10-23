@@ -80,6 +80,9 @@ public:
 
 	void push_back(const CollisionHit& hit)
 	{
+		if (hit.Fraction < 1.0f && hit.Actor == nullptr)
+			Exception::Throw("Tried to add a hit without an actor");
+
 		if (count != capacity)
 		{
 			new((uint8_t*)&items[count]) CollisionHit(hit);

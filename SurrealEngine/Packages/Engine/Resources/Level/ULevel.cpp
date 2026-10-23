@@ -10,7 +10,11 @@
 
 ULevel::ULevel(NameString name, UClass* base, ObjectFlags flags) : ULevelBase(name, base, flags)
 {
-	Collision.SetLevel(this);
+}
+
+void ULevel::SetOwner(ULevelInfo* owner)
+{
+	Collision.SetLevel(owner, this);
 	Light.SetLevel(this);
 }
 

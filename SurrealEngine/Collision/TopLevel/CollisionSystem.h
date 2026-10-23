@@ -5,6 +5,7 @@
 #include <list>
 
 class ULevel;
+class ULevelInfo;
 class UActor;
 class CollisionHitList;
 class CollisionHit;
@@ -38,7 +39,7 @@ public:
 	Array<UActor*> CollidingActors(const vec3& origin, float height, float radius);
 	Array<UActor*> EncroachingActors(UActor* actor);
 
-	void SetLevel(ULevel* level);
+	void SetLevel(ULevelInfo* levelInfo, ULevel* level);
 	void AddToCollision(UActor* actor);
 	void RemoveFromCollision(UActor* actor);
 
@@ -108,6 +109,7 @@ private:
 		return ((x & 0x3ff) << 20) | ((y & 0x3ff) << 10) | (z & 0x3ff);
 	}
 
+	ULevelInfo* LevelInfo = nullptr;
 	ULevel* Level = nullptr;
 	std::unordered_map<uint32_t, std::list<UActor*>> CollisionActors;
 

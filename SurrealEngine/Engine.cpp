@@ -2002,6 +2002,8 @@ void Engine::GetLevelObject()
 	if (!Level)
 		Exception::Throw("Could not find the Level object for" + LevelPackage->GetPackageName().ToString() + "!");
 
+	Level->SetOwner(LevelInfo);
+
 	if (LaunchInfo.IsDeusEx())
 	{
 		// Also try to find DeusExLevelInfo

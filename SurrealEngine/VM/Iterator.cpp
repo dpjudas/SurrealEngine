@@ -301,7 +301,7 @@ TraceActorsIterator::TraceActorsIterator(UActor* SelfActor, UObject* BaseClass, 
 
 	for (auto& hit : SelfActor->XLevel()->Collision.Trace(traceStart, traceEnd, Extent.z, Extent.x, flags.traceActors(), flags.traceWorld(), false))
 	{
-		if (hit.Actor && hit.Actor != SelfActor && hit.Actor->IsA(BaseClass->Name))
+		if (hit.Actor != SelfActor->Level() && hit.Actor != SelfActor && hit.Actor->IsA(BaseClass->Name))
 		{
 			vec3 hitNormal = hit.Normal;
 			vec3 hitLocation = traceStart + (traceEnd - traceStart) * hit.Fraction;
@@ -438,11 +438,7 @@ bool TraceTextureIterator::Next()
 	{
 		UTexture* foundTexture = nullptr;
 
-		UActor* actor = m_Iterator->Actor;
-		if (!actor)
-			actor = engine->LevelInfo;
-
-		*OutActor = actor;
+		*OutActor = m_Iterator->Actor;
 		const auto node = m_Iterator->Node;
 
 		HitLoc = mix(*Start, End, m_Iterator->Fraction);
@@ -496,7 +492,7 @@ bool TraceVisibleActorsIterator::Next()
 
 		++m_Iterator;
 
-		if (foundActor && foundActor->IsA(BaseClass->Name) && !foundActor->bHidden())
+		if (foundActor != engine->LevelInfo && foundActor->IsA(BaseClass->Name) && !foundActor->bHidden())
 		{
 			*OutActor = foundActor;
 			return true;

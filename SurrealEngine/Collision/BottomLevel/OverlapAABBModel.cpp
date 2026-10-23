@@ -3,8 +3,9 @@
 #include "OverlapAABBModel.h"
 #include "Packages/Engine/Resources/Level/UModel.h"
 
-CollisionHitList OverlapAABBModel::TestOverlap(UModel* model, const vec3& center, const vec3& extents, bool visibilityOnly)
+CollisionHitList OverlapAABBModel::TestOverlap(UActor* owner, UModel* model, const vec3& center, const vec3& extents, bool visibilityOnly)
 {
+	Owner = owner;
 	Model = model;
 	CollisionHitList hits;
 	TestOverlap(to_dvec3(center), to_dvec3(extents), visibilityOnly, &Model->Nodes.front(), hits);
@@ -51,7 +52,7 @@ void OverlapAABBModel::TestOverlap(const dvec3& center, const dvec3& extents, bo
 			if (!foundOutside)
 			{
 				vec3 normal(0.0f);
-				hits.push_back({ 0.0f, normal, nullptr, node, node });
+				hits.push_back({ 0.0f, normal, Owner, node, node });
 			}
 		}
 	}
