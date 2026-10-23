@@ -99,6 +99,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Commandlet/CompilerCommandlet.h
 	SurrealEngine/Commandlet/Debug/CollisionCommandlet.cpp
 	SurrealEngine/Commandlet/Debug/CollisionCommandlet.h
+	SurrealEngine/Commandlet/VM/TraceCommandlet.cpp
+	SurrealEngine/Commandlet/VM/TraceCommandlet.h
 	SurrealEngine/Commandlet/VM/BreakpointCommandlet.cpp
 	SurrealEngine/Commandlet/VM/BreakpointCommandlet.h
 	SurrealEngine/Commandlet/VM/CallstackCommandlet.cpp

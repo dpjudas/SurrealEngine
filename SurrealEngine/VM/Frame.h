@@ -45,6 +45,13 @@ struct Breakpoint
 	bool Enabled = true;
 };
 
+struct Trace
+{
+	NameString Function;
+	std::function<void(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args)> Callback;
+	bool Enabled = true;
+};
+
 class Frame
 {
 public:
@@ -53,9 +60,11 @@ public:
 	static std::string GetDisassembly(Expression* statement);
 
 	static bool AddBreakpoint(const NameString& cls, const NameString& func, const NameString& state = {}, int statementIndex = 0);
+	static void AddTrace(const NameString& func, std::function<void(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args)> callback);
 
 	static std::function<void()> RunDebugger;
 	static Array<Breakpoint> Breakpoints;
+	static Array<Trace> Traces;
 	static Array<Frame*> Callstack;
 	static FrameRunState RunState;
 	static Frame* StepFrame;

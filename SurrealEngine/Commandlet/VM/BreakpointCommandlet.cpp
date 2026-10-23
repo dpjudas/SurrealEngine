@@ -158,13 +158,14 @@ void DeleteBreakpointCommandlet::OnPrintHelp(DebuggerApp* console)
 ClearBreakpointsCommandlet::ClearBreakpointsCommandlet()
 {
 	SetLongFormName("clear");
-	SetShortDescription("Remove all breakpoints");
+	SetShortDescription("Remove all breakpoints and traces");
 }
 
 void ClearBreakpointsCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 {
 	Frame::Breakpoints.clear();
-	console->WriteOutput("Removed all breakpoints" + NewLine());
+	Frame::Traces.clear();
+	console->WriteOutput("Removed all breakpoints and traces" + NewLine());
 }
 
 void ClearBreakpointsCommandlet::OnPrintHelp(DebuggerApp* console)

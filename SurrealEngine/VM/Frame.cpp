@@ -15,6 +15,7 @@
 
 std::function<void()> Frame::RunDebugger;
 Array<Breakpoint> Frame::Breakpoints;
+Array<Trace> Frame::Traces;
 Array<Frame*> Frame::Callstack;
 FrameRunState Frame::RunState = FrameRunState::Running;
 Frame* Frame::StepFrame = nullptr;
@@ -117,6 +118,14 @@ void Frame::DeinitVariables()
 			VMFreeVariables();
 		Variables = nullptr;
 	}
+}
+
+void Frame::AddTrace(const NameString& func, std::function<void(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args)> callback)
+{
+	Trace trace;
+	trace.Function = func;
+	trace.Callback = callback;
+	Traces.push_back(trace);
 }
 
 bool Frame::AddBreakpoint(const NameString& clsName, const NameString& funcName, const NameString& stateName, int statementIndex)
@@ -434,56 +443,11 @@ ExpressionValue Frame::CallNative(UFunction* func, UObject* instance, const Arra
 
 void Frame::TraceCall(UFunction* func, UObject* instance, const ArrayView<ExpressionValue>& args)
 {
-#if 0 // To do: create a commandlet that lets us do this
-	static NameString TraceActorClass = "CTFGame";
-	static NameString TraceActorFunc = "PostBeginPlay";
-	if (instance->Class->Name == TraceActorClass && func->Name == TraceActorFunc)
+	for (const auto& trace : Traces)
 	{
-		LogMessage("RemainingBots=" + std::to_string(instance->GetInt("RemainingBots")));
-		LogMessage("InitialBots=" + std::to_string(instance->GetInt("InitialBots")));
-		std::string traceMessage = "Called " + func->Name.ToString() + "(";
-		bool first = true;
-		for (auto& arg : args)
-		{
-			if (first)
-				first = false;
-			else
-				traceMessage += ", ";
-			if (arg.GetType() == ExpressionValueType::ValueString)
-			{
-				traceMessage += "\"";
-				traceMessage += arg.ToString();
-				traceMessage += "\"";
-			}
-			else if (arg.GetType() == ExpressionValueType::ValueName)
-			{
-				traceMessage += "'";
-				traceMessage += arg.ToName().ToString();
-				traceMessage += "'";
-			}
-			else if (arg.GetType() == ExpressionValueType::ValueBool)
-			{
-				traceMessage += "'";
-				traceMessage += arg.ToBool() ? "true" : "false";
-				traceMessage += "'";
-			}
-			else if (arg.GetType() == ExpressionValueType::ValueObject)
-			{
-				traceMessage += arg.ToObject() ? UObject::GetUClassName(arg.ToObject()).ToString() : "null";
-			}
-			else if (arg.GetType() == ExpressionValueType::Nothing)
-			{
-				traceMessage += "None";
-			}
-			else
-			{
-				traceMessage += "?";
-			}
-		}
-		traceMessage += ")";
-		LogMessage(traceMessage);
+		if (trace.Enabled && trace.Function == func->Name)
+			trace.Callback(func, instance, args);
 	}
-#endif
 }
 
 void Frame::GotoLabel(const NameString& label)

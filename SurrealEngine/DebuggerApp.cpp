@@ -10,6 +10,7 @@
 #include "Commandlet/RunCommandlet.h"
 #include "Commandlet/CompilerCommandlet.h"
 #include "Commandlet/Debug/CollisionCommandlet.h"
+#include "Commandlet/VM/TraceCommandlet.h"
 #include "Commandlet/VM/BreakpointCommandlet.h"
 #include "Commandlet/VM/CallstackCommandlet.h"
 #include "Commandlet/VM/DisassemblyCommandlet.h"
@@ -104,6 +105,11 @@ void DebuggerApp::CreateCommandlets()
 	Commandlets.push_back(std::make_unique<ClearBreakpointsCommandlet>());
 	Commandlets.push_back(std::make_unique<EnableBreakpointCommandlet>());
 	Commandlets.push_back(std::make_unique<DisableBreakpointCommandlet>());
+	Commandlets.push_back(std::make_unique<ListTracesCommandlet>());
+	Commandlets.push_back(std::make_unique<TraceCommandlet>());
+	Commandlets.push_back(std::make_unique<DeleteTraceCommandlet>());
+	Commandlets.push_back(std::make_unique<EnableTraceCommandlet>());
+	Commandlets.push_back(std::make_unique<DisableTraceCommandlet>());
 	Commandlets.push_back(std::make_unique<CallstackCommandlet>());
 	Commandlets.push_back(std::make_unique<SelectFrameCommandlet>());
 	Commandlets.push_back(std::make_unique<UpFrameCommandlet>());
