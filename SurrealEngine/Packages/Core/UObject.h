@@ -328,6 +328,8 @@ public:
 	NameString GetStateName() const;
 	void GotoState(NameString stateName, const NameString& labelName);
 
+	void CriticalDelete();
+
 	std::string PrintProperties();
 	Array<UProperty*> GetAllProperties();
 	Array<UProperty*> GetAllUserEditableProperties();

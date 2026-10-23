@@ -556,6 +556,11 @@ GCAllocation* UObject::Mark(GCAllocation* marklist)
 	return marklist;
 }
 
+void UObject::CriticalDelete()
+{
+	// We don't have to do anything here. In DX it most likely deleted the GC allocated object right away, but we don't have that strict memory requirements.
+}
+
 /////////////////////////////////////////////////////////////////////////////
 
 void PropertyDataBlock::Reset()

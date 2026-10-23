@@ -579,7 +579,7 @@ void NObject::Disable(UObject* Self, const NameString& ProbeFunc)
 
 void NObject::CriticalDelete(UObject* Self, UObject* myObject)
 {
-	LogUnimplemented("Object.CriticalDelete");
+	Self->CriticalDelete();
 }
 
 void NObject::Divide_U227(std::string& Src, std::string& Divider, std::string& LeftPart, std::string& RightPart, BitfieldBool& ReturnValue)
