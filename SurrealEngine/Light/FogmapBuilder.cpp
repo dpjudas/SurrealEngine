@@ -38,7 +38,7 @@ void FogmapBuilder::AddLight(UActor* light, vec3 view)
 {
 	if (light->FogInfo.brightness < 0.0f)
 	{
-		light->FogInfo.fogcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), light->LightBrightness());
+		light->FogInfo.fogcolor = hsbtorgb(light->LightHue(), light->LightSaturation(), 128);
 		light->FogInfo.brightness = light->LightBrightness() * (1.0f / 255.0f) * light->VolumeBrightness() * (1.0f / 64.0f);
 		light->FogInfo.fog = light->VolumeFog() * (1.0f / 255.0f);
 		light->FogInfo.radius = light->WorldVolumetricRadius();
@@ -46,7 +46,8 @@ void FogmapBuilder::AddLight(UActor* light, vec3 view)
 	}
 
 	vec3 fogcolor = light->FogInfo.fogcolor;
-	float brightness = light->FogInfo.brightness * 5.0f;
+	float brightness = light->FogInfo.brightness;
+
 	float fog = light->FogInfo.fog;
 	float radius = light->FogInfo.radius;
 	vec3 lightpos = light->FogInfo.location;
@@ -63,13 +64,13 @@ void FogmapBuilder::AddLight(UActor* light, vec3 view)
 		float depth = std::sqrt(dot(rayDirection, rayDirection));
 #endif
 		rayDirection *= (1.0f / depth);
-		float fogamount = SphereDensity(view, rayDirection, lightpos, radius, depth) * brightness;
 
-		float alpha = std::min(fogamount * fog, 1.0f);
+		float fogamount = std::min(SphereDensity(view, rayDirection, lightpos, radius, depth) * 4.0f * light->FogInfo.brightness, 1.0f);
+		float alpha = std::min(fogamount * fog * 2.0f, 1.0f);
 		float invalpha = 1.0f - alpha;
-		dest[i].r = fogcolor.r * fogamount + dest[i].r * invalpha;
-		dest[i].g = fogcolor.g * fogamount + dest[i].g * invalpha;
-		dest[i].b = fogcolor.b * fogamount + dest[i].b * invalpha;
+		dest[i].r = std::min(fogcolor.r * fogamount + dest[i].r * invalpha, 1.0f);
+		dest[i].g = std::min(fogcolor.g * fogamount + dest[i].g * invalpha, 1.0f);
+		dest[i].b = std::min(fogcolor.b * fogamount + dest[i].b * invalpha, 1.0f);
 		dest[i].a = std::min(dest[i].a + alpha, 1.0f);
 	}
 }

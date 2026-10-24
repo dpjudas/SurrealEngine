@@ -30,7 +30,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, bool wireframe, b
 	// Note: using transpose seems to be wrong here
 	mat3 meshNormalToWorld = mat3(Coords::Rotation(actor->Rotation()).ToMatrix() * Coords::Rotation(mesh->RotOrigin).ToMatrix());
 
-	bool needsTranslucentPass = DrawMeshAtLocation(frame, actor, actor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
+	bool needsTranslucentPass = DrawMeshAtLocation(frame, actor, actor, mesh, meshToWorld, meshNormalToWorld, actor->DrawScale(), translucentPass);
 
 	// Weapon attachment drawing:
 	if (UPawn* pawn = UObject::TryCast<UPawn>(actor))
@@ -55,36 +55,36 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, bool wireframe, b
 			// Place the weapon in this coordinate space:
 			mat4 weaponMeshToWorld = attachment.ToMatrix() * mat4::scale(weapon->ThirdPersonScale()) * weaponMesh->meshToObject;
 			mat3 weaponNormalToWorld = mat3::transpose(mat3(weaponMeshToWorld));
-			needsTranslucentPass = DrawMeshAtLocation(frame, weapon, actor, weaponMesh, weaponMeshToWorld, weaponNormalToWorld, translucentPass) || needsTranslucentPass;
+			needsTranslucentPass = DrawMeshAtLocation(frame, weapon, actor, weaponMesh, weaponMeshToWorld, weaponNormalToWorld, weapon->ThirdPersonScale(), translucentPass) || needsTranslucentPass;
 		}
 	}
 
 	return needsTranslucentPass;
 }
 
-bool VisibleMesh::DrawMeshAtLocation(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& meshToWorld, const mat3& meshNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawMeshAtLocation(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& meshToWorld, const mat3& meshNormalToWorld, float scale, bool translucentPass)
 {
 	if (auto skeletalmesh = UObject::TryCast<USkeletalMesh>(mesh))
 	{
-		return DrawSkeletalMesh(frame, actor, lightLocationActor, skeletalmesh, meshToWorld, meshNormalToWorld, translucentPass);
+		return DrawSkeletalMesh(frame, actor, lightLocationActor, skeletalmesh, meshToWorld, meshNormalToWorld, scale, translucentPass);
 	}
 	else if (auto lodmesh = UObject::TryCast<ULodMesh>(mesh))
 	{
 		if (engine->LaunchInfo.IsDeusEx())
-			return DrawLodMeshDX(frame, actor, lightLocationActor, lodmesh, meshToWorld, meshNormalToWorld, translucentPass);
+			return DrawLodMeshDX(frame, actor, lightLocationActor, lodmesh, meshToWorld, meshNormalToWorld, scale, translucentPass);
 		else
-			return DrawLodMesh(frame, actor, lightLocationActor, lodmesh, meshToWorld, meshNormalToWorld, translucentPass);
+			return DrawLodMesh(frame, actor, lightLocationActor, lodmesh, meshToWorld, meshNormalToWorld, scale, translucentPass);
 	}
 	else
 	{
 		if (engine->LaunchInfo.IsDeusEx())
-			return DrawMeshDX(frame, actor, lightLocationActor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
+			return DrawMeshDX(frame, actor, lightLocationActor, mesh, meshToWorld, meshNormalToWorld, scale, translucentPass);
 		else
-			return DrawMesh(frame, actor, lightLocationActor, mesh, meshToWorld, meshNormalToWorld, translucentPass);
+			return DrawMesh(frame, actor, lightLocationActor, mesh, meshToWorld, meshNormalToWorld, scale, translucentPass);
 	}
 }
 
-bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, float scale, bool translucentPass)
 {
 	auto lightsys = &engine->Level->Light;
 	float fatness = actor->Fatness() / 16.0f - 8.0f;
@@ -146,7 +146,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UActor* lightLoca
 	UZoneInfo* zoneActor = engine->GetZoneActor(actor->Region().ZoneNumber);
 
 	VertexLight vertexLight;
-	lightsys->InitVertexLight(vertexLight, lightLocationActor, zoneActor);
+	lightsys->InitVertexLight(vertexLight, lightLocationActor, zoneActor, vec4((ObjectToWorld * (mesh->BoundingSphere.xyz(), 1.0f)).xyz(), mesh->BoundingSphere.z * scale));
 
 	GouraudVertex vertices[3];
 	for (const MeshTri& tri : mesh->Tris)
@@ -236,7 +236,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UActor* lightLoca
 	return needTranslucentPass;
 }
 
-bool VisibleMesh::DrawLodMesh(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawLodMesh(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, float scale, bool translucentPass)
 {
 	UActor* animSource = actor;
 	if (engine->LaunchInfo.ue1Version > 219 && actor->bAnimByOwner() && actor->Owner())
@@ -273,7 +273,7 @@ bool VisibleMesh::DrawLodMesh(VisibleFrame* frame, UActor* actor, UActor* lightL
 
 	SetupLodMeshTextures(actor, mesh);
 	FindAttachmentPoints(mesh, ObjectToWorld, vertexOffsets, t0, t1);
-	return DrawLodMeshFace(frame, actor, lightLocationActor, mesh, mesh->Faces, ObjectToWorld, ObjectNormalToWorld, mesh->SpecialVerts, vertexOffsets, t0, t1, translucentPass);
+	return DrawLodMeshFace(frame, actor, lightLocationActor, mesh, mesh->Faces, ObjectToWorld, ObjectNormalToWorld, scale, mesh->SpecialVerts, vertexOffsets, t0, t1, translucentPass);
 }
 
 void VisibleMesh::SetupMeshTextures(UActor* actor, UMesh* mesh)
@@ -428,7 +428,7 @@ void VisibleMesh::FindAttachmentPoints(ULodMesh* mesh, const mat4& ObjectToWorld
 	}
 }
 
-bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass)
+bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, float scale, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass)
 {
 	auto lightsys = &engine->Level->Light;
 	float fatness = actor->Fatness() / 16.0f - 8.0f;
@@ -453,7 +453,7 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, UActor* li
 	UZoneInfo* zoneActor = engine->GetZoneActor(actor->Region().ZoneNumber);
 
 	VertexLight vertexLight;
-	lightsys->InitVertexLight(vertexLight, lightLocationActor, zoneActor);
+	lightsys->InitVertexLight(vertexLight, lightLocationActor, zoneActor, vec4((ObjectToWorld * (mesh->BoundingSphere.xyz(), 1.0f)).xyz(), mesh->BoundingSphere.z * scale));
 
 	bool needTranslucentPass = false;
 
@@ -556,12 +556,12 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, UActor* li
 	return needTranslucentPass;
 }
 
-bool VisibleMesh::DrawSkeletalMesh(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawSkeletalMesh(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, USkeletalMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, float scale, bool translucentPass)
 {
-	return DrawLodMesh(frame, actor, lightLocationActor, mesh, ObjectToWorld, ObjectNormalToWorld, translucentPass);
+	return DrawLodMesh(frame, actor, lightLocationActor, mesh, ObjectToWorld, ObjectNormalToWorld, scale, translucentPass);
 }
 
-bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, UMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, float scale, bool translucentPass)
 {
 	auto lightsys = &engine->Level->Light;
 	float fatness = actor->Fatness() / 16.0f - 8.0f;
@@ -681,7 +681,7 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 	UZoneInfo* zoneActor = engine->GetZoneActor(actor->Region().ZoneNumber);
 
 	VertexLight vertexLight;
-	lightsys->InitVertexLight(vertexLight, lightLocationActor, zoneActor);
+	lightsys->InitVertexLight(vertexLight, lightLocationActor, zoneActor, vec4((ObjectToWorld * (mesh->BoundingSphere.xyz(), 1.0f)).xyz(), mesh->BoundingSphere.z * scale));
 
 	GouraudVertex vertices[3];
 	for (const MeshTri& tri : mesh->Tris)
@@ -794,7 +794,7 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 	return needTranslucentPass;
 }
 
-bool VisibleMesh::DrawLodMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, bool translucentPass)
+bool VisibleMesh::DrawLodMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, float scale, bool translucentPass)
 {
 	UActor* animSource = actor;
 	if (engine->LaunchInfo.ue1Version > 219 && actor->bAnimByOwner() && actor->Owner())
@@ -896,10 +896,10 @@ bool VisibleMesh::DrawLodMeshDX(VisibleFrame* frame, UActor* actor, UActor* ligh
 
 	SetupLodMeshTextures(actor, mesh);
 	FindAttachmentPoints(mesh, ObjectToWorld, vertexOffsets, t0, t1);
-	return DrawLodMeshFaceDX(frame, actor, lightLocationActor, mesh, mesh->Faces, ObjectToWorld, ObjectNormalToWorld, mesh->SpecialVerts, vertexOffsets, t0, t1, translucentPass, blends, blendCount);
+	return DrawLodMeshFaceDX(frame, actor, lightLocationActor, mesh, mesh->Faces, ObjectToWorld, ObjectNormalToWorld, scale, mesh->SpecialVerts, vertexOffsets, t0, t1, translucentPass, blends, blendCount);
 }
 
-bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass, BlendInfo* blends, int blendCount)
+bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* lightLocationActor, ULodMesh* mesh, const Array<MeshFace>& faces, const mat4& ObjectToWorld, const mat3& ObjectNormalToWorld, float scale, int baseVertexOffset, const int* vertexOffsets, float t0, float t1, bool translucentPass, BlendInfo* blends, int blendCount)
 {
 	auto lightsys = &engine->Level->Light;
 	float fatness = actor->Fatness() / 16.0f - 8.0f;
@@ -924,7 +924,7 @@ bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* 
 	UZoneInfo* zoneActor = engine->GetZoneActor(actor->Region().ZoneNumber);
 
 	VertexLight vertexLight;
-	lightsys->InitVertexLight(vertexLight, lightLocationActor, zoneActor);
+	lightsys->InitVertexLight(vertexLight, lightLocationActor, zoneActor, vec4((ObjectToWorld * (mesh->BoundingSphere.xyz(), 1.0f)).xyz(), mesh->BoundingSphere.z * scale));
 
 	bool needTranslucentPass = false;
 

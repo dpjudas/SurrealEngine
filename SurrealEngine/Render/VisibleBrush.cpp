@@ -111,12 +111,9 @@ bool VisibleBrush::DrawBrushPoly(VisibleFrame* frame, UModel* model, const Poly&
 	facet.VertexCount = numverts;
 
 	TextureInfo lightmap;
-	TextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
-	{
 		lightmap = engine->Level->Light.GetMoverLightmap(mover, poly, zoneActor, model);
-		fogmap = engine->Level->Light.GetMoverFogmap(mover, poly, zoneActor, model);
-	}
+	TextureInfo fogmap = engine->Level->Light.GetMoverFogmap(mover, poly, engine->CameraActor->Region().Zone, model);
 
 	surfaceinfo.PolyFlags = PolyFlags;
 	surfaceinfo.LightMap = lightmap.NumMips != 0 ? &lightmap : nullptr;

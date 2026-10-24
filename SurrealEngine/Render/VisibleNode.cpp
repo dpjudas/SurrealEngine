@@ -20,7 +20,7 @@ void VisibleNode::Draw(VisibleFrame* frame)
 
 	engine->render->UpdateTexture(surface.Material);
 
-	auto zoneActor = engine->GetZoneActor(Front ? Node->Zone1 : Node->Zone0);
+	auto zoneActor = engine->GetZoneActor(Front ? Node->Zone0 : Node->Zone1);
 
 	// If no ZoneInfo is found, use the values from LevelInfo instead.
 	float ZoneUPanSpeed = zoneActor->TexUPanSpeed();
@@ -72,12 +72,9 @@ void VisibleNode::Draw(VisibleFrame* frame)
 	}
 
 	TextureInfo lightmap;
-	TextureInfo fogmap;
 	if ((PolyFlags & PF_Unlit) == 0)
-	{
 		lightmap = engine->Level->Light.GetLevelLightmap(surface, zoneActor, model);
-		fogmap = engine->Level->Light.GetLevelFogmap(surface, engine->CameraActor->Region().Zone, model);
-	}
+	TextureInfo fogmap = engine->Level->Light.GetLevelFogmap(surface, engine->CameraActor->Region().Zone, model);
 
 	SurfaceInfo surfaceinfo;
 	surfaceinfo.PolyFlags = PolyFlags;

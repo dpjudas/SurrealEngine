@@ -95,12 +95,12 @@ public:
 
 		for (int i = 0, count = NumFogBalls; i < count; i++)
 		{
-			float fogamount = SphereDensity(view, rayDirection, FogBalls[i].lightpos, FogBalls[i].radius, depth) * FogBalls[i].brightness;
-			float alpha = std::min(fogamount * FogBalls[i].fog, 1.0f);
+			float fogamount = std::min(SphereDensity(view, rayDirection, FogBalls[i].lightpos, FogBalls[i].radius, depth) * 4.0f * FogBalls[i].brightness, 1.0f);
+			float alpha = std::min(fogamount * FogBalls[i].fog * 2.0f, 1.0f);
 			float invalpha = 1.0f - alpha;
-			color.r = FogBalls[i].fogcolor.r * fogamount + color.r * invalpha;
-			color.g = FogBalls[i].fogcolor.g * fogamount + color.g * invalpha;
-			color.b = FogBalls[i].fogcolor.b * fogamount + color.b * invalpha;
+			color.r = std::min(FogBalls[i].fogcolor.r * fogamount + color.r * invalpha, 1.0f);
+			color.g = std::min(FogBalls[i].fogcolor.g * fogamount + color.g * invalpha, 1.0f);
+			color.b = std::min(FogBalls[i].fogcolor.b * fogamount + color.b * invalpha, 1.0f);
 			color.a = std::min(color.a + alpha, 1.0f);
 		}
 #endif
@@ -197,7 +197,7 @@ public:
 	TextureInfo GetMoverFogmap(UMover* mover, const Poly& poly, UZoneInfo* zoneActor, UModel* model);
 	TextureInfo GetLevelFogmap(BspSurface& surface, UZoneInfo* zoneActor, UModel* model);
 
-	void InitVertexLight(VertexLight& vertexlight, UActor* actor, UZoneInfo* zoneActor);
+	void InitVertexLight(VertexLight& vertexlight, UActor* actor, UZoneInfo* zoneActor, const vec4& boundingSphere);
 
 private:
 	TextureInfo GetLightmap(UModel* model, int lightmapIndex, const Coords& coords, UZoneInfo* zoneActor, const vec3& worldLocation, float radius, UMover* mover, bool specialLit);
