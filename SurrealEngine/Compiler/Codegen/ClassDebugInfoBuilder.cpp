@@ -8,7 +8,7 @@ std::unique_ptr<ClassDebugInfo> ClassDebugInfoBuilder::generate(std::shared_ptr<
 	auto debug_info = std::make_unique<ClassDebugInfo>();
 	debug_info->Name = unit->class_decl->identifier;
 	ClassDebugInfoBuilder builder(debug_info.get());
-	unit->class_decl->visit(&builder);
+	unit->class_decl->visit_children(&builder);
 	return debug_info;
 }
 
@@ -66,8 +66,28 @@ void ClassDebugInfoBuilder::name(AstFieldDeclaration* node)
 
 void ClassDebugInfoBuilder::name(AstStateDeclaration* node)
 {
-	state = node->identifier;
-	for (auto method : node->block->methods)
-		name(method);
-	state.clear();
+	if (node->block)
+	{
+		// Build debug info for the state block code itself:
+
+		FunctionDebugInfo funcDebugInfo;
+		FunctionDebugInfoBuilder builder(&funcDebugInfo);
+
+		for (AstStatement* statement : node->block->statements)
+		{
+			statement->visit(&builder);
+		}
+
+		if (funcDebugInfo.Statements.empty() || funcDebugInfo.Statements.back().Token != ExprToken::Return)
+			funcDebugInfo.Statements.push_back({ ExprToken::Return, node->line });
+
+		debug_info->Functions[node->identifier] = std::move(funcDebugInfo);
+
+		// Build debug info for state functions:
+
+		state = node->identifier;
+		for (auto method : node->block->methods)
+			name(method);
+		state.clear();
+	}
 }

@@ -290,7 +290,8 @@ std::string Frame::GetCallstack()
 				}
 				else
 				{
-					name += " line " + std::to_string(func->Line) + " [no line info]";
+					name += " line " + std::to_string(func->Line) + " [debug info failed]";
+					line = func->GetStatementLine(func->Code->Statements[frame->StatementIndex - 1]);
 				}
 				name += ": ";
 				name += GetDisassembly(func->Code->Statements[frame->StatementIndex - 1]);
