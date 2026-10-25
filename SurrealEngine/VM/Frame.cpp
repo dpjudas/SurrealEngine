@@ -21,6 +21,7 @@ FrameRunState Frame::RunState = FrameRunState::Running;
 Frame* Frame::StepFrame = nullptr;
 Expression* Frame::StepExpression = nullptr;
 std::string Frame::ExceptionText;
+bool Frame::BreakOnError;
 std::unique_ptr<Iterator> Frame::CreatedIterator;
 
 Frame::Frame(UObject* instance, UStruct* func, size_t statementIndex, bool isStateFrame) :
@@ -623,7 +624,16 @@ ExpressionEvalResult Frame::Run()
 			break;
 		case StatementResult::AccessedNone:
 			LogMessage("Accessed None");
-			LogMessage(Frame::GetCallstack());
+			if (BreakOnError && RunDebugger)
+			{
+				RunState = FrameRunState::DebugBreak;
+				engine->audiodev->BreakpointTriggered();
+				RunDebugger();
+			}
+			else
+			{
+				LogMessage(Frame::GetCallstack());
+			}
 			break;
 		}
 

@@ -70,6 +70,7 @@ public:
 	static Frame* StepFrame;
 	static Expression* StepExpression;
 	static std::string ExceptionText;
+	static bool BreakOnError;
 
 	static void Break();
 	static void Resume();
