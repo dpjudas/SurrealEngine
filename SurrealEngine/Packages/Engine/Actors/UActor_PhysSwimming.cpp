@@ -60,8 +60,10 @@ void UActor::TickSwimming(float elapsed)
 
 					//same question as with tick walk -> why set teleport flag on decoration?
 					bJustTeleported() = true;
-					if (Mass() > 0.0f && hit.Actor->Mass() > 0.0f)
+					if (Mass() > 0.0f)
 						Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
+					else
+						Velocity() = vec3(0.0f);
 					FireHitWall(hit);
 					timeLeft = 0.0f;
 				}

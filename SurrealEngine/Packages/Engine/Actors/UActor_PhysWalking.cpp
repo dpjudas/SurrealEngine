@@ -225,7 +225,10 @@ void UActor::TickWalking(float elapsed)
 
 						//why does hitting a pushable decoration set the teleport flag?
 						bJustTeleported() = true;
-						vel = Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
+						if (Mass() > 0.0f)
+							vel = Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
+						else
+							vel = vec3(0.0f);
 						FireHitWall(hit);
 						timeLeft = 0.0f;
 					}
