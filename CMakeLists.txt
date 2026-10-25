@@ -160,10 +160,15 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/VM/ExpressionVisitor.h
 	SurrealEngine/VM/Iterator.cpp
 	SurrealEngine/VM/Iterator.h
-	SurrealEngine/Audio/AudioSource.h
-	SurrealEngine/Audio/AudioSource.cpp
 	SurrealEngine/Audio/AudioDevice.cpp
 	SurrealEngine/Audio/AudioDevice.h
+	SurrealEngine/Audio/AudioSource.cpp
+	SurrealEngine/Audio/AudioSource.h
+	SurrealEngine/Audio/OpenAL/OpenALAudioDevice.cpp
+	SurrealEngine/Audio/OpenAL/OpenALAudioDevice.h
+	SurrealEngine/Audio/OpenAL/ALSoundSource.cpp
+	SurrealEngine/Audio/OpenAL/ALSoundSource.h
+	SurrealEngine/Audio/OpenAL/RingQueue.h
 	SurrealEngine/Video/VideoPlayer.cpp
 	SurrealEngine/Video/VideoPlayer.h
 	SurrealEngine/Video/AVIFileReader.h
