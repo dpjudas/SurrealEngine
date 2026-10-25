@@ -59,8 +59,7 @@ OpenALAudioDevice::OpenALAudioDevice(int inFrequency, int numVoices, int inMusic
 	alcGetIntegerv(alDevice, ALC_MONO_SOURCES, 1, &monoSources);
 	alcGetIntegerv(alDevice, ALC_STEREO_SOURCES, 1, &stereoSources);
 
-	// TODO: how do we prioritize mono vs stereo source count?
-	sources.resize(monoSources);
+	sources.resize(std::min(numVoices, monoSources));
 
 	// init music source/buffer
 	alGenSources(1, &alMusicSource);
@@ -162,14 +161,13 @@ void OpenALAudioDevice::PlaySound(int channel, USound* sound, vec3& location, fl
 	source.SetSound(sound);
 	source.SetPosition(location);
 	source.SetVolume(volume);
-	source.SetGlobalVolume(globalSoundVolume);
 	source.SetRadius(radius);
 	source.SetPitch(pitch);
 	source.SetSpatial(true);
 	source.Play();
 }
 
-void OpenALAudioDevice::UpdateSound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch)
+void OpenALAudioDevice::UpdateSound(int channel, vec3& location, float volume, float radius, float pitch)
 {
 	if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= sources.size())
 		Exception::Throw("Invalid PlaySound arguments");
@@ -178,7 +176,6 @@ void OpenALAudioDevice::UpdateSound(int channel, USound* sound, vec3& location, 
 
 	source.SetPosition(location);
 	source.SetVolume(volume);
-	source.SetGlobalVolume(globalSoundVolume);
 	source.SetRadius(radius);
 	source.SetPitch(pitch);
 
@@ -272,14 +269,6 @@ void OpenALAudioDevice::UpdateMusicBuffer(AudioSource* music)
 void OpenALAudioDevice::SetMusicVolume(float volume)
 {
 	alSourcef(alMusicSource, AL_GAIN, volume);
-}
-
-void OpenALAudioDevice::SetSoundVolume(float volume)
-{
-	globalSoundVolume = volume;
-
-	for (auto& soundSource : sources)
-		soundSource.SetGlobalVolume(globalSoundVolume);
 }
 
 void OpenALAudioDevice::Update()

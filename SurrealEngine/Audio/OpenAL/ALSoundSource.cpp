@@ -112,14 +112,9 @@ void ALSoundSource::SetVolume(float newVolume)
 	if (volume != newVolume)
 	{
 		volume = newVolume;
-		alSourcef(id, AL_GAIN, volume * globalVolume);
-		alSourcef(id, AL_MAX_GAIN, volume * globalVolume);
+		alSourcef(id, AL_GAIN, volume);
+		alSourcef(id, AL_MAX_GAIN, volume);
 	}
-}
-
-void ALSoundSource::SetGlobalVolume(float newGlobalVolume)
-{
-	globalVolume = newGlobalVolume;
 }
 
 void ALSoundSource::SetPitch(float newPitch)

@@ -1000,19 +1000,17 @@ void NActor::RandomBiasedRotation(
 
 void NActor::SetInstantMusicVolume(UObject* Self, uint8_t newMusicVolume)
 {
-	// Deus Ex
-	engine->audiodev->GetDevice()->SetMusicVolume(static_cast<float>(newMusicVolume) / 255.f);
+	engine->audiodev->SetInstantMusicVolume(newMusicVolume);
 }
 
 void NActor::SetInstantSoundVolume(UObject* Self, uint8_t newSoundVolume)
 {
-	// Deus Ex
-	engine->audiodev->GetDevice()->SetSoundVolume(static_cast<float>(newSoundVolume) / 255.f);
+	engine->audiodev->SetInstantSoundVolume(newSoundVolume);
 }
 
 void NActor::SetInstantSpeechVolume(UObject* Self, uint8_t newSpeechVolume)
 {
-	LogUnimplemented("Actor.SetInstantSpeechVolume");
+	engine->audiodev->SetInstantSpeechVolume(newSpeechVolume);
 }
 
 void NActor::StopSound_Deus(UObject* Self, int Id)

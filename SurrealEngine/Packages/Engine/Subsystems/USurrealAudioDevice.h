@@ -31,36 +31,18 @@ class USurrealAudioDevice : public UAudioSubsystem
 public:
 	using UAudioSubsystem::UAudioSubsystem;
 
-	std::string Class = "Engine.SurrealAudioDevice";
-	bool UseFilter = true;
-	bool UseSurround = true;
-	bool UseStereo = true;
-	bool UseCDMusic = false;
-	bool UseDigitalMusic = true;
-	bool UseSpatial = true;
-	bool UseReverb = true;
-	bool Use3dHardware = true;
-	bool LowSoundQuality = false;
-	bool ReverseStereo = false;
-	int Latency = 40;
-	AudioFrequency OutputRate = 44100;
-	int Channels = 16;
-	uint8_t MusicVolume = 160;
-	uint8_t SoundVolume = 200;
-	float AmbientFactor = 0.7f;
-
 	void LoadProperties(const NameString& from = "") override;
 	void SaveConfig() override;
 
 	std::string GetPropertyAsString(const NameString& propertyName) const override;
 	void SetPropertyFromString(const NameString& propertyName, const std::string& value) override;
 
+	std::string Class = "Engine.SurrealAudioDevice";
+
 	void InitDevice();
 	void ShutdownDevice();
 	void SetViewport(UViewport* InViewport);
-	UViewport* GetViewport() { return m_Viewport; }
-
-	void Update(const mat4& listener);
+	void Update();
 
 	bool PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch, bool isTalk);
 	void StopSound(UActor* Actor, int Id);
@@ -70,12 +52,22 @@ public:
 	void BreakpointTriggered();
 	void AddStats(Array<std::string>& lines);
 
-	AudioDevice* GetDevice() { return m_Device.get(); }
+	void SetInstantMusicVolume(uint8_t newMusicVolume);
+	void SetInstantSoundVolume(uint8_t newSoundVolume);
+	void SetInstantSpeechVolume(uint8_t newSpeechVolume);
+
+	void PlayMusic(std::unique_ptr<AudioSource> source);
+	void StopMusic();
 
 private:
+	AudioDevice* GetDevice() { return m_Device.get(); } // DO NOT MAKE THIS PUBLIC!!!!
+	friend class USound; // To do: figure out what USound::GetSound() is doing and why it wants to talk directly to the device (it shouldn't)
+
+	UViewport* GetViewport() { return m_Viewport; }
+
 	void StartAmbience();
 	void UpdateAmbience();
-	void UpdateSounds(const mat4& listener);
+	void UpdateSounds();
 
 	void UpdateLipSync(PlayingSound& Playing);
 	void ClearLipSync(PlayingSound& Playing);
@@ -91,4 +83,22 @@ private:
 	UMusic* CurrentSong = nullptr;
 	int CurrentSection = 255;
 	int FreeSlot = 0x07ffffff;
+
+	bool UseFilter = true;
+	bool UseSurround = true;
+	bool UseStereo = true;
+	bool UseCDMusic = false;
+	bool UseDigitalMusic = true;
+	bool UseSpatial = true;
+	bool UseReverb = true;
+	bool Use3dHardware = true;
+	bool LowSoundQuality = false;
+	bool ReverseStereo = false;
+	int Latency = 40;
+	AudioFrequency OutputRate = 44100;
+	int Channels = 16;
+	uint8_t MusicVolume = 160;
+	uint8_t SoundVolume = 200;
+	uint8_t SpeechVolume = 200;
+	float AmbientFactor = 0.7f;
 };

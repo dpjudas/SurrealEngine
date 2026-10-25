@@ -42,6 +42,7 @@ public:
 
 	bool ShowTimedemoStats = false;
 	bool ShowRenderStats = false;
+	bool ShowAudioStats = false;
 	bool ShowCollisionDebug = false;
 
 	int TextureFrameCounter = 0;

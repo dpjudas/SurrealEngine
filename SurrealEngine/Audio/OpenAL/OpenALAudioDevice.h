@@ -22,10 +22,9 @@ public:
 	bool IsPlaying(int channel) override;
 	void PlayMusic(std::unique_ptr<AudioSource> source) override;
 	void PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch) override;
-	void UpdateSound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch) override;
+	void UpdateSound(int channel, vec3& location, float volume, float radius, float pitch) override;
 	void StopSound(int channel) override;
 	void SetMusicVolume(float volume) override;
-	void SetSoundVolume(float volume) override;
 	void Update() override;
 
 private:
@@ -65,5 +64,4 @@ private:
 	float currentMusicVolume = 0.0f;
 	float targetMusicVolume = 0.0f;
 	float fadeRate = 0.0f;
-	float globalSoundVolume = 1.0f;
 };
