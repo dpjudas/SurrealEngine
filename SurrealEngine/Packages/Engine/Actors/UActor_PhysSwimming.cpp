@@ -31,7 +31,8 @@ void UActor::TickSwimming(float elapsed)
 	float timeLeft = elapsed;
 	vec3 vel = Velocity() + zone->ZoneVelocity() * elapsed * 25.0f;
 
-	vel.z += zone->ZoneGravity().z * (1.0f - Buoyancy() / Mass()) * elapsed;
+	if (Mass() > 0.0f)
+		vel.z += zone->ZoneGravity().z * (1.0f - Buoyancy() / Mass()) * elapsed;
 
 	//required for "stepping out of water"
 	float gravityDirection = zone->ZoneGravity().z > 0.0f ? 1.0f : -1.0f;
@@ -59,7 +60,8 @@ void UActor::TickSwimming(float elapsed)
 
 					//same question as with tick walk -> why set teleport flag on decoration?
 					bJustTeleported() = true;
-					Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
+					if (Mass() > 0.0f && hit.Actor->Mass() > 0.0f)
+						Velocity() = Velocity() * Mass() / (Mass() + hit.Actor->Mass());
 					FireHitWall(hit);
 					timeLeft = 0.0f;
 				}
