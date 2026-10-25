@@ -15,106 +15,114 @@ CollisionHitList TraceAABBModel::Trace(UActor* owner, UModel* model, const dvec3
 
 static Array<dvec4> planes; // Grr, memory allocations all over this codebase
 
-void TraceAABBModel::Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly, BspNode* node, CollisionHitList& hits)
+void TraceAABBModel::Trace(const dvec3 origin, const double tmin, const dvec3 dirNormalized, const double tmax, const dvec3 extents, const bool visibilityOnly, BspNode* node, CollisionHitList& hits)
 {
-	if (node->CollisionBound >= 0)
+	BspNode* nodeStack[64];
+	nodeStack[0] = node;
+	int stackIndex = 1;
+	do
 	{
-		int32_t* hullIndexList = &Model->LeafHulls[node->CollisionBound];
-		int hullPlanesCount = 0;
-		while (hullIndexList[hullPlanesCount] >= 0)
-			hullPlanesCount++;
+		node = nodeStack[--stackIndex];
 
-		vec3* bboxStart = (vec3*)(&hullIndexList[hullPlanesCount + 1]);
-
-		BBox bbox;
-		bbox.min = bboxStart[0];
-		bbox.max = bboxStart[1];
-
-		// Shave off part of the box, or ammo pickups can fall through the floor
-		float boxEpsilon = 0.1f;
-		bbox.min += boxEpsilon;
-		bbox.max -= boxEpsilon;
-
-		SweepCursor cursor(origin, dirNormalized, tmax, extents);
-		if (cursor.ClipBoxPlanes(bbox))
+		if (node->CollisionBound >= 0)
 		{
-			// Grab the hull planes and flip the plane direction if the plane points in the wrong direction.
-			planes.clear();
-			for (int i = 0; i < hullPlanesCount; i++)
-			{
-				int32_t hullIndex = hullIndexList[i];
-				bool hullFlip = !!(hullIndex & 0x4000'0000);
-				hullIndex = hullIndex & ~0x4000'0000;
-				BspNode* hullnode = &Model->Nodes[hullIndex];
-				dvec4 hullplane((double)hullnode->PlaneX, (double)hullnode->PlaneY, (double)hullnode->PlaneZ, (double)hullnode->PlaneW);
-				planes.push_back(hullFlip ? -hullplane : hullplane);
-			}
+			int32_t* hullIndexList = &Model->LeafHulls[node->CollisionBound];
+			int hullPlanesCount = 0;
+			while (hullIndexList[hullPlanesCount] >= 0)
+				hullPlanesCount++;
 
-			// AABB/hull sweep test.
-			//
-			// This is the same as a ray/hull sweep test, except with extended and bevel planes so that it works for AABB.
-			//
-			// The basic idea here is that you can find the solid line segment of a ray passing through the planes of a convex hull.
-			// While we are not interested in the line segment itself, the start of the line segment will give us the the hit point.
-			//
-			// We can sweep with an AABB instead of a ray by moving the planes outwards by the extents of the AABB. This will produce
-			// inaccuracies in the result, which we can reduce by adding bevel planes when the angle between the planes passes a threshold.
+			vec3* bboxStart = (vec3*)(&hullIndexList[hullPlanesCount + 1]);
 
-			// Check for collision for each hull plane
-			for (int i = 0; i < hullPlanesCount; i++)
+			BBox bbox;
+			bbox.min = bboxStart[0];
+			bbox.max = bboxStart[1];
+
+			// Shave off part of the box, or ammo pickups can fall through the floor
+			float boxEpsilon = 0.1f;
+			bbox.min += boxEpsilon;
+			bbox.max -= boxEpsilon;
+
+			SweepCursor cursor(origin, dirNormalized, tmax, extents);
+			if (cursor.ClipBoxPlanes(bbox))
 			{
-				if (!cursor.ClipPlane(planes[i]))
+				// Grab the hull planes and flip the plane direction if the plane points in the wrong direction.
+				planes.clear();
+				for (int i = 0; i < hullPlanesCount; i++)
 				{
-					break;
+					int32_t hullIndex = hullIndexList[i];
+					bool hullFlip = !!(hullIndex & 0x4000'0000);
+					hullIndex = hullIndex & ~0x4000'0000;
+					BspNode* hullnode = &Model->Nodes[hullIndex];
+					dvec4 hullplane((double)hullnode->PlaneX, (double)hullnode->PlaneY, (double)hullnode->PlaneZ, (double)hullnode->PlaneW);
+					planes.push_back(hullFlip ? -hullplane : hullplane);
 				}
-			}
 
-			// Check for collision for any bevel plane we need to insert at the hull edges
-			for (int i = 0; i < hullPlanesCount; i++)
-			{
-				dvec4 plane0 = planes[i];
-				for (int j = 0; j < i; j++)
+				// AABB/hull sweep test.
+				//
+				// This is the same as a ray/hull sweep test, except with extended and bevel planes so that it works for AABB.
+				//
+				// The basic idea here is that you can find the solid line segment of a ray passing through the planes of a convex hull.
+				// While we are not interested in the line segment itself, the start of the line segment will give us the the hit point.
+				//
+				// We can sweep with an AABB instead of a ray by moving the planes outwards by the extents of the AABB. This will produce
+				// inaccuracies in the result, which we can reduce by adding bevel planes when the angle between the planes passes a threshold.
+
+				// Check for collision for each hull plane
+				for (int i = 0; i < hullPlanesCount; i++)
 				{
-					dvec4 plane1 = planes[j];
-
-					if ((plane0.x < 0.0 && plane1.x > 0.0) || (plane0.x > 0.0 && plane1.x < 0.0))
+					if (!cursor.ClipPlane(planes[i]))
 					{
-						cursor.ClipBevel(plane0, plane1, dvec3(1.0, 0.0, 0.0));
-					}
-					if ((plane0.y < 0.0 && plane1.y > 0.0) || (plane0.y > 0.0 && plane1.y < 0.0))
-					{
-						cursor.ClipBevel(plane0, plane1, dvec3(0.0, 1.0, 0.0));
-					}
-					if ((plane0.z < 0.0 && plane1.z > 0.0) || (plane0.z > 0.0 && plane1.z < 0.0))
-					{
-						cursor.ClipBevel(plane0, plane1, dvec3(0.0, 0.0, 1.0));
+						break;
 					}
 				}
-			}
 
-			// Did we hit anything?
-			double t = cursor.HitFraction();
-			if (t >= tmin && t < tmax)
-			{
-				CollisionHit hit = { (float)t, vec3(cursor.HitNormal()), Owner, node, node };
-				hits.push_back(hit);
+				// Check for collision for any bevel plane we need to insert at the hull edges
+				for (int i = 0; i < hullPlanesCount; i++)
+				{
+					dvec4 plane0 = planes[i];
+					for (int j = 0; j < i; j++)
+					{
+						dvec4 plane1 = planes[j];
+
+						if ((plane0.x < 0.0 && plane1.x > 0.0) || (plane0.x > 0.0 && plane1.x < 0.0))
+						{
+							cursor.ClipBevel(plane0, plane1, dvec3(1.0, 0.0, 0.0));
+						}
+						if ((plane0.y < 0.0 && plane1.y > 0.0) || (plane0.y > 0.0 && plane1.y < 0.0))
+						{
+							cursor.ClipBevel(plane0, plane1, dvec3(0.0, 1.0, 0.0));
+						}
+						if ((plane0.z < 0.0 && plane1.z > 0.0) || (plane0.z > 0.0 && plane1.z < 0.0))
+						{
+							cursor.ClipBevel(plane0, plane1, dvec3(0.0, 0.0, 1.0));
+						}
+					}
+				}
+
+				// Did we hit anything?
+				double t = cursor.HitFraction();
+				if (t >= tmin && t < tmax)
+				{
+					CollisionHit hit = { (float)t, vec3(cursor.HitNormal()), Owner, node, node };
+					hits.push_back(hit);
+				}
 			}
 		}
-	}
 
-	dvec3 extentspadded = extents * 1.1; // For numerical stability
-	int startSide = NodeAABBOverlap(origin, extentspadded, node);
-	int endSide = NodeAABBOverlap(origin + dirNormalized * tmax, extentspadded, node);
+		if (stackIndex < 64)
+		{
+			dvec3 extentspadded = extents * 1.1; // For numerical stability
+			int startSide = NodeAABBOverlap(origin, extentspadded, node);
+			int endSide = NodeAABBOverlap(origin + dirNormalized * tmax, extentspadded, node);
 
-	if (node->Front >= 0 && (startSide <= 0 || endSide <= 0))
-	{
-		Trace(origin, tmin, dirNormalized, tmax, extents, visibilityOnly, &Model->Nodes[node->Front], hits);
-	}
+			if (node->Front >= 0 && (startSide <= 0 || endSide <= 0))
+				nodeStack[stackIndex++] = &Model->Nodes[node->Front];
 
-	if (node->Back >= 0 && (startSide >= 0 || endSide >= 0))
-	{
-		Trace(origin, tmin, dirNormalized, tmax, extents, visibilityOnly, &Model->Nodes[node->Back], hits);
-	}
+			if (node->Back >= 0 && (startSide >= 0 || endSide >= 0))
+				nodeStack[stackIndex++] = &Model->Nodes[node->Back];
+		}
+
+	} while (stackIndex > 0);
 }
 
 double TraceAABBModel::TriangleAABBIntersect(const dvec3& from, const dvec3& to, const dvec3& extents, const dvec3* points)
@@ -226,8 +234,15 @@ double TraceAABBModel::NodeAABBIntersect(const dvec3& origin, double tmin, const
 // -1 = inside, 0 = intersects, 1 = outside
 int TraceAABBModel::NodeAABBOverlap(const dvec3& center, const dvec3& extents, BspNode* node)
 {
-	double e = extents.x * std::abs(node->PlaneX) + extents.y * std::abs(node->PlaneY) + extents.z * std::abs(node->PlaneZ);
-	double s = center.x * node->PlaneX + center.y * node->PlaneY + center.z * node->PlaneZ - node->PlaneW;
+	double e =
+		extents.x * std::abs(node->PlaneX) +
+		extents.y * std::abs(node->PlaneY) +
+		extents.z * std::abs(node->PlaneZ);
+	double s =
+		center.x * node->PlaneX +
+		center.y * node->PlaneY +
+		center.z * node->PlaneZ -
+		node->PlaneW;
 	if (s - e > 0)
 		return -1;
 	else if (s + e < 0)

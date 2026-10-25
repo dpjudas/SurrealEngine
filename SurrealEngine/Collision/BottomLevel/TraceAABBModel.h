@@ -8,7 +8,7 @@ public:
 	CollisionHitList Trace(UActor* owner, UModel* model, const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly);
 
 private:
-	void Trace(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, bool visibilityOnly, BspNode* node, CollisionHitList& hits);
+	void Trace(const dvec3 origin, const double tmin, const dvec3 dirNormalized, const double tmax, const dvec3 extents, const bool visibilityOnly, BspNode* node, CollisionHitList& hits);
 	double TriangleAABBIntersect(const dvec3& origin, const dvec3& target, const dvec3& extents, const dvec3* points);
 	double NodeAABBIntersect(const dvec3& origin, double tmin, const dvec3& dirNormalized, double tmax, const dvec3& extents, BspNode* node);
 
