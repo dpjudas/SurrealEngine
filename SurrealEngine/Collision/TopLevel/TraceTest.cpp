@@ -17,6 +17,8 @@ CollisionHitList TraceTester::Trace(const vec3& from, const vec3& to, float heig
 	dvec3 direction = to_dvec3(to) - origin;
 	double tmin = 0.0f; // if this goes above 0.0, you will be able to walk through walls!
 	double tmax = length(direction);
+	if (std::isnan(tmax))
+		return {};
 	if (tmax < tmin)
 		return {};
 	direction *= 1.0f / tmax;
