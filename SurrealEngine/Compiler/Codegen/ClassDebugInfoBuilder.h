@@ -22,4 +22,5 @@ public:
 
 private:
 	ClassDebugInfo* debug_info = nullptr;
+	std::string state;
 };

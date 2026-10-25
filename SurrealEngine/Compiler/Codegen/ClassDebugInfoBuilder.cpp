@@ -32,7 +32,12 @@ void ClassDebugInfoBuilder::name(AstMethodDeclaration* node)
 	if (funcDebugInfo.Statements.empty() || funcDebugInfo.Statements.back().Token != ExprToken::Return)
 		funcDebugInfo.Statements.push_back({ ExprToken::Return, node->line });
 
-	debug_info->Functions[node->identifier] = std::move(funcDebugInfo);
+	std::string funcName;
+	if (state.empty())
+		funcName = node->identifier;
+	else
+		funcName = state + "." + node->identifier;
+	debug_info->Functions[funcName] = std::move(funcDebugInfo);
 }
 
 void ClassDebugInfoBuilder::name(AstClassDeclaration* node)
@@ -61,4 +66,8 @@ void ClassDebugInfoBuilder::name(AstFieldDeclaration* node)
 
 void ClassDebugInfoBuilder::name(AstStateDeclaration* node)
 {
+	state = node->identifier;
+	for (auto method : node->block->methods)
+		name(method);
+	state.clear();
 }

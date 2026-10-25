@@ -236,9 +236,20 @@ FunctionDebugInfo* UStruct::GetDebugInfo()
 		// To do: validate compiled statements matches code statements
 	}
 
-	auto it = scriptText->DebugInfo->Functions.find(Name);
+	NameString fullName;
+	if (!StructParent || UObject::TryCast<UClass>(StructParent))
+	{
+		fullName = Name;
+	}
+	else
+	{
+		fullName = StructParent->Name.ToString() + "." + Name.ToString();
+	}
+
+	auto it = scriptText->DebugInfo->Functions.find(fullName);
 	if (it != scriptText->DebugInfo->Functions.end())
 		return &it->second;
+	LogMessage("Could not find debug info for function: " + fullName.ToString());
 	return nullptr;
 }
 
