@@ -2,6 +2,7 @@
 
 #include "UAudioSubsystem.h"
 #include "Packages/Engine/Resources/USound.h"
+#include "Packages/Engine/Actors/UActor.h"
 #include "Audio/AudioDevice.h"
 
 class UActor;
