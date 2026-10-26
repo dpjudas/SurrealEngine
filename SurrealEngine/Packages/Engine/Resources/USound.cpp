@@ -35,7 +35,8 @@ void USound::Save(PackageStreamWriter* stream)
 		stream->EndSkipOffset();
 }
 
-void USound::GetSound()
+// Loads sound samples if they are not already loaded
+void USound::CheckSoundSamples()
 {
 	if (samples.size() > 0)
 		return;
@@ -73,7 +74,7 @@ void USound::GetSound()
 float USound::GetDuration()
 {
 	if (duration == 0.0f)
-		GetSound();
+		CheckSoundSamples();
 
 	return duration;
 }
@@ -81,7 +82,7 @@ float USound::GetDuration()
 int USound::GetChannels()
 {
 	if (channels == 0)
-		GetSound();
+		CheckSoundSamples();
 
 	return channels;
 }
@@ -91,7 +92,7 @@ const Array<uint8_t>& USound::GetLipsyncLetters()
 	if(!lipsyncLetters.empty())
 		return lipsyncLetters;
 
-	GetSound();
+	CheckSoundSamples();
 
 	if (channels != 1)
 		return lipsyncLetters;

@@ -234,17 +234,14 @@ void NActor::DemoPlaySound(UObject* Self, UObject* Sound, std::optional<uint8_t>
 	USound* s = UObject::Cast<USound>(Sound);
 	if (s)
 	{
-		int slot = Slot ? *Slot : SLOT_Misc;
-		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
-		if (bNoOverride && *bNoOverride) id |= 1;
-
+		int id = engine->audiodev->CreateSoundId(SelfActor, Slot ? (ESoundSlot)*Slot : SLOT_Misc, bNoOverride && *bNoOverride);
 		if (engine->LaunchInfo.IsKlingonHonorGuard())
 		{
-			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->SoundRadius(), Pitch ? *Pitch : 1.0f, slot == SLOT_Talk);
+			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->SoundRadius(), Pitch ? *Pitch : 1.0f);
 		}
 		else
 		{
-			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f, slot == SLOT_Talk);
+			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
 		}
 	}
 }
@@ -542,16 +539,14 @@ void NActor::PlayOwnedSound(UObject* Self, UObject* Sound, std::optional<uint8_t
 	USound* s = UObject::Cast<USound>(Sound);
 	if (s)
 	{
-		int slot = Slot ? *Slot : SLOT_Misc;
-		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
-		if (bNoOverride && *bNoOverride) id |= 1;
+		int id = engine->audiodev->CreateSoundId(SelfActor, Slot ? (ESoundSlot)*Slot : SLOT_Misc, bNoOverride && *bNoOverride);
 		if (engine->LaunchInfo.IsKlingonHonorGuard())
 		{
-			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->SoundRadius(), Pitch ? *Pitch : 1.0f, slot == SLOT_Talk);
+			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->SoundRadius(), Pitch ? *Pitch : 1.0f);
 		}
 		else
 		{
-			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f, slot == SLOT_Talk);
+			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
 		}
 	}
 }
@@ -562,16 +557,14 @@ void NActor::PlaySound(UObject* Self, UObject* Sound, std::optional<uint8_t> Slo
 	USound* s = UObject::Cast<USound>(Sound);
 	if (s)
 	{
-		int slot = Slot ? *Slot : SLOT_Misc;
-		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
-		if (bNoOverride && *bNoOverride) id |= 1;
+		int id = engine->audiodev->CreateSoundId(SelfActor, Slot ? (ESoundSlot)*Slot : SLOT_Misc, bNoOverride && *bNoOverride);
 		if (engine->LaunchInfo.IsKlingonHonorGuard())
 		{
-			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->SoundRadius(), Pitch ? *Pitch : 1.0f, slot == SLOT_Talk);
+			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->SoundRadius(), Pitch ? *Pitch : 1.0f);
 		}
 		else
 		{
-			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f, slot == SLOT_Talk);
+			engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
 		}
 	}
 }
@@ -582,10 +575,8 @@ void NActor::PlaySound_Deus(UObject* Self, UObject* Sound, std::optional<uint8_t
 	USound* s = UObject::Cast<USound>(Sound);
 	if (s)
 	{
-		int slot = Slot ? *Slot : SLOT_Misc;
-		int id = ((((int)(ptrdiff_t)SelfActor) & 0xffffff) << 4) + (slot << 1);
-		if (bNoOverride && *bNoOverride) id |= 1;
-		engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f, slot == SLOT_Talk);
+		int id = engine->audiodev->CreateSoundId(SelfActor, Slot ? (ESoundSlot)*Slot : SLOT_Misc, bNoOverride && *bNoOverride);
+		engine->audiodev->PlaySound(SelfActor, id, s, SelfActor->Location(), Volume ? *Volume : SelfActor->TransientSoundVolume(), Radius ? (*Radius) : SelfActor->TransientSoundRadius(), Pitch ? *Pitch : 1.0f);
 		ReturnValue = id;
 	}
 	else

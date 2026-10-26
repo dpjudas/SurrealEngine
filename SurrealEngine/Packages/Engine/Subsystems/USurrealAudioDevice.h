@@ -8,6 +8,7 @@ class UActor;
 class UMusic;
 class UViewport;
 class AudioDevice;
+enum ESoundSlot;
 
 struct PlayingSound
 {
@@ -44,7 +45,7 @@ public:
 	void SetViewport(UViewport* InViewport);
 	void Update();
 
-	bool PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch, bool isTalk);
+	bool PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch);
 	void StopSound(UActor* Actor, int Id);
 	void ActorDestroyed(UActor* Actor);
 	void StopSounds();
@@ -58,6 +59,11 @@ public:
 
 	void PlayMusic(std::unique_ptr<AudioSource> source);
 	void StopMusic();
+
+	int CreateSoundId(UActor* actor, ESoundSlot slot, bool noOverride);
+	static bool IsSoundInterruptable(int id);
+	static ESoundSlot GetSoundSlot(int id);
+	static bool IsSameSoundId(int id1, int id2);
 
 private:
 	AudioDevice* GetDevice() { return m_Device.get(); } // DO NOT MAKE THIS PUBLIC!!!!

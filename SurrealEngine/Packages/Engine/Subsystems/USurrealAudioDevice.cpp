@@ -156,7 +156,7 @@ void USurrealAudioDevice::InitDevice()
 	// TODO: Add option for number of sound channels
 	// TODO: Add option for music buffer count
 	// TODO: Add option for music buffer size
-	m_Device = AudioDevice::Create(OutputRate.frequency, 64, 16, 256);
+	m_Device = AudioDevice::Create(OutputRate.frequency, Channels, 16, 256);
 	LogMessage("Audio device initialized");
 }
 
@@ -226,29 +226,27 @@ void USurrealAudioDevice::StartAmbience()
 	if (!m_Viewport || !m_Viewport->Actor())
 		return;
 
-	bool Realtime = m_Viewport->IsRealtime() && m_Viewport->Actor()->Level()->Pauser() == "";
-	if (Realtime)
+	bool realtime = m_Viewport->IsRealtime() && m_Viewport->Actor()->Level()->Pauser() == "";
+	if (realtime)
 	{
-		UActor* ViewActor = m_Viewport->Actor()->ViewTarget() ? m_Viewport->Actor()->ViewTarget() : m_Viewport->Actor();
-		int actorIndex = 0;
+		UActor* viewActor = m_Viewport->Actor()->ViewTarget() ? m_Viewport->Actor()->ViewTarget() : m_Viewport->Actor();
 		for (UActor* Actor : m_Viewport->Actor()->XLevel()->Actors)
 		{
-			if (Actor && Actor->AmbientSound() && dist_squared(ViewActor->Location(), Actor->Location()) <= square(Actor->WorldSoundRadius()))
+			if (Actor && Actor->AmbientSound() && dist_squared(viewActor->Location(), Actor->Location()) <= square(Actor->WorldSoundRadius()))
 			{
-				int Id = actorIndex * 16 + SLOT_Ambient * 2;
+				int id = CreateSoundId(Actor, SLOT_Ambient, false);
 				bool foundSound = false;
 				for (size_t j = 0; j < PlayingSounds.size(); j++)
 				{
-					if (PlayingSounds[j].Id == Id)
+					if (PlayingSounds[j].Id == id)
 					{
 						foundSound = true;
 						break;
 					}
 				}
 				if (!foundSound)
-					PlaySound(Actor, Id, Actor->AmbientSound(), Actor->Location(), AmbientFactor * Actor->SoundVolume() / 255.0f, Actor->WorldSoundRadius(), Actor->SoundPitch() / 64.0f, false);
+					PlaySound(Actor, id, Actor->AmbientSound(), Actor->Location(), AmbientFactor * Actor->SoundVolume() / 255.0f, Actor->WorldSoundRadius(), Actor->SoundPitch() / 64.0f);
 			}
-			actorIndex++;
 		}
 	}
 }
@@ -263,7 +261,7 @@ void USurrealAudioDevice::UpdateAmbience()
 	for (size_t i = 0; i < PlayingSounds.size(); i++)
 	{
 		PlayingSound& Playing = PlayingSounds[i];
-		if ((Playing.Id & 14) == SLOT_Ambient * 2)
+		if (GetSoundSlot(Playing.Id) == SLOT_Ambient)
 		{
 			if (Playing.Actor->bDeleteMe() || dist_squared(ViewActor->Location(), Playing.Actor->Location()) > square(Playing.Actor->WorldSoundRadius()) || Playing.Actor->AmbientSound() != Playing.Sound || !Realtime)
 			{
@@ -287,7 +285,7 @@ void USurrealAudioDevice::UpdateLipSync(PlayingSound& Playing)
 		return;
 	if (!Playing.Actor || !engine->LevelInfo)
 		return;
-	if ((Playing.Id & 14) != SLOT_Talk * 2)
+	if (GetSoundSlot(Playing.Id) != SLOT_Talk)
 		return;
 
 	UPawn* pawn = UObject::TryCast<UPawn>(Playing.Actor);
@@ -311,7 +309,7 @@ void USurrealAudioDevice::ClearLipSync(PlayingSound& Playing)
 		return;
 	if (!Playing.Actor)
 		return;
-	if ((Playing.Id & 14) != SLOT_Talk * 2)
+	if (GetSoundSlot(Playing.Id) != SLOT_Talk)
 		return;
 
 	if (UPawn* pawn = UObject::TryCast<UPawn>(Playing.Actor))
@@ -338,7 +336,7 @@ void USurrealAudioDevice::UpdateSounds()
 
 			// Global volume for the sound type
 			float globalVolume = SoundVolume / 255.0f * 0.5f;
-			if (engine->LaunchInfo.IsDeusEx() && (Playing.Id & 14) == SLOT_Talk * 2)
+			if (engine->LaunchInfo.IsDeusEx() && GetSoundSlot(Playing.Id) == SLOT_Talk)
 				globalVolume = SpeechVolume / 255.0f * 0.5f;
 
 			// Update the priority
@@ -404,12 +402,35 @@ void USurrealAudioDevice::UpdateMusic()
 	}
 }
 
-bool USurrealAudioDevice::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch, bool isTalk)
+int USurrealAudioDevice::CreateSoundId(UActor* actor, ESoundSlot slot, bool noOverride)
+{
+	if (slot == SLOT_None)
+		return ((--FreeSlot) << 4) | (int)noOverride;
+	else
+		return (int)((((uint32_t)(ptrdiff_t)actor) << 4) | ((int)slot << 1) | (int)noOverride);
+}
+
+bool USurrealAudioDevice::IsSoundInterruptable(int id)
+{
+	return (id & 1) == 0;
+}
+
+ESoundSlot USurrealAudioDevice::GetSoundSlot(int id)
+{
+	return (ESoundSlot)((id >> 1) & 7);
+}
+
+bool USurrealAudioDevice::IsSameSoundId(int id1, int id2)
+{
+	return (id1 & ~1) == (id2 & ~1);
+}
+
+bool USurrealAudioDevice::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 Location, float Volume, float Radius, float Pitch)
 {
 	if (Radius <= 0.0) // Seems we have zero radius values. Lovely.
 		Radius = 1500.0f;
 
-	if (isTalk && engine->LaunchInfo.IsDeusEx())
+	if (GetSoundSlot(Id) == SLOT_Talk && engine->LaunchInfo.IsDeusEx())
 	{
 		// Should this still be directional?
 		Volume *= 2.0f;
@@ -427,8 +448,8 @@ bool USurrealAudioDevice::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 L
 		return false;
 
 	// Allocate a new slot if requested
-	if ((Id & 14) == 2 * SLOT_None)
-		Id = 16 * --FreeSlot;
+	if (GetSoundSlot(Id) == SLOT_None)
+		Id = CreateSoundId(Actor, SLOT_None, false);
 
 	float Priority = SoundPriority(m_Viewport, Location, Volume, Radius);
 
@@ -438,10 +459,10 @@ bool USurrealAudioDevice::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 L
 	for (size_t i = 0; i < PlayingSounds.size(); i++)
 	{
 		PlayingSound& Playing = PlayingSounds[i];
-		if ((Playing.Id & ~1) == (Id & ~1))
+		if (IsSameSoundId(Playing.Id, Id))
 		{
 			// Skip if not interruptable.
-			if (Id & 1)
+			if (!IsSoundInterruptable(Id))
 				return 0;
 
 			// Stop the sound.
@@ -459,7 +480,7 @@ bool USurrealAudioDevice::PlaySound(UActor* Actor, int Id, USound* Sound, vec3 L
 	if (Index == PlayingSounds.size())
 		return 0;
 
-	Sound->GetSound();
+	Sound->CheckSoundSamples();
 
 	// Put the sound on the play-list
 	StopSound(Index);

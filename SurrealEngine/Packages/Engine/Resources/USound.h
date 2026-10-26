@@ -25,7 +25,7 @@ public:
 	void Load(ObjectStream* stream) override;
 	void Save(PackageStreamWriter* stream) override;
 
-	void GetSound();
+	void CheckSoundSamples();
 	float GetDuration();
 	int GetChannels();
 

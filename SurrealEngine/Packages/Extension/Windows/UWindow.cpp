@@ -758,14 +758,13 @@ void UWindow::PlaySound(UObject* newsound, std::optional<float> Volume, std::opt
 	UPlayerPawnExt* player = UObject::Cast<UPlayerPawnExt>(GetPlayerPawn());
 	if (s && player)
 	{
-		int slot = SLOT_Misc;
-		int id = ((((int)(ptrdiff_t)this) & 0xffffff) << 4) + (slot << 1);
+		int id = engine->audiodev->CreateSoundId(player, SLOT_Misc, false);
 		vec3 location = player->Location();
 		if (posX)
 			location.x = *posX;
 		if (posY)
 			location.y = *posY;
-		engine->audiodev->PlaySound(player, id, s, location, Volume ? *Volume : 1.0f, player->WorldSoundRadius(), Pitch ? *Pitch : 1.0f, false);
+		engine->audiodev->PlaySound(player, id, s, location, Volume ? *Volume : 1.0f, player->WorldSoundRadius(), Pitch ? *Pitch : 1.0f);
 	}
 }
 
