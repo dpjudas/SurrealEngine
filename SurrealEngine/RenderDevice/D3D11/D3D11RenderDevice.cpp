@@ -788,14 +788,16 @@ void D3D11RenderDevice::CreateScenePass()
 
 	CreateSceneSamplers();
 
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		D3D11_RASTERIZER_DESC rasterizerDesc = {};
 		rasterizerDesc.FillMode = D3D11_FILL_SOLID;
 		rasterizerDesc.CullMode = D3D11_CULL_NONE;
 		rasterizerDesc.FrontCounterClockwise = FALSE;
 		rasterizerDesc.DepthClipEnable = FALSE; // Avoid clipping the weapon. The UE1 engine clips the geometry anyway.
-		rasterizerDesc.MultisampleEnable = i == 1 ? TRUE : FALSE;
+		rasterizerDesc.MultisampleEnable = (i % 2) == 1 ? TRUE : FALSE;
+		rasterizerDesc.DepthBias = i > 1 ? -128 : 0;
+		rasterizerDesc.SlopeScaledDepthBias = i > 1 ? -1.0f : 0;
 		HRESULT result = Device->CreateRasterizerState(&rasterizerDesc, ScenePass.RasterizerState[i].TypedInitPtr());
 		ThrowIfFailed(result, "CreateRasterizerState(ScenePass.Pipelines.RasterizerState) failed");
 		SetDebugName(ScenePass.RasterizerState[i], "ScenePass.RasterizerState");
@@ -880,6 +882,17 @@ void D3D11RenderDevice::CreateScenePass()
 		else
 			ScenePass.Pipelines[i].PixelShader = ScenePass.PixelShader;
 
+		if (((i & 3) == 3) || i == 32)
+		{
+			ScenePass.Pipelines[i].RasterizerState[0] = ScenePass.RasterizerState[0];
+			ScenePass.Pipelines[i].RasterizerState[1] = ScenePass.RasterizerState[1];
+		}
+		else
+		{
+			ScenePass.Pipelines[i].RasterizerState[0] = ScenePass.RasterizerState[2];
+			ScenePass.Pipelines[i].RasterizerState[1] = ScenePass.RasterizerState[3];
+		}
+
 		ScenePass.Pipelines[i].PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 	}
 
@@ -912,6 +925,8 @@ void D3D11RenderDevice::CreateScenePass()
 
 		ScenePass.LinePipeline[i].PixelShader = ScenePass.PixelShader;
 		ScenePass.LinePipeline[i].PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_LINELIST;
+		ScenePass.LinePipeline[i].RasterizerState[0] = ScenePass.RasterizerState[0];
+		ScenePass.LinePipeline[i].RasterizerState[1] = ScenePass.RasterizerState[1];
 
 		if (i == 0)
 		{
@@ -949,6 +964,8 @@ void D3D11RenderDevice::CreateScenePass()
 
 		ScenePass.PointPipeline[i].PixelShader = ScenePass.PixelShader;
 		ScenePass.PointPipeline[i].PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		ScenePass.PointPipeline[i].RasterizerState[0] = ScenePass.RasterizerState[0];
+		ScenePass.PointPipeline[i].RasterizerState[1] = ScenePass.RasterizerState[1];
 
 		if (i == 0)
 		{
@@ -1040,6 +1057,8 @@ void D3D11RenderDevice::ReleaseScenePass()
 	ScenePass.ConstantBuffer.reset();
 	ScenePass.RasterizerState[0].reset();
 	ScenePass.RasterizerState[1].reset();
+	ScenePass.RasterizerState[2].reset();
+	ScenePass.RasterizerState[3].reset();
 	ScenePass.PixelShader.reset();
 	ScenePass.PixelShaderAlphaTest.reset();
 	ReleaseSceneSamplers();
@@ -1530,7 +1549,6 @@ void D3D11RenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClea
 	Context->IASetInputLayout(ScenePass.InputLayout);
 	Context->VSSetShader(ScenePass.VertexShader, nullptr, 0);
 	Context->VSSetConstantBuffers(0, 1, cbs);
-	Context->RSSetState(ScenePass.RasterizerState[SceneBuffers.Multisample > 1]);
 
 	D3D11_RECT box = {};
 	box.right = CurrentSizeX;
@@ -2562,6 +2580,8 @@ void D3D11RenderDevice::DrawEntry(const DrawBatchEntry& entry)
 	Context->OMSetDepthStencilState(entry.Pipeline->DepthStencilState, 0);
 
 	Context->IASetPrimitiveTopology(entry.Pipeline->PrimitiveTopology);
+
+	Context->RSSetState(entry.Pipeline->RasterizerState[SceneBuffers.Multisample > 1]);
 
 	Context->DrawIndexed((UINT)icount, (UINT)entry.SceneIndexStart, 0);
 	Stats.DrawCalls++;

@@ -142,6 +142,7 @@ public:
 	{
 		D3D11_PRIMITIVE_TOPOLOGY PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
 		ID3D11PixelShader* PixelShader = nullptr;
+		ID3D11RasterizerState* RasterizerState[2] = { nullptr, nullptr };
 		ComPtr<ID3D11BlendState> BlendState;
 		ComPtr<ID3D11DepthStencilState> DepthStencilState;
 		float MinDepth = 0.1f;
@@ -155,7 +156,7 @@ public:
 		ComPtr<ID3D11Buffer> VertexBuffer;
 		ComPtr<ID3D11Buffer> IndexBuffer;
 		ComPtr<ID3D11Buffer> ConstantBuffer;
-		ComPtr<ID3D11RasterizerState> RasterizerState[2];
+		ComPtr<ID3D11RasterizerState> RasterizerState[4];
 		ComPtr<ID3D11PixelShader> PixelShader;
 		ComPtr<ID3D11PixelShader> PixelShaderAlphaTest;
 		ComPtr<ID3D11SamplerState> Samplers[16];
