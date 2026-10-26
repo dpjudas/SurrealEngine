@@ -572,10 +572,7 @@ void USurrealAudioDevice::AddStats(Array<std::string>& lines)
 		}
 		else
 		{
-			if (index >= 10)
-				std::snprintf(buffer, bufsize - 1, "Channel %i:  None", index);
-			else
-				std::snprintf(buffer, bufsize - 1, "Channel %i: None", index);
+			std::snprintf(buffer, bufsize - 1, "Channel %2i: None", index);
 		}
 		buffer[bufsize - 1] = 0;
 		lines.push_back(buffer);
