@@ -486,20 +486,6 @@ void LightEffect::InitTables()
 	TablesInitialized = true;
 }
 
-float LightEffect::Sin(float v)
-{
-	int x = (int)(v * ((SinTableSize >> 1) / 3.14159265359f));
-	x &= SinTableSize - 1;
-	return SinTable[x];
-}
-
-float LightEffect::Cos(float v)
-{
-	int x = (int)(v * ((SinTableSize >> 1) / 3.14159265359f));
-	x &= SinTableSize - 1;
-	return CosTable[x];
-}
-
 float LightEffect::CalcLightDistanceFalloff(float distsqr)
 {
 	float v = std::sqrt(distsqr + 0.0001f);

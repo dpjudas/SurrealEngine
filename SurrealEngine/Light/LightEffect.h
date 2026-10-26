@@ -25,6 +25,20 @@ class LightEffect
 public:
 	void Run(UActor* light, int width, int height, const vec3* locations, vec3 base, vec3 normal, const float* shadowmap, float* result);
 
+	static float Sin(float v)
+	{
+		int x = (int)(v * ((SinTableSize >> 1) / 3.14159265359f));
+		x &= SinTableSize - 1;
+		return SinTable[x];
+	}
+
+	static float Cos(float v)
+	{
+		int x = (int)(v * ((SinTableSize >> 1) / 3.14159265359f));
+		x &= SinTableSize - 1;
+		return CosTable[x];
+	}
+
 private:
 	void NoneEffect(LightEffectArgs* args);
 	void NonIncidenceEffect(LightEffectArgs* args);
@@ -42,8 +56,6 @@ private:
 	enum { SinTableSize = 1024, FalloffTableSize = 1024 };
 
 	static void InitTables();
-	static float Sin(float v);
-	static float Cos(float v);
 	static float LightDistanceFalloff(float distsqr);
 	static float CalcLightDistanceFalloff(float distsqr);
 	static bool TablesInitialized;
