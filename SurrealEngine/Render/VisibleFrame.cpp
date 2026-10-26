@@ -198,7 +198,7 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 	{
 		if ((PolyFlags & (PF_FakeBackdrop | PF_Invisible)) == PF_FakeBackdrop)
 		{
-			int zone = front ? node->Zone0 : node->Zone1;
+			int zone = front ? node->Zone1 : node->Zone0;
 			UZoneInfo* zoneInfo = engine->GetZoneActor(zone);
 			if (zoneInfo->SkyZone())
 			{
@@ -226,7 +226,7 @@ void VisibleFrame::ProcessNodeSurface(BspNode* node, bool front)
 		}
 		else if (PolyFlags & PF_Portal)
 		{
-			int portalZone = front ? node->Zone0 : node->Zone1;
+			int portalZone = front ? node->Zone1 : node->Zone0;
 			if (portalZone > 0)
 			{
 				UWarpZoneInfo* warpZone = UObject::TryCast<UWarpZoneInfo>(engine->GetZoneActor(portalZone));
