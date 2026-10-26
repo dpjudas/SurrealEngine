@@ -234,6 +234,8 @@ public:
 	bool FrontCounterClockwise;
 	bool DepthClipEnable;
 	bool MultisampleEnable;
+	int DepthBias;
+	float SlopeScaledDepthBias;
 };
 
 class GLRasterizerState

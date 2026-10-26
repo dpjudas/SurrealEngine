@@ -138,6 +138,7 @@ public:
 		std::shared_ptr<GLDepthStencilState> DepthStencilState;
 		float MinDepth = 0.1f;
 		float MaxDepth = 1.0f;
+		GLRasterizerState* RasterizerState[2] = { nullptr, nullptr };
 	};
 
 	struct
@@ -147,7 +148,7 @@ public:
 		std::shared_ptr<GLBuffer> VertexBuffer;
 		std::shared_ptr<GLBuffer> IndexBuffer;
 		std::shared_ptr<GLBuffer> ConstantBuffer;
-		std::shared_ptr<GLRasterizerState> RasterizerState[2];
+		std::shared_ptr<GLRasterizerState> RasterizerState[4];
 		std::shared_ptr<GLFragmentShader> FragmentShader;
 		std::shared_ptr<GLFragmentShader> FragmentShaderAlphaTest;
 		std::shared_ptr<GLProgram> ShaderProgram;

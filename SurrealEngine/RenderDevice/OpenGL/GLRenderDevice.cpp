@@ -296,13 +296,15 @@ void GLRenderDevice::CreateScenePass()
 
 	CreateSceneSamplers();
 
-	for (int i = 0; i < 2; i++)
+	for (int i = 0; i < 4; i++)
 	{
 		GLRasterizerDesc rasterizerDesc = {};
 		rasterizerDesc.CullEnable = false;
 		rasterizerDesc.FrontCounterClockwise = false;
 		rasterizerDesc.DepthClipEnable = false; // Avoid clipping the weapon. The UE1 engine clips the geometry anyway.
 		rasterizerDesc.MultisampleEnable = i == 1;
+		rasterizerDesc.DepthBias = i > 1 ? -128 : 0;
+		rasterizerDesc.SlopeScaledDepthBias = i > 1 ? -1.0f : 0;
 		ScenePass.RasterizerState[i] = CreateRasterizerState(rasterizerDesc);
 	}
 
@@ -380,6 +382,17 @@ void GLRenderDevice::CreateScenePass()
 			ScenePass.Pipelines[i].ShaderProgram = ScenePass.ShaderProgramAlphaTest.get();
 		else
 			ScenePass.Pipelines[i].ShaderProgram = ScenePass.ShaderProgram.get();
+
+		if (((i & 3) == 3) || i == 32)
+		{
+			ScenePass.Pipelines[i].RasterizerState[0] = ScenePass.RasterizerState[0].get();
+			ScenePass.Pipelines[i].RasterizerState[1] = ScenePass.RasterizerState[1].get();
+		}
+		else
+		{
+			ScenePass.Pipelines[i].RasterizerState[0] = ScenePass.RasterizerState[2].get();
+			ScenePass.Pipelines[i].RasterizerState[1] = ScenePass.RasterizerState[3].get();
+		}
 
 		ScenePass.Pipelines[i].PrimitiveTopology = GL_TRIANGLES;
 	}
@@ -536,6 +549,8 @@ void GLRenderDevice::ReleaseScenePass()
 	ScenePass.ConstantBuffer.reset();
 	ScenePass.RasterizerState[0].reset();
 	ScenePass.RasterizerState[1].reset();
+	ScenePass.RasterizerState[2].reset();
+	ScenePass.RasterizerState[3].reset();
 	ScenePass.ShaderProgram.reset();
 	ScenePass.ShaderProgramAlphaTest.reset();
 	ReleaseSceneSamplers();
@@ -1007,7 +1022,6 @@ void GLRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, 
 
 	GLBuffer* cbs[1] = { ScenePass.ConstantBuffer.get() };
 	SetUniformBuffers(0, 1, cbs);
-	SetRasterizerState(ScenePass.RasterizerState[SceneBuffers.Multisample > 1].get());
 
 	MapVertices(true);
 
@@ -2023,6 +2037,16 @@ void GLRenderDevice::SetRasterizerState(GLRasterizerState* rasterizerState)
 		glEnable(GL_MULTISAMPLE);
 	else
 		glDisable(GL_MULTISAMPLE);
+
+	if (rasterizerState->desc.DepthBias != 0)
+	{
+		glEnable(GL_POLYGON_OFFSET_FILL);
+		glPolygonOffset(rasterizerState->desc.SlopeScaledDepthBias, (GLfloat)rasterizerState->desc.DepthBias);
+	}
+	else
+	{
+		glDisable(GL_POLYGON_OFFSET_FILL);
+	}
 }
 
 void GLRenderDevice::SetUniformBuffers(int start, int count, GLBuffer** buffers)
@@ -2139,6 +2163,7 @@ void GLRenderDevice::DrawEntry(const DrawBatchEntry& entry)
 	SetTextures(0, 4, views);
 	SetBlendState(entry.Pipeline->BlendState.get(), entry.BlendConstants);
 	SetDepthStencilState(entry.Pipeline->DepthStencilState.get());
+	SetRasterizerState(entry.Pipeline->RasterizerState[SceneBuffers.Multisample > 1]);
 
 	glDrawElements(entry.Pipeline->PrimitiveTopology, (GLsizei)icount, GL_UNSIGNED_INT, (void*)(entry.SceneIndexStart * sizeof(uint32_t)));
 	Stats.DrawCalls++;
