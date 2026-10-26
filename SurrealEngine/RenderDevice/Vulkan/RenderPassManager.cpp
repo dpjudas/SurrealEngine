@@ -124,7 +124,7 @@ void RenderPassManager::CreatePipelines()
 		builder.RenderPass(Scene.RenderPass.get());
 
 		if (i > 1)
-			builder.DepthBias(true, -128.0f, 0.0f, -1.0f);
+			builder.DepthBias(true, 128.0f, 0.0f, 1.0f);
 
 		// Avoid clipping the weapon. The UE1 engine clips the geometry anyway.
 		if (renderer->Device.get()->EnabledFeatures.Features.depthClamp)
