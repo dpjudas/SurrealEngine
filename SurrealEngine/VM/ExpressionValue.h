@@ -376,6 +376,7 @@ inline ExpressionValue ExpressionValue::DefaultValue(UProperty* prop)
 	{
 		ExpressionValue v(prop->ValueType);
 		v.GetStructValue()->Init(static_cast<UStructProperty*>(prop)->Struct);
+		v.Ptr = v.GetStructValue()->Ptr;
 		return v;
 	}
 	case ExpressionValueType::ValueCoords: return CoordsValue({});
@@ -387,7 +388,10 @@ inline ExpressionValue ExpressionValue::PropertyValue(UProperty* prop)
 {
 	ExpressionValue v(prop->ValueType);
 	if (prop->ValueType == ExpressionValueType::ValueStruct)
+	{
 		v.GetStructValue()->Init(static_cast<UStructProperty*>(prop)->Struct);
+		v.Ptr = v.GetStructValue()->Ptr;
+	}
 	if (v.Type != ExpressionValueType::Nothing)
 		return v;
 	Exception::Throw("Unsupported expression value property type");
