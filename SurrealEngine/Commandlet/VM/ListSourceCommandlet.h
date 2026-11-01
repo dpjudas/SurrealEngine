@@ -2,6 +2,8 @@
 
 #include "Commandlet/Commandlet.h"
 
+class Frame;
+
 class ListSourceCommandlet : public Commandlet
 {
 public:
@@ -10,7 +12,7 @@ public:
 	void OnCommand(DebuggerApp* console, const std::string& args) override;
 	void OnPrintHelp(DebuggerApp* console) override;
 
-	static void PrintLines(DebuggerApp* console, int statementLine);
+	static void PrintLines(DebuggerApp* console, int statementLine, Frame* frame = nullptr);
 	static std::string SyntaxHighlight(const std::string& text);
 
 private:

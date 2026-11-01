@@ -7,6 +7,9 @@
 #include "Packages/Core/UClass.h"
 #include "Packages/Core/Properties/UClassProperty.h"
 #include "Packages/Engine/Resources/Level/ULevel.h"
+#include "VM/Bytecode.h"
+#include "Commandlet/VM/DisassemblyCommandlet.h"
+#include "Commandlet/VM/ListSourceCommandlet.h"
 #include <regex>
 
 PrintCommandlet::PrintCommandlet()
@@ -59,33 +62,66 @@ void PrintCommandlet::OnCommand(DebuggerApp* console, const std::string& args)
 						UObject* obj = actor;
 						for (auto chunk = chunks.begin(); chunk != chunks.end(); chunk++)
 						{
-							bool bFoundObj = false;
-							for (UProperty* prop : obj->PropertyData.Class->Properties)
+							if ((*chunk) == "state")
 							{
-								if (prop->Name == (*chunk))
+								const auto& frame = obj->StateFrame;
+								UStruct* func = frame ? frame->GetFunc() : nullptr;
+								if (frame && func)
 								{
-									void* val = obj->PropertyData.Ptr(prop);
+									std::string name = frame->GetName();
+									if (frame->GetStatementIndex() > 0) // StatementIndex points at the NEXT statement to be executed
+									{
+										Expression* statement = frame->GetFunc()->Code->Statements[frame->GetStatementIndex() - 1];
+										int line = frame->GetFunc()->GetStatementLine(statement);
+										if (line == -1)
+										{
+											line = frame->GetFunc()->Line;
 
-									if (chunk + 1 == chunks.end())
-									{
-										std::string name = prop->Name.ToString();
-										std::string value = prop->PrintValue(val);
-										PrintColumn(console, actor->Name.ToString(), actor->Class->Name.ToString(), false);
-										PrintColumn(console, name, value, true);
-										bFoundObj = true;
-										break;
-									}
-									else if (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop))
-									{
-										obj = *(UObject**)val;
-										bFoundObj = true;
-										break;
+											console->WriteOutput(ColorEscape(96) + name + ResetEscape() + " line " + ColorEscape(96) + std::to_string(line) + ResetEscape());
+											console->WriteOutput(": ");
+											PrintPrettyExpression::Print([&](const std::string& text) { console->WriteOutput(text); }, frame->GetFunc()->Code->Statements[frame->GetStatementIndex() - 1]);
+											console->WriteOutput(NewLine());
+										}
+										else
+										{
+											console->WriteOutput(ColorEscape(96) + name + ResetEscape() + " line " + ColorEscape(96) + std::to_string(line) + ResetEscape() + NewLine());
+											console->ListSourceLineOffset = 0;
+											ListSourceCommandlet::PrintLines(console, line, frame.get());
+										}
 									}
 								}
-							}
-
-							if (!bFoundObj)
 								break;
+							}
+							else
+							{
+								bool bFoundObj = false;
+								for (UProperty* prop : obj->PropertyData.Class->Properties)
+								{
+									if (prop->Name == (*chunk))
+									{
+										void* val = obj->PropertyData.Ptr(prop);
+
+										if (chunk + 1 == chunks.end())
+										{
+											std::string name = prop->Name.ToString();
+											std::string value = prop->PrintValue(val);
+											PrintColumn(console, actor->Name.ToString(), actor->Class->Name.ToString(), false);
+											PrintColumn(console, name, value, true);
+											bFoundObj = true;
+											break;
+										}
+										else if (UObject::TryCast<UObjectProperty>(prop) || UObject::TryCast<UClassProperty>(prop))
+										{
+											obj = *(UObject**)val;
+											bFoundObj = true;
+											break;
+										}
+									}
+								}
+
+								if (!bFoundObj)
+									break;
+							}
 						}
 					}
 				}
@@ -293,5 +329,6 @@ void PrintCommandlet::OnPrintHelp(DebuggerApp* console)
 	console->WriteOutput("Syntax: print                            - list all objects" + NewLine());
 	console->WriteOutput("        print <object name> <property>   - print object property" + NewLine());
 	console->WriteOutput("        print /<regex>                   - list objects matching regular expression" + NewLine());
-	console->WriteOutput("        print /<regex> <property>        - print property in objects matching regular expression" + NewLine());
+	console->WriteOutput("        print /<regex> <property>        - print property for objects matching regular expression" + NewLine());
+	console->WriteOutput("        print /<regex> state             - print state info for objects matching regular expression" + NewLine());
 }
