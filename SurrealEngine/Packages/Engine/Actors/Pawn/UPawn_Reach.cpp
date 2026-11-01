@@ -130,7 +130,9 @@ bool UPawn::ActorReachable(UActor* anActor, bool checkNavpoint)
 	case PHYS_Walking:
 		return ReachableWalking(anActor);
 	case PHYS_Falling:
-		return false; // Should we be able to reach anything in this state?
+		// DX ScriptedPawn pawns try to walk to their chairs in this state.
+		// Is this a spawn error or an issue with ActorReachable?
+		return true;
 	case PHYS_Swimming:
 		return ReachableSwimming(anActor);
 	case PHYS_Flying:

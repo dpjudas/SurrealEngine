@@ -299,6 +299,10 @@ std::vector<std::pair<std::string, std::string>> PrintCommandlet::FindProperties
 		return results;
 	}
 
+	name = *(chunks.end() - 1);
+	value = obj->Class->Name.ToString() + '\'' + obj->Name.ToString();
+	results.push_back({ name, value });
+/*
 	auto props = obj->PropertyData.Class->Properties;
 	std::stable_sort(props.begin(), props.end(), [](UProperty* a, UProperty* b) { return a->Name.ToString() < b->Name.ToString(); });
 	for (UProperty* prop : props)
@@ -309,6 +313,7 @@ std::vector<std::pair<std::string, std::string>> PrintCommandlet::FindProperties
 		std::string value = prop->PrintValue(ptr);
 		results.push_back({ name, value });
 	}
+*/
 	return results;
 }
 

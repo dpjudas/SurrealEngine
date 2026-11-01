@@ -19,9 +19,9 @@ CollisionHitList TraceTester::Trace(const vec3& from, const vec3& to, float heig
 	double tmax = length(direction);
 	if (std::isnan(tmax))
 		return {};
-	if (tmax < tmin)
+	if (tmax <= tmin)
 		return {};
-	direction *= 1.0f / tmax;
+	direction /= tmax;
 
 	float margin = 1.0f;
 	tmax += margin;
@@ -114,9 +114,9 @@ bool TraceTester::TraceAnyHit(vec3 from, vec3 to, UActor* tracingActor, bool tra
 	dvec3 direction = to_dvec3(to) - origin;
 	double tmin = 0.01f;
 	double tmax = length(direction);
-	if (tmax < tmin)
+	if (tmax <= tmin)
 		return false;
-	direction *= 1.0f / tmax;
+	direction /= tmax;
 
 	float margin = 1.0f;
 	tmax += margin;
