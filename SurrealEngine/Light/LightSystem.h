@@ -59,7 +59,7 @@ public:
 		}
 		else
 		{
-			dynamicLight = vec3(0.5f);
+			return vec3(0.5f);
 		}
 
 		// Clamp final result and make it all brighter to match lightmaps

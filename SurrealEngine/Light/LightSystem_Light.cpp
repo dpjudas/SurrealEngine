@@ -62,10 +62,15 @@ TextureInfo LightSystem::GetMoverLightmap(UMover* mover, const Poly& poly, UZone
 		mover->Light.Radius = radius;
 	}
 
+	// There is probably a better way to calculate this
+	vec3 worldLocation = (objectToWorld * vec4(mover->Light.Center, 1.0f)).xyz();
+	vec3 v = (objectToWorld * vec4(mover->Light.Center + vec3(mover->Light.Radius), 1.0f)).xyz() - worldLocation;
+	float worldRadius = length(v);
+
 	return GetLightmap(
 		model, poly.BrushPolyIndex, worldCoords, zoneActor,
-		(objectToWorld * vec4(mover->Light.Center, 1.0f)).xyz(),
-		mover->Light.Radius * std::max(scale.x, std::max(scale.y, scale.z)),
+		worldLocation,
+		worldRadius,
 		mover->bDynamicLightMover() ? mover : nullptr, mover->bSpecialLit());
 }
 
