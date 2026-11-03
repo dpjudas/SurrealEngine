@@ -145,6 +145,9 @@ void UActor::PhysLanded(UActor* hitActor, const vec3& hitNormal)
 	if (!hitActor)
 		hitActor = Level();
 
+	// Set the new base before calling the Landed event
+	SetBase(hitActor, true);
+
 	// landed on the floor
 	CallEvent(this, EventName::Landed, { ExpressionValue::VectorValue(hitNormal) });
 
@@ -153,12 +156,10 @@ void UActor::PhysLanded(UActor* hitActor, const vec3& hitNormal)
 		if (UObject::TryCast<UPawn>(this))
 		{
 			SetPhysics(PHYS_Walking);
-			SetBase(hitActor, true);
 		}
 		else
 		{
 			SetPhysics(PHYS_None);
-			SetBase(hitActor, true);
 			Velocity() = vec3(0.0f);
 		}
 	}
