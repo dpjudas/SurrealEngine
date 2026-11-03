@@ -350,7 +350,7 @@ void UEditWindow::InitWindow()
 	ULargeTextWindow::InitWindow();
 	blinkPeriod() = 0.5f;
 	bEditable() = true;
-	bSingleLine() = true; // Does it default to single or multi line?
+	bSingleLine() = false;
 }
 
 void UEditWindow::Tick(float timeElapsed)
@@ -395,8 +395,13 @@ void UEditWindow::DrawWindow(UGC* gc)
 	gc->SetAlignments(HAlign(), VAlign());
 	gc->bWordWrap() = !bSingleLine();
 
-	float w = Width();
-	float h = Height();
+	float xMargin = hMargin();
+	float yMargin = vMargin();
+
+	float w = Width() - xMargin * 2.0f;
+	float h = Height() - yMargin * 2.0f;
+	if (w <= 0.0f || h <= 0.0f)
+		return;
 
 	int selStart = 0, selCount = 0;
 	GetSelectedArea(selStart, selCount);
@@ -408,10 +413,11 @@ void UEditWindow::DrawWindow(UGC* gc)
 		std::string selectionText = Text().substr(selStart, selCount);
 		std::string afterText = Text().substr(selStart + selCount);
 
-		float x = 0.0f;
+		float x = xMargin;
+		float y = yMargin;
 		float xExtent = 0.0f, yExtent = 0.0f;
 		gc->SetTextColor(TextColor());
-		gc->DrawText(x, 0.0f, w - x, h, beforeText);
+		gc->DrawText(x, y, w - x, h, beforeText);
 		gc->GetTextExtent(w - x, xExtent, yExtent, beforeText);
 		x += xExtent - 1.0f;
 
@@ -419,19 +425,19 @@ void UEditWindow::DrawWindow(UGC* gc)
 		if (auto tex = selectTexture())
 		{
 			gc->SetTileColor(selectColor());
-			gc->DrawStretchedTexture(x, 0.0f, xExtent - 1.0f, h, 0.0f, 0.0f, (float)tex->USize(), (float)tex->VSize(), tex);
+			gc->DrawStretchedTexture(x, y, xExtent - 1.0f, h, 0.0f, 0.0f, (float)tex->USize(), (float)tex->VSize(), tex);
 		}
 		gc->SetTextColor(TextColor());
-		gc->DrawText(x, 0.0f, w - x, h, selectionText);
+		gc->DrawText(x, y, w - x, h, selectionText);
 		x += xExtent - 1.0f;
 
 		gc->SetTextColor(TextColor());
-		gc->DrawText(x, 0.0f, w - x, h, afterText);
+		gc->DrawText(x, y, w - x, h, afterText);
 	}
 	else
 	{
 		gc->SetTextColor(TextColor());
-		gc->DrawText(0.0f, 0.0f, Width(), Height(), Text());
+		gc->DrawText(xMargin, yMargin, w, h, Text());
 	}
 
 	if (IsFocusWindow() && blinkDelay() < 0.0f)
@@ -441,13 +447,14 @@ void UEditWindow::DrawWindow(UGC* gc)
 			float xExtent = 0.0f, yExtent = 0.0f;
 			std::string beforeInsertPoint = Text().substr(0, insertPos());
 			gc->GetTextExtent(w, xExtent, yExtent, beforeInsertPoint);
-			float x = std::max(xExtent - 2.0f, 0.0f);
+			float x = std::max(xMargin + xExtent - 2.0f, 0.0f);
+			float y = yMargin;
 
 			// Only EInsertionPointType::Insert is in use according to the scripts
 			// EInsertionPointType type = (EInsertionPointType)insertType();
 
 			gc->SetTileColor(insertColor());
-			gc->DrawStretchedTexture(x, 0.0f, 1.0f, h, 0.0f, 0.0f, (float)tex->USize(), (float)tex->VSize(), tex);
+			gc->DrawStretchedTexture(x, y, 1.0f, h, 0.0f, 0.0f, (float)tex->USize(), (float)tex->VSize(), tex);
 		}
 	}
 
