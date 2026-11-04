@@ -76,10 +76,12 @@ public:
 	void ShowFocusRow();
 	void Sort();
 	void ToggleRowSelection(int rowId);
+	void CheckAutoExpandColumns();
 
 	void DispatchListSelectionChanged();
 
 	void InitWindow() override;
+	void ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight) override;
 	void DrawWindow(UGC* gc) override;
 	bool MouseButtonPressed(float pointX, float pointY, EInputKey button, int numClicks) override;
 	bool MouseButtonReleased(float pointX, float pointY, EInputKey button, int numClicks) override;
@@ -107,6 +109,7 @@ public:
 	};
 	std::vector<Item> items;
 	int nextRowId = 1;
+	bool itemsChanged = true;
 
 	Color highlightTextColor = { 255,255,255,255 };
 
