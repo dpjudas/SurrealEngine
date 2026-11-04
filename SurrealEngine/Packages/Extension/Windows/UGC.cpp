@@ -693,9 +693,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 	Color color = colormoo;
 	color.A = 255; // grr
 
-	if (!bWordWrap())
-		destWidth = 100000.0f;
-
+	float maxWidth = bWordWrap() ? destWidth : 100000.0f;
 
 	// Remove the | and & escapes for now
 	/*
@@ -756,7 +754,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 		else
 		{
 			vec2 blockSize = GetTextSize(font, textBlocks[pos].text);
-			if (lineWidth + blockSize.x > destWidth)
+			if (lineWidth + blockSize.x > maxWidth)
 			{
 				float centerX = 0;
 				if (halign == EHAlign::Center || halign == EHAlign::Full)
