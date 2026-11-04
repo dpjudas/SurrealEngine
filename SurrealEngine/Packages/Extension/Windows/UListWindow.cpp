@@ -404,8 +404,8 @@ void UListWindow::SetField(int rowId, int colIndex, const std::string& fieldStr)
 
 void UListWindow::SetFieldMargins(float newMarginWidth, float newMarginHeight)
 {
-	// UNUSED from scripts.
-	LogUnimplemented("ListWindow.SetFieldMargins");
+	colMargin() = newMarginWidth;
+	rowMargin() = newMarginHeight;
 }
 
 void UListWindow::SetFieldValue(int rowId, int colIndex, float NewValue)
@@ -521,14 +521,9 @@ void UListWindow::ToggleRowSelection(int rowId)
 
 void UListWindow::CheckAutoExpandColumns()
 {
-	if (!bAutoExpandColumns() /* || !itemsChanged*/)
+#if 0 // even split
+	if (!bAutoExpandColumns())
 		return;
-
-	// Is auto expand finding the tightest fit, or splitting columns evenly?
-
-	//UFont* font = normalFont();
-	//if (!font)
-	//	return;
 
 	int count = 0;
 	for (Column& column : columns)
@@ -539,23 +534,41 @@ void UListWindow::CheckAutoExpandColumns()
 
 	float w = Width();
 	float colw = w / count;
+	for (Column& column : columns)
+		column.width = colw;
+
+#else // tightest fit
+	if (!bAutoExpandColumns() || !itemsChanged)
+		return;
+
+	UFont* font = normalFont();
+	if (!font)
+		return;
+
+	auto gc = UObject::Cast<UGC>(GetGC());
+	gc->SetFont(font);
+
+	float margin = colMargin();
 
 	itemsChanged = false;
-	//size_t i = 0;
+	size_t i = 0;
 	for (Column& column : columns)
 	{
-		column.width = colw;
-		/*
 		float width = 0.0f;
 		for (const Item& item : items)
 		{
 			if (item.cells.size() > i)
 			{
+				float xExtent = 0.0f;
+				float yExtent = 0.0f;
+				gc->GetTextExtent(100000.0f, xExtent, yExtent, item.cells[i]);
+				width = std::max(width, xExtent);
 			}
 		}
+		column.width = width + margin * 2.0f;
 		i++;
-		*/
 	}
+#endif
 }
 
 void UListWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& preferredWidth, bool bHeightSpecified, float& preferredHeight)
@@ -593,6 +606,7 @@ void UListWindow::DrawWindow(UGC* gc)
 	float h = Height();
 	float lineHeight = (float)font->GetGlyph('X').VSize + 2;
 	lineSize() = lineHeight;
+	float margin = colMargin();
 
 	gc->bWordWrap() = false;
 
@@ -622,7 +636,7 @@ void UListWindow::DrawWindow(UGC* gc)
 			gc->SetTileColor(tileColor());
 		}
 
-		float x = 0.0f;
+		float x = margin;
 		size_t colIndex = 0;
 		for (auto& col : columns)
 		{
@@ -635,7 +649,8 @@ void UListWindow::DrawWindow(UGC* gc)
 				//if (!item.selected)
 				//	gc->SetTextColor(col.color);
 
-				gc->DrawText(x, y, col.width, lineHeight, item.cells[colIndex]);
+				if (col.width > margin * 2.0f)
+					gc->DrawText(x, y, col.width - margin, lineHeight, item.cells[colIndex]);
 			}
 			if (!col.hidden)
 				x += col.width;
