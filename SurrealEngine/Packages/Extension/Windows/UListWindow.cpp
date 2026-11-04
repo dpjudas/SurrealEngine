@@ -521,7 +521,7 @@ void UListWindow::ToggleRowSelection(int rowId)
 
 void UListWindow::CheckAutoExpandColumns()
 {
-	if (!bAutoExpandColumns() /* || !itemsChanged*/ || columns.empty())
+	if (!bAutoExpandColumns() /* || !itemsChanged*/)
 		return;
 
 	// Is auto expand finding the tightest fit, or splitting columns evenly?
@@ -530,8 +530,15 @@ void UListWindow::CheckAutoExpandColumns()
 	//if (!font)
 	//	return;
 
+	int count = 0;
+	for (Column& column : columns)
+	{
+		if (!column.hidden)
+			count++;
+	}
+
 	float w = Width();
-	float colw = w / columns.size();
+	float colw = w / count;
 
 	itemsChanged = false;
 	//size_t i = 0;
@@ -587,6 +594,8 @@ void UListWindow::DrawWindow(UGC* gc)
 	float lineHeight = (float)font->GetGlyph('X').VSize + 2;
 	lineSize() = lineHeight;
 
+	gc->bWordWrap() = false;
+
 	float y = 0.0f;
 	int lineIndex = 0;
 	for (auto& item : items)
@@ -617,7 +626,7 @@ void UListWindow::DrawWindow(UGC* gc)
 		size_t colIndex = 0;
 		for (auto& col : columns)
 		{
-			if (item.cells.size() > colIndex)
+			if (item.cells.size() > colIndex && !col.hidden)
 			{
 				UFont* colFont = col.font ? col.font : font;
 				gc->SetFont(colFont);
@@ -628,7 +637,8 @@ void UListWindow::DrawWindow(UGC* gc)
 
 				gc->DrawText(x, y, col.width, lineHeight, item.cells[colIndex]);
 			}
-			x += col.width;
+			if (!col.hidden)
+				x += col.width;
 			colIndex++;
 		}
 		y += lineHeight;
