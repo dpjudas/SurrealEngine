@@ -168,7 +168,7 @@ bool UDXTextParser::ProcessText()
 			}
 			else if (tagname == "EMAIL" && ReadTagEmail(text, pos, LastEmailName(), LastEmailSubject(), LastEmailFrom(), LastEmailTo(), LastEmailCC()) && ReadChars(text, pos, ">"))
 			{
-				LastTag() = DeusExTextTags::TT_File;
+				LastTag() = DeusExTextTags::TT_Email;
 				TextPos() = (int)pos;
 				return true;
 			}
@@ -200,6 +200,9 @@ bool UDXTextParser::ReadTagName(const std::string& text, size_t& pos, std::strin
 		pos++;
 	}
 
+	if (pos < len && text[pos] == '=') // some tags have an equal sign after the name - ignore it.
+		pos++;
+
 	if (tagname.empty() || pos == len)
 		return false;
 	return true;
@@ -207,7 +210,7 @@ bool UDXTextParser::ReadTagName(const std::string& text, size_t& pos, std::strin
 
 bool UDXTextParser::ReadChars(const std::string& text, size_t& pos, const std::string& chars)
 {
-	if (pos + chars.size() >= text.size() || text.substr(pos, chars.size()) != chars)
+	if (pos + chars.size() > text.size() || text.substr(pos, chars.size()) != chars)
 		return false;
 	pos += chars.size();
 	return true;
@@ -215,8 +218,6 @@ bool UDXTextParser::ReadChars(const std::string& text, size_t& pos, const std::s
 
 bool UDXTextParser::ReadTagColor(const std::string& text, size_t& pos, Color& color)
 {
-	if (!ReadChars(text, pos, "="))
-		return false;
 	if (!ReadInteger(text, pos, color.R))
 		return false;
 	if (!ReadChars(text, pos, ","))

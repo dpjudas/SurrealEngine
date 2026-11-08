@@ -131,7 +131,7 @@ std::string UListWindow::GetField(int rowId, int colIndex)
 	int rowIndex = RowIdToIndex(rowId);
 	if (rowIndex == -1)
 		return {};
-	if (colIndex < 0 || items[rowIndex].cells.size() >= (size_t)colIndex)
+	if (colIndex < 0 || (size_t)colIndex >= items[rowIndex].cells.size())
 		return {};
 	return items[rowIndex].cells[colIndex];
 }
