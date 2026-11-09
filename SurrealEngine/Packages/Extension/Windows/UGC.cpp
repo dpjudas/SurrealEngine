@@ -719,6 +719,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 	float lineHeight = 0.0f;
 
 	float emptyLineHeight = GetTextSize(font, " ").y;
+	lineHeight = emptyLineHeight;
 
 	for (size_t pos = 0; pos < textBlocks.size(); pos++)
 	{
@@ -741,7 +742,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 			}
 			else
 			{
-				lineHeight = std::max(lineHeight, emptyLineHeight);
+				//lineHeight = std::max(lineHeight, emptyLineHeight);
 				curY += lineHeight;
 				totalHeight += lineHeight;
 			}
@@ -749,7 +750,7 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 			curX = 0;
 			lineBegin = pos + 1;
 			lineWidth = 0.0f;
-			lineHeight = 0.0f;
+			//lineHeight = 0.0f;
 		}
 		else
 		{
@@ -775,19 +776,19 @@ Sizef UGC::DrawText(UFont* font, float orgX, float orgY, float destWidth, const 
 					// Ignore whitespace at the beginning of a word wrapped line
 					lineBegin = pos + 1;
 					lineWidth = 0.0f;
-					lineHeight = 0.0f;
+					//lineHeight = 0.0f;
 				}
 				else
 				{
 					lineBegin = pos;
 					lineWidth = blockSize.x;
-					lineHeight = blockSize.y;
+					//lineHeight = blockSize.y;
 				}
 			}
 			else
 			{
 				lineWidth += blockSize.x;
-				lineHeight = std::max(lineHeight, blockSize.y);
+				//lineHeight = std::max(lineHeight, blockSize.y);
 			}
 		}
 	}

@@ -159,13 +159,17 @@ void UTileWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& pref
 			if (!first)
 				preferredWidth += gap;
 			first = false;
-			float w = 0.0f, h = 0.0f;
 			if (bHeightSpecified)
-				w = cur->QueryPreferredWidth(preferredHeight);
+			{
+				preferredWidth += cur->QueryPreferredWidth(preferredHeight - vMargin() * 2.0f);
+			}
 			else
+			{
+				float w = 0.0f, h = 0.0f;
 				cur->QueryPreferredSize(w, h);
-			preferredHeight = std::max(preferredHeight, h);
-			preferredWidth += w;
+				preferredHeight = std::max(preferredHeight, h);
+				preferredWidth += w;
+			}
 		}
 	}
 	else
@@ -182,15 +186,21 @@ void UTileWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& pref
 			first = false;
 			float w = 0.0f, h = 0.0f;
 			if (bWidthSpecified)
-				h = cur->QueryPreferredHeight(preferredWidth);
+			{
+				preferredHeight += cur->QueryPreferredHeight(preferredWidth- hMargin() * 2.0f);
+			}
 			else
+			{
 				cur->QueryPreferredSize(w, h);
-			preferredWidth = std::max(preferredWidth, w);
-			preferredHeight += h;
+				preferredWidth = std::max(preferredWidth, w);
+				preferredHeight += h;
+			}
 		}
 	}
-	preferredWidth += hMargin() * 2.0f;
-	preferredHeight += vMargin() * 2.0f;
+	if (!bWidthSpecified)
+		preferredWidth += hMargin() * 2.0f;
+	if (!bHeightSpecified)
+		preferredHeight += vMargin() * 2.0f;
 }
 
 void UTileWindow::ConfigurationChanged()

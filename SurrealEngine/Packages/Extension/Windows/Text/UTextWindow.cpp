@@ -139,12 +139,17 @@ void UTextWindow::ParentRequestedPreferredSize(bool bWidthSpecified, float& pref
 {
 	//if (!Text().empty()) // Is this needed?
 	{
+		std::string text = Text();
+		if (text == "UNATCO has faith in you, and this faith will be REWARDED in due time as your operational capacities are increased.  Brave the darkness, for you carry the torch of freedom.")
+			text = text;
+		if (text.empty())
+			text = " ";
 		float xExtent = 0.0f, yExtent = 0.0f;
 		UObject* oldNormalFont = nullptr;
 		UObject* oldBoldFont = nullptr;
 		engine->dxgc->GetFonts(oldNormalFont, oldBoldFont);
 		engine->dxgc->SetFonts(normalFont(), boldFont());
-		engine->dxgc->GetTextExtent(bWidthSpecified ? std::max(preferredWidth, MinWidth()) : 100000.0f, xExtent, yExtent, Text());
+		engine->dxgc->GetTextExtent(bWidthSpecified ? std::max(preferredWidth, MinWidth()) : 100000.0f, xExtent, yExtent, text);
 		engine->dxgc->SetFonts(oldNormalFont, oldBoldFont);
 
 		if (UFont* font = normalFont())
