@@ -108,6 +108,7 @@ public:
 
 	void Key(std::string key);
 	void InputEvent(EInputKey key, EInputType type, int delta = 0);
+	void ReleaseAllInput();
 
 	void OnWindowPaint() override;
 	void OnWindowMouseMove(const Point& pos) override;
@@ -178,7 +179,7 @@ public:
 
 	GameLaunchInfo LaunchInfo;
 	std::unique_ptr<PackageManager> packages;
-	std::unique_ptr<GameWindow> window; // TODO: Move into UViewport
+	std::unique_ptr<GameWindow> window;
 	std::unique_ptr<RenderSubsystem> render;
 
 	int MouseMoveX = 0;

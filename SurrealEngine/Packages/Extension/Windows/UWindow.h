@@ -13,6 +13,7 @@ class UScaleWindow;
 class UScaleManagerWindow;
 class UActor;
 class URootWindow;
+class UTabGroupWindow;
 enum EInputKey;
 enum EInputType;
 
@@ -73,7 +74,9 @@ enum class EMove : uint8_t
 	Left,
 	Right,
 	Up,
-	Down
+	Down,
+	TabNext,
+	TabPrev
 };
 
 enum class EOrientation : uint8_t
@@ -177,15 +180,15 @@ public:
 	UObject* GetBottomChild(std::optional<bool> bVisibleOnly);
 	UObject* GetClientObject();
 	void GetCursorPos(float& MouseX, float& MouseY);
-	UObject* GetFocusWindow();
-	UObject* GetGC();
+	UWindow* GetFocusWindow();
+	UGC* GetGC();
 	UObject* GetHigherSibling(std::optional<bool> bVisibleOnly);
 	UObject* GetLowerSibling(std::optional<bool> bVisibleOnly);
 	UObject* GetModalWindow();
 	UObject* GetParent();
 	UObject* GetPlayerPawn();
 	URootWindow* GetRootWindow();
-	UObject* GetTabGroupWindow();
+	UTabGroupWindow* GetTabGroupWindow();
 	float GetTickOffset();
 	UObject* GetTopChild(std::optional<bool> bVisibleOnly);
 	void GrabMouse();
@@ -197,15 +200,15 @@ public:
 	bool IsSensitive(std::optional<bool> bRecurse);
 	bool IsVisible(std::optional<bool> bRecurse);
 	void Lower();
-	//UObject* MoveFocus(EMove direction);
-	UObject* MoveFocusDown();
-	UObject* MoveFocusLeft();
-	UObject* MoveFocusRight();
-	UObject* MoveFocusUp();
-	//UObject* MoveTabGroup(EMove dir);
-	UObject* MoveTabGroupNext();
-	UObject* MoveTabGroupPrev();
-	UObject* NewChild(UObject* NewClass, std::optional<bool> bShow = {});
+	bool FocusFirstSelectable();
+	UWindow* MoveFocus(EMove direction);
+	UWindow* MoveFocusDown();
+	UWindow* MoveFocusLeft();
+	UWindow* MoveFocusRight();
+	UWindow* MoveFocusUp();
+	UWindow* MoveTabGroupNext();
+	UWindow* MoveTabGroupPrev();
+	UWindow* NewChild(UObject* NewClass, std::optional<bool> bShow = {});
 	void PlaySound(UObject* newsound, std::optional<float> Volume, std::optional<float> Pitch, std::optional<float> posX, std::optional<float> posY);
 	void QueryGranularity(float& hGranularity, float& vGranularity);
 	float QueryPreferredHeight(float queryWidth);

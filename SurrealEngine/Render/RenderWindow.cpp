@@ -17,6 +17,7 @@ void RenderSubsystem::PreRenderWindows(UCanvas* canvas)
 	if (!engine->dxRootWindow)
 		return;
 
+	engine->dxRootWindow->UpdateFocus();
 	engine->dxRootWindow->UpdateLayout();
 }
 

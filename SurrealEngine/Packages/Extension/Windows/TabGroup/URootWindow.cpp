@@ -476,8 +476,32 @@ bool URootWindow::OnWindowKeyChar(std::string chars)
 	return IsModalOpen();
 }
 
+void URootWindow::UpdateFocus()
+{
+	if (FocusWindow())
+		return;
+
+	// We don't have any focus window. Go hunt for one.
+
+	for (UWindow* child = lastChild(); child; child = child->prevSibling())
+	{
+		if (!child->bIsVisible())
+			continue;
+		if (auto modal = UObject::TryCast<UModalWindow>(child))
+		{
+			if (modal->preferredFocus())
+				SetFocusWindow(modal->preferredFocus());
+			else
+				child->FocusFirstSelectable();
+			break;
+		}
+	}
+}
+
 bool URootWindow::OnWindowKeyDown(EInputKey key)
 {
+	UpdateFocus();
+
 	UWindow* focus = FocusWindow();
 	if (!focus)
 		return IsModalOpen();

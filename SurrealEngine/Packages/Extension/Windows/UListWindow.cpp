@@ -8,6 +8,7 @@
 
 void UListWindow::InitWindow()
 {
+	bIsSelectable() = true;
 	focusLine() = -1;
 	anchorLine() = -1;
 	lastIndex() = -1;
@@ -545,7 +546,7 @@ void UListWindow::CheckAutoExpandColumns()
 	if (!font)
 		return;
 
-	auto gc = UObject::Cast<UGC>(GetGC());
+	auto gc = GetGC();
 	gc->SetFont(font);
 
 	float margin = colMargin();

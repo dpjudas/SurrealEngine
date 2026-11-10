@@ -5,6 +5,12 @@
 #include "Packages/Engine/Resources/USound.h"
 #include "Packages/Engine/Resources/Textures/UTexture.h"
 
+void UButtonWindow::InitWindow()
+{
+	bIsSelectable() = true;
+	UTextWindow::InitWindow();
+}
+
 void UButtonWindow::DrawWindow(UGC* gc)
 {
 	bool hasFocus = GetFocusWindow() == this;

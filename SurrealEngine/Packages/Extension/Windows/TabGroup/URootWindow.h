@@ -40,6 +40,8 @@ public:
 	bool OnWindowKeyDown(EInputKey key);
 	bool OnWindowKeyUp(EInputKey key);
 
+	void UpdateFocus();
+
 	bool IsCursorVisible();
 	bool IsModalOpen();
 

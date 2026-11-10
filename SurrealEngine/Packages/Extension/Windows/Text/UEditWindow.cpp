@@ -348,6 +348,7 @@ void UEditWindow::SetTextChangedFlag(std::optional<bool> bSet)
 void UEditWindow::InitWindow()
 {
 	ULargeTextWindow::InitWindow();
+	bIsSelectable() = true;
 	blinkPeriod() = 0.5f;
 	bEditable() = true;
 	bSingleLine() = false;

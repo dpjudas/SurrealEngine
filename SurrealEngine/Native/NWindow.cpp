@@ -2,6 +2,7 @@
 #include "NWindow.h"
 #include "VM/NativeFunc.h"
 #include "Packages/Extension/Windows/UWindow.h"
+#include "Packages/Extension/Windows/UGC.h"
 #include "Packages/Extension/Windows/TabGroup/URootWindow.h"
 
 void NWindow::RegisterFunctions()
