@@ -136,6 +136,11 @@ void LightSystem::UpdateLightList(UActor* actor)
 
 	vec3 extents = actor->BspInfo.BoundingBox.extents();
 
+	vec3 toplocation = location;
+	vec3 bottomlocation = location;
+	toplocation.z += extents.z * 0.5f;
+	bottomlocation.z -= extents.z * 0.5f;
+
 	LightTree.CollectLights(location, std::max(extents.x, std::max(extents.y, extents.z)));
 	for (UActor* light : LightTree.CollectedLights)
 	{
@@ -143,7 +148,10 @@ void LightSystem::UpdateLightList(UActor* actor)
 		{
 			float radius = light->WorldLightRadius();
 			vec3 L = light->Location() - location;
-			if (dot(L, L) < radius * radius && !engine->Level->Collision.TraceAnyHit(light->Location(), location, actor, false, true, true))
+			if (dot(L, L) < radius * radius && (
+				!engine->Level->Collision.TraceAnyHit(light->Location(), toplocation, actor, false, true, true) ||
+				!engine->Level->Collision.TraceAnyHit(light->Location(), location, actor, false, true, true) ||
+				!engine->Level->Collision.TraceAnyHit(light->Location(), bottomlocation, actor, false, true, true)))
 			{
 				actor->TouchingLights.List.push_back(light);
 			}

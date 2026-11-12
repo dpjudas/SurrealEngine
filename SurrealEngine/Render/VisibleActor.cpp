@@ -28,6 +28,16 @@ void VisibleActor::Process(VisibleFrame* frame, UActor* actor)
 		}
 	}
 
+#if 0 // Render light sources
+	if (actor->LightType() != LT_None && actor->LightBrightness() > 0)
+	{
+		Type = DT_Sprite;
+		Actor = actor;
+		frame->Actors.push_back(*this);
+		return;
+	}
+#endif
+
 	if (actor->bHidden())
 		return;
 
