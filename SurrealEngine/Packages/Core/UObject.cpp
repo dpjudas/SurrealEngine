@@ -2,6 +2,7 @@
 #include "Precomp.h"
 #include "UObject.h"
 #include "UClass.h"
+#include "Packages/Engine/Actors/UActor.h"
 #include "Properties/UProperty.h"
 #include "Properties/UBoolProperty.h"
 #include "Package/Package.h"
@@ -530,6 +531,12 @@ void UObject::GotoState(NameString stateName, const NameString& labelName)
 		StateFrame->SetState(newState);
 
 	DisabledEvents.clear();
+
+	if (auto actor = UObject::TryCast<UActor>(this))
+	{
+		// AugLight doesn't seem to call AIStopEvent when switching from active to inactive state
+		actor->AI.Events.clear();
+	}
 
 	if (newState)
 	{

@@ -171,6 +171,7 @@ void UActor::Tick(float elapsed)
 	if (engine->LaunchInfo.IsDeusEx())
 	{
 		DistanceFromPlayer() = length(engine->viewport->Actor()->Location() - Location());
+		AICheckStartedEvents();
 	}
 
 	TickAnimation(elapsed);
@@ -353,46 +354,111 @@ bool UActor::IsOSVer2kOrXP()
 
 void UActor::AIClearEvent(const NameString& eventName)
 {
-	LogUnimplemented("Actor.AIClearEvent");
+	for (auto it = AI.Events.begin(); it != AI.Events.end();)
+	{
+		const StartedAIEvent& e = *it;
+		if (e.Name == eventName)
+		{
+			it = AI.Events.erase(it);
+			break;
+		}
+		else
+		{
+			++it;
+		}
+	}
 }
 
 void UActor::AIClearEventCallback(const NameString& eventName)
 {
-	LogUnimplemented("Actor.AIClearEventCallback");
-}
-
-void UActor::AIEndEvent(const NameString& eventName, uint8_t eventType)
-{
-	LogUnimplemented("Actor.AIEndEvent");
-}
-
-float UActor::AIGetLightLevel(const vec3& Location)
-{
-	LogUnimplemented("Actor.AIGetLightLevel");
-	return 1.0f;
-}
-
-void UActor::AISendEvent(const NameString& eventName, uint8_t eventType, std::optional<float> Value, std::optional<float> Radius)
-{
-	LogUnimplemented("Actor.AISendEvent");
-	//LogUnimplemented(Name.ToString() + ": AISendEvent('" + eventName.ToString() + "')");
+	for (auto it = AI.Callbacks.begin(); it != AI.Callbacks.end(); ++it)
+	{
+		const AICallback& cb = *it;
+		if (cb.Name == eventName)
+		{
+			AI.Callbacks.erase(it);
+			break;
+		}
+	}
 }
 
 void UActor::AISetEventCallback(const NameString& eventName, const NameString& callback, std::optional<NameString> scoreCallback, std::optional<bool> bCheckVisibility, std::optional<bool> bCheckDir, std::optional<bool> bCheckCylinder, std::optional<bool> bCheckLOS)
 {
-	LogUnimplemented("Actor.AISetEventCallback");
-	//LogMessage(Name.ToString() + ": AISetEventCallback('" + eventName.ToString() + "')");
+	AIClearEventCallback(eventName);
+
+	AICallback cb;
+	cb.Name = eventName;
+	cb.Callback = callback;
+	cb.ScoreCallback = scoreCallback;
+	cb.bCheckVisibility = bCheckVisibility;
+	cb.bCheckDir = bCheckDir;
+	cb.bCheckCylinder = bCheckCylinder;
+	cb.bCheckLOS = bCheckLOS;
+	AI.Callbacks.push_back(std::move(cb));
 }
 
-void UActor::AIStartEvent(const NameString& eventName, uint8_t eventType, std::optional<float> Value, std::optional<float> Radius)
+void UActor::AIStartEvent(const NameString& eventName, EAIEventType eventType, std::optional<float> Value, std::optional<float> Radius)
 {
-	LogUnimplemented("Actor.AIStartEvent");
-	//LogUnimplemented(Name.ToString() + ": AIStartEvent('" + eventName.ToString() + "')");
+	for (auto it = AI.Events.begin(); it != AI.Events.end(); ++it)
+	{
+		StartedAIEvent& e = *it;
+		if (e.Name == eventName && e.Type == eventType)
+		{
+			e.Value = Value;
+			e.Radius = Radius;
+			return;
+		}
+	}
+
+	StartedAIEvent e;
+	e.Name = eventName;
+	e.Type = eventType;
+	e.Value = Value;
+	e.Radius = Radius;
+	AI.Events.push_back(std::move(e));
+}
+
+void UActor::AIEndEvent(const NameString& eventName, EAIEventType eventType)
+{
+	for (auto it = AI.Events.begin(); it != AI.Events.end(); ++it)
+	{
+		const StartedAIEvent& e = *it;
+		if (e.Name == eventName && e.Type == eventType)
+		{
+			AI.Events.erase(it);
+			break;
+		}
+	}
+}
+
+void UActor::AICheckStartedEvents()
+{
+	for (auto& e : AI.Events)
+	{
+		// To do: find actors in radius, calculate a score for each and then use the score callback to filter
+		// check if best actor changes and send event to new actor if so?
+		// what is the difference between visual and audio event types?
+	}
+}
+
+void UActor::AISendEvent(const NameString& eventName, EAIEventType eventType, std::optional<float> Value, std::optional<float> Radius)
+{
+	// To do: find actors in radius, calculate a score for each and then use the score callback to filter
+	// call the callback for the actor with the highest score
+	// what is the difference between visual and audio event types?
+	LogUnimplemented("Actor.AISendEvent");
 }
 
 float UActor::AIVisibility(std::optional<bool> bIncludeVelocity)
 {
+	// Only used for debugging
 	LogUnimplemented("Actor.AIVisibility");
-	//LogMessage(Name.ToString() + ": AIVisibility");
 	return 0.0f;
+}
+
+float UActor::AIGetLightLevel(const vec3& Location)
+{
+	// Unused by script
+	LogUnimplemented("Actor.AIGetLightLevel");
+	return 1.0f;
 }

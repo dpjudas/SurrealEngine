@@ -3,6 +3,7 @@
 #include "Packages/Core/UObject.h"
 #include "Math/bbox.h"
 
+class UActor;
 class UZoneInfo;
 class UTexture;
 class UPawn;
@@ -172,7 +173,7 @@ enum class EAIEventType : uint8_t
 {
 	EAITYPE_Visual,
 	EAITYPE_Audio,
-	EAITYPE_Olifactory
+	EAITYPE_Olifactory // Unused by script
 };
 
 // Deus Ex
@@ -217,6 +218,16 @@ enum class EDodgeDir : uint8_t
 	DODGE_Back,
 	DODGE_Active,
 	DODGE_Done
+};
+
+// Deus Ex
+struct XAIParams
+{
+	UActor* BestActor;
+	float Score; // Unused by script
+	float Visibility; // Unused by script
+	float Volume; // Unused by script
+	float Smell; // Unused by script
 };
 
 // Unreal 227
@@ -492,19 +503,47 @@ public:
 	bool IsOSVer2kOrXP();
 
 	// Deus Ex
+	void AICheckStartedEvents();
 	void AIClearEvent(const NameString& eventName);
 	void AIClearEventCallback(const NameString& eventName);
-	void AIEndEvent(const NameString& eventName, uint8_t eventType);
+	void AIStartEvent(const NameString& eventName, EAIEventType eventType, std::optional<float> Value, std::optional<float> Radius);
+	void AIEndEvent(const NameString& eventName, EAIEventType eventType);
 	float AIGetLightLevel(const vec3& Location);
-	void AISendEvent(const NameString& eventName, uint8_t eventType, std::optional<float> Value, std::optional<float> Radius);
+	void AISendEvent(const NameString& eventName, EAIEventType eventType, std::optional<float> Value, std::optional<float> Radius);
 	void AISetEventCallback(const NameString& eventName, const NameString& callback, std::optional<NameString> scoreCallback, std::optional<bool> bCheckVisibility, std::optional<bool> bCheckDir, std::optional<bool> bCheckCylinder, std::optional<bool> bCheckLOS);
-	void AIStartEvent(const NameString& eventName, uint8_t eventType, std::optional<float> Value, std::optional<float> Radius);
 	float AIVisibility(std::optional<bool> bIncludeVelocity);
 
 	void UpdateBspInfo();
 	void AddToBspNode(BspNode* node);
 	void RemoveFromBspNode();
 	static int NodeAABBOverlap(const vec3& center, const vec3& extents, BspNode* node);
+
+	struct StartedAIEvent
+	{
+		NameString Name;
+		EAIEventType Type = {};
+		std::optional<float> Value;
+		std::optional<float> Radius;
+		UActor* Best = nullptr;
+	};
+
+	struct AICallback
+	{
+		NameString Name;
+		NameString Callback; // void Callback(Name event, EAIEventState state, XAIParams params)
+		std::optional<NameString> ScoreCallback; // float ScoreCallback(actor receiver, actor sender, float score)
+		std::optional<bool> bCheckVisibility;
+		std::optional<bool> bCheckDir;
+		std::optional<bool> bCheckCylinder;
+		std::optional<bool> bCheckLOS;
+	};
+
+	// DX AI event broadcast system
+	struct
+	{
+		std::vector<StartedAIEvent> Events;
+		std::vector<AICallback> Callbacks;
+	} AI;
 
 	// The status of the actor in the collision system
 	struct

@@ -42,12 +42,3 @@ public:
 	bool HaveSeenCarcass(const NameString& CarcassName);
 	bool IsValidEnemy(UPawn* TestEnemy, std::optional<bool> bCheckAlliance);
 };
-
-struct XAIParams
-{
-	UActor* BestActor;
-	float Score;
-	float Visibility;
-	float Volume;
-	float Smell;
-};
