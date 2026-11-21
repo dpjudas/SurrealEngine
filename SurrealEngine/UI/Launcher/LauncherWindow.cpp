@@ -5,7 +5,7 @@
 #include "LauncherButtonbar.h"
 #include "PlayGamePage.h"
 #include "VideoSettingsPage.h"
-// #include "AudioSettingsPage.h"
+#include "AudioSettingsPage.h"
 #include "GameFoldersPage.h"
 #include "LauncherSettings.h"
 #include <surrealwidgets/core/resourcedata.h>
@@ -48,13 +48,13 @@ LauncherWindow::LauncherWindow() : Widget(nullptr, WidgetType::Window)
 
 	PlayGame = new PlayGamePage(this);
 	GraphicsSettings = new VideoSettingsPage(this);
-	// AudioSettings = new AudioSettingsPage(this);
+	AudioSettings = new AudioSettingsPage(this);
 	GameFolders = new GameFoldersPage(this);
 
 	Pages->AddTab(PlayGame, "Games");
 	Pages->AddTab(GameFolders, "Folders");
 	Pages->AddTab(GraphicsSettings, "Video Settings");
-	// Pages->AddTab(AudioSettings, "Audio Settings");
+	Pages->AddTab(AudioSettings, "Audio Settings");
 
 	Pages->SetCurrentWidget(PlayGame);
 	PlayGame->SetFocus();
@@ -74,7 +74,7 @@ void LauncherWindow::Save()
 {
 	PlayGame->Save();
 	GraphicsSettings->Save();
-	// AudioSettings->Save();
+	AudioSettings->Save();
 	GameFolders->Save();
 	LauncherSettings::Get().Save();
 }

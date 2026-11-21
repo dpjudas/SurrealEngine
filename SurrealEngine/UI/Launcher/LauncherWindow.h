@@ -2,7 +2,7 @@
 
 #include <surrealwidgets/core/widget.h>
 
-// class AudioSettingsPage;
+class AudioSettingsPage;
 class VideoSettingsPage;
 class TabWidget;
 class LauncherBanner;
@@ -33,7 +33,7 @@ private:
 
 	PlayGamePage* PlayGame = nullptr;
 	VideoSettingsPage* GraphicsSettings = nullptr;
-	// AudioSettingsPage* AudioSettings = nullptr;
+	AudioSettingsPage* AudioSettings = nullptr;
 	GameFoldersPage* GameFolders = nullptr;
 
 	int ExecResult = -1;
