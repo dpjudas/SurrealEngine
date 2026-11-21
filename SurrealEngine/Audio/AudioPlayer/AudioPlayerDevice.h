@@ -35,7 +35,7 @@ public:
 
 	int GetFrequency() override { return frequency; }
 	int GetChannels() override { return channels; }
-	int GetSamples() override { return (int)samplecount; }
+	int GetSamples() override { return (int)samplecount / channels; }
 	void SeekToSample(uint64_t position) override;
 
 	size_t ReadSamples(float* output, size_t numSamples) override;

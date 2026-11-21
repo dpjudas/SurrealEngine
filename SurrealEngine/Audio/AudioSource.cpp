@@ -441,7 +441,7 @@ public:
 			Exception::Throw("Module file unsupported by OpenMPT");
 
 		// TODO: log param defaults to std::clog, do we want to keep it that way?
-		module = new openmpt::module(data, size);
+		module = std::make_unique<openmpt::module>(data, size);
 
 		subsong = clamp(subsong, 0, module->get_num_subsongs() - 1);
 		if (subsong != 0)
@@ -454,8 +454,6 @@ public:
 
 	~OpenMPTAudioSource()
 	{
-		if (module)
-			delete module;
 	}
 
 	int GetFrequency() override
@@ -482,10 +480,10 @@ public:
 		if (!module)
 			return 0;
 
-		return module->read_interleaved_stereo(GetFrequency(), samples / GetChannels(), output);
+		return module->read_interleaved_stereo(GetFrequency(), samples / GetChannels(), output) * GetChannels();
 	}
 
-	openmpt::module* module;
+	std::unique_ptr<openmpt::module> module;
 };
 
 std::unique_ptr<AudioSource> AudioSource::CreateMp3(Array<uint8_t> filedata)

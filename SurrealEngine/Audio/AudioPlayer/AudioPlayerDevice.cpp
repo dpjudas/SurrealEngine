@@ -95,9 +95,8 @@ void AudioPlayerDevice::Update()
 /////////////////////////////////////////////////////////////////////////////
 
 RawAudioSource::RawAudioSource(const float* samples, size_t size, int channels, int frequency)
-	: samples(samples), channels(channels), frequency(frequency)
+	: samples(samples), samplecount(size), channels(channels), frequency(frequency)
 {
-	samplecount = (uint64_t)(size / channels);
 }
 
 void RawAudioSource::SeekToSample(uint64_t position)
@@ -108,7 +107,7 @@ void RawAudioSource::SeekToSample(uint64_t position)
 size_t RawAudioSource::ReadSamples(float* output, size_t numSamples)
 {
 	size_t count = (size_t)std::min(samplecount - pos, (uint64_t)numSamples);
-	std::memcpy(output, samples + pos * channels, count * channels * sizeof(float));
+	std::memcpy(output, samples + pos, count * sizeof(float));
 	pos += count;
 	return count;
 }

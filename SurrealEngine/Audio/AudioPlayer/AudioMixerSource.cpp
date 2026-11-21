@@ -70,7 +70,13 @@ void AudioMixerSource::CopyMusic(float* output, size_t samples)
 
 	if (music && music->GetChannels() == 2) // Only support stereo music for now
 	{
-		pos = music->ReadSamples(output, samples);
+		while (pos < samples)
+		{
+			size_t samplesRead = music->ReadSamples(output + pos, samples - pos);
+			if (samplesRead == 0)
+				break;
+			pos += samplesRead;
+		}
 	}
 
 	for (size_t i = pos; i < samples; i++)
