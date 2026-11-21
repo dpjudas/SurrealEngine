@@ -32,6 +32,7 @@ enum class AudioDeviceType
 {
 	NullAudio,
 	OpenAL,
+	AudioPlayer,
 };
 
 enum class AudioOutputRate

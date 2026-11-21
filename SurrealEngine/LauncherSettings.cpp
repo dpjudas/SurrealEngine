@@ -65,6 +65,8 @@ LauncherSettings::LauncherSettings()
 
 		if (audiodev == "OpenAL")
 			AudioDevice.Type = AudioDeviceType::OpenAL;
+		else if (audiodev == "AudioPlayer")
+			AudioDevice.Type = AudioDeviceType::AudioPlayer;
 		else if (audiodev == "None")
 			AudioDevice.Type = AudioDeviceType::NullAudio;
 
@@ -147,6 +149,7 @@ void LauncherSettings::Save()
 	{
 		case AudioDeviceType::NullAudio: audiodev["Driver"] = JsonValue::string("None"); break;
 		case AudioDeviceType::OpenAL: audiodev["Driver"] = JsonValue::string("OpenAl"); break;
+		case AudioDeviceType::AudioPlayer: audiodev["Driver"] = JsonValue::string("AudioPlayer"); break;
 	}
 
 	switch (AudioDevice.OutputRate)

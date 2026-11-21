@@ -17,6 +17,7 @@ AudioSettingsPage::AudioSettingsPage(Widget* parent)
 	AudioDeviceGroup = new RadioGroup();
 
 	OpenALDevice = new RadioButtonLabel(AudioDeviceGroup, this);
+	AudioPlayerDevice = new RadioButtonLabel(AudioDeviceGroup, this);
 	NullAudioDevice = new RadioButtonLabel(AudioDeviceGroup, this);
 
 	UseFilter = new CheckboxLabel(this);
@@ -37,6 +38,7 @@ AudioSettingsPage::AudioSettingsPage(Widget* parent)
 	audioDeviceLabel->SetText("Audio Driver:");
 
 	OpenALDevice->SetText("OpenAL");
+	AudioPlayerDevice->SetText("Audio Player");
 	NullAudioDevice->SetText("Disable Audio");
 
 	auto settingsLabel = new TextLabel(this);
@@ -63,6 +65,7 @@ AudioSettingsPage::AudioSettingsPage(Widget* parent)
 	const auto& settings = LauncherSettings::Get();
 
 	OpenALDevice->SetChecked(settings.AudioDevice.Type == AudioDeviceType::OpenAL);
+	AudioPlayerDevice->SetChecked(settings.AudioDevice.Type == AudioDeviceType::AudioPlayer);
 	NullAudioDevice->SetChecked(settings.AudioDevice.Type == AudioDeviceType::NullAudio);
 
 	UseFilter->SetChecked(settings.AudioDevice.UseFilter);
@@ -92,6 +95,7 @@ AudioSettingsPage::AudioSettingsPage(Widget* parent)
 	auto audioDeviceLayout = new HBoxLayout();
 
 	audioDeviceLayout->AddWidget(OpenALDevice);
+	audioDeviceLayout->AddWidget(AudioPlayerDevice);
 	audioDeviceLayout->AddWidget(NullAudioDevice);
 	audioDeviceLayout->AddStretch();
 
@@ -129,7 +133,9 @@ void AudioSettingsPage::Save() const
 
 	if (OpenALDevice->GetChecked())
 		settings.AudioDevice.Type = AudioDeviceType::OpenAL;
-	if (NullAudioDevice->GetChecked())
+	else if (AudioPlayerDevice->GetChecked())
+		settings.AudioDevice.Type = AudioDeviceType::AudioPlayer;
+	else if (NullAudioDevice->GetChecked())
 		settings.AudioDevice.Type = AudioDeviceType::NullAudio;
 
 	settings.AudioDevice.UseFilter     = UseFilter->GetChecked();

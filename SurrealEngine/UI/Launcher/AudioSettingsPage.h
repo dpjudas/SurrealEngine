@@ -25,6 +25,7 @@ private:
     RadioGroup* AudioDeviceGroup = nullptr;
 
     RadioButtonLabel* OpenALDevice = nullptr;
+    RadioButtonLabel* AudioPlayerDevice = nullptr;
     RadioButtonLabel* NullAudioDevice = nullptr;
 
     CheckboxLabel* UseFilter = nullptr;

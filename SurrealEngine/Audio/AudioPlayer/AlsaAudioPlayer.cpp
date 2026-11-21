@@ -1,6 +1,6 @@
 
 #include "Precomp.h"
-#ifndef WIN32
+#if !defined(WIN32) && !defined(__APPLE__)
 #include "AlsaAudioPlayer.h"
 #include "../AudioSource.h"
 #include <stdexcept>

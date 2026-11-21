@@ -12,6 +12,15 @@ std::unique_ptr<AudioPlayer> AudioPlayer::Create(std::unique_ptr<AudioSource> so
 	return std::make_unique<WindowsAudioPlayer>(std::move(source));
 }
 
+#elif defined(__APPLE_)
+
+#include <stdexcept>
+
+std::unique_ptr<AudioPlayer> AudioPlayer::Create(std::unique_ptr<AudioSource> source)
+{
+	throw std::runtime_error("Apple backend does not have AudioPlayer");
+}
+
 #else
 
 #include "AlsaAudioPlayer.h"

@@ -12,7 +12,8 @@ std::unique_ptr<AudioDevice> AudioDevice::Create(int frequency, int numVoices, i
 
 	if (devName == AudioDeviceType::OpenAL)
 		return std::make_unique<OpenALAudioDevice>(frequency, numVoices, musicBufferCount, musicBufferSize);
-
-	return std::make_unique<NullAudioDevice>();
-	//return std::make_unique<AudioPlayerDevice>();
+	else if (devName == AudioDeviceType::AudioPlayer)
+		return std::make_unique<AudioPlayerDevice>();
+	else
+		return std::make_unique<NullAudioDevice>();
 }
