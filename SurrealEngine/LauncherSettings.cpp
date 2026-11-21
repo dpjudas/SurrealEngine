@@ -61,6 +61,32 @@ LauncherSettings::LauncherSettings()
 		RenderDevice.BloomAmount = settings["RenderDevice"]["BloomAmount"].to_int();
 		RenderDevice.UseDebugLayer = settings["RenderDevice"]["UseDebugLayer"].to_boolean();
 
+		std::string audiodev = settings["AudioDevice"]["Driver"].to_string();
+
+		if (audiodev == "OpenAL")
+			AudioDevice.Type = AudioDeviceType::OpenAL;
+		else if (audiodev == "None")
+			AudioDevice.Type = AudioDeviceType::NullAudio;
+
+		std::string outputRate = settings["AudioDevice"]["OutputRate"].to_string();
+
+		if (outputRate == "11025Hz")
+			AudioDevice.OutputRate = AudioOutputRate::OR_11025Hz;
+		else if (outputRate == "22050Hz")
+			AudioDevice.OutputRate = AudioOutputRate::OR_22050Hz;
+		else if (outputRate == "44100Hz")
+			AudioDevice.OutputRate = AudioOutputRate::OR_44100Hz;
+		else if (outputRate == "48000Hz")
+			AudioDevice.OutputRate = AudioOutputRate::OR_48000Hz;
+
+		AudioDevice.UseFilter = settings["AudioDevice"]["UseFilter"].to_boolean();
+		AudioDevice.UseSurround = settings["AudioDevice"]["UseSurround"].to_boolean();
+		AudioDevice.UseStereo = settings["AudioDevice"]["UseStereo"].to_boolean();
+		AudioDevice.UseSpatial = settings["AudioDevice"]["UseSpatial"].to_boolean();
+		AudioDevice.UseReverb = settings["AudioDevice"]["UseReverb"].to_boolean();
+		AudioDevice.Use3DHardware = settings["AudioDevice"]["Use3DHardware"].to_boolean();
+		AudioDevice.ReverseStereo = settings["AudioDevice"]["ReverseStereo"].to_boolean();
+
 		for (const JsonValue& jsonItem : settings["Games"]["SearchList"].items())
 		{
 			Games.SearchList.push_back(jsonItem.to_string());
@@ -75,6 +101,7 @@ LauncherSettings::LauncherSettings()
 void LauncherSettings::Save()
 {
 	JsonValue rendev = JsonValue::object();
+	JsonValue audiodev = JsonValue::object();
 
 	switch (RenderDevice.Type)
 	{
@@ -116,12 +143,35 @@ void LauncherSettings::Save()
 	rendev["BloomAmount"] = JsonValue::number(RenderDevice.BloomAmount);
 	rendev["UseDebugLayer"] = JsonValue::boolean(RenderDevice.UseDebugLayer);
 
+	switch (AudioDevice.Type)
+	{
+		case AudioDeviceType::NullAudio: audiodev["Driver"] = JsonValue::string("None"); break;
+		case AudioDeviceType::OpenAL: audiodev["Driver"] = JsonValue::string("OpenAl"); break;
+	}
+
+	switch (AudioDevice.OutputRate)
+	{
+	case AudioOutputRate::OR_11025Hz: audiodev["OutputRate"] = JsonValue::string("11025Hz"); break;
+	case AudioOutputRate::OR_22050Hz: audiodev["OutputRate"] = JsonValue::string("22050Hz"); break;
+	case AudioOutputRate::OR_44100Hz: audiodev["OutputRate"] = JsonValue::string("44100Hz"); break;
+	case AudioOutputRate::OR_48000Hz: audiodev["OutputRate"] = JsonValue::string("48000Hz"); break;
+	}
+
+	audiodev["UseFilter"] = JsonValue::boolean(AudioDevice.UseFilter);
+	audiodev["UseSurround"] = JsonValue::boolean(AudioDevice.UseSurround);
+	audiodev["UseStereo"] = JsonValue::boolean(AudioDevice.UseStereo);
+	audiodev["UseSpatial"] = JsonValue::boolean(AudioDevice.UseSpatial);
+	audiodev["UseReverb"] = JsonValue::boolean(AudioDevice.UseReverb);
+	audiodev["Use3DHardware"] = JsonValue::boolean(AudioDevice.Use3DHardware);
+	audiodev["ReverseStereo"] = JsonValue::boolean(AudioDevice.ReverseStereo);
+
 	JsonValue games = JsonValue::object();
 	games["SearchList"] = JsonValue::array(Games.SearchList);
 	games["LastSelected"] = JsonValue::number(Games.LastSelected);
 
 	JsonValue settings = JsonValue::object();
 	settings["RenderDevice"] = std::move(rendev);
+	settings["AudioDevice"] = std::move(audiodev);
 	settings["Games"] = std::move(games);
 
 	const std::string filename = GetSettingsFilename();
