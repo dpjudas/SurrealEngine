@@ -28,6 +28,20 @@ enum class GammaMode
 	XOpenGL
 };
 
+enum class AudioDeviceType
+{
+	NullAudio,
+	OpenAL,
+};
+
+enum class AudioOutputRate
+{
+	OR_11025Hz,
+	OR_22050Hz,
+	OR_44100Hz,
+	OR_48000Hz
+};
+
 class LauncherSettings
 {
 public:
@@ -48,6 +62,19 @@ public:
 		int BloomAmount = 128;
 		bool UseDebugLayer = false;
 	} RenderDevice;
+
+	struct
+	{
+		AudioDeviceType Type = AudioDeviceType::OpenAL;
+		AudioOutputRate OutputRate = AudioOutputRate::OR_44100Hz;
+		bool UseFilter = true;
+		bool UseSurround = true;
+		bool UseStereo = true;
+		bool UseSpatial = true;
+		bool UseReverb = true;
+		bool Use3DHardware = true;
+		bool ReverseStereo = false;
+	} AudioDevice;
 
 	struct
 	{
