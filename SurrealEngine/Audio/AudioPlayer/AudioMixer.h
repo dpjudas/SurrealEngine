@@ -6,21 +6,13 @@
 class AudioSource;
 class AudioSound;
 
-class AudioLoopInfo
-{
-public:
-	bool Looped = false;
-	uint64_t LoopStart = 0;
-	uint64_t LoopEnd = 0;
-};
-
 class AudioMixer
 {
 public:
 	static std::unique_ptr<AudioMixer> Create();
 
 	virtual ~AudioMixer() = default;
-	virtual AudioSound* AddSound(std::unique_ptr<AudioSource> source, const AudioLoopInfo& loopinfo = {}) = 0;
+	virtual AudioSound* AddSound(std::unique_ptr<AudioSource> source, bool looped = false, uint64_t loopStart = 0, uint64_t loopEnd = 0) = 0;
 	virtual void RemoveSound(AudioSound* sound) = 0;
 	virtual float GetSoundDuration(AudioSound* sound) = 0;
 	virtual int PlaySound(int channel, AudioSound* sound, float volume, float pan, float pitch) = 0;

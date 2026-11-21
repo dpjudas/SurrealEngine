@@ -16,9 +16,9 @@ AudioMixerImpl::~AudioMixerImpl()
 	player.reset();
 }
 
-AudioSound* AudioMixerImpl::AddSound(std::unique_ptr<AudioSource> source, const AudioLoopInfo& loopinfo)
+AudioSound* AudioMixerImpl::AddSound(std::unique_ptr<AudioSource> source, bool looped, uint64_t loopStart, uint64_t loopEnd)
 {
-	sounds.push_back(std::make_unique<AudioSound>(mixing_frequency, std::move(source), loopinfo));
+	sounds.push_back(std::make_unique<AudioSound>(mixing_frequency, std::move(source), looped, loopStart, loopEnd));
 	return sounds.back().get();
 }
 

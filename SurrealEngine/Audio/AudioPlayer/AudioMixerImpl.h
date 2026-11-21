@@ -12,7 +12,7 @@ public:
 	AudioMixerImpl();
 	~AudioMixerImpl();
 
-	AudioSound* AddSound(std::unique_ptr<AudioSource> source, const AudioLoopInfo& loopinfo) override;
+	AudioSound* AddSound(std::unique_ptr<AudioSource> source, bool looped, uint64_t loopStart, uint64_t loopEnd) override;
 	void RemoveSound(AudioSound* sound) override;
 	float GetSoundDuration(AudioSound* sound) override;
 	int PlaySound(int channel, AudioSound* sound, float volume, float pan, float pitch) override;

@@ -3,9 +3,12 @@
 #include "AudioSound.h"
 #include "Audio/AudioSource.h"
 
-AudioSound::AudioSound(int mixing_frequency, std::unique_ptr<AudioSource> source, const AudioLoopInfo& inloopinfo)
-	: loopinfo(inloopinfo)
+AudioSound::AudioSound(int mixing_frequency, std::unique_ptr<AudioSource> source, bool looped, uint64_t loopStart, uint64_t loopEnd)
 {
+	loopinfo.Looped = looped;
+	loopinfo.LoopStart = loopStart;
+	loopinfo.LoopEnd = loopEnd;
+
 	duration = samples.size() / 48000.0f;
 
 	if (source->GetChannels() == 1)
