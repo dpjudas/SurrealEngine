@@ -3,9 +3,10 @@
 class NullAudioSource
 {
 public:
-    void Play();
-    void Stop();
-    bool isPlaying() const;
+	void Play();
+	void Stop();
+	bool isPlaying() const;
+
 private:
-    bool m_isPlaying = false;
+	bool m_isPlaying = false;
 };

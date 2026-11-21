@@ -1,3 +1,5 @@
+
+#include "Precomp.h"
 #include "AudioSettingsPage.h"
 #include "LauncherWindow.h"
 #include "LauncherSettings.h"
@@ -10,25 +12,25 @@
 #include <surrealwidgets/widgets/layout/hboxlayout.h>
 
 AudioSettingsPage::AudioSettingsPage(Widget* parent)
-    : Widget(parent)
+	: Widget(parent)
 {
 	AudioDeviceGroup = new RadioGroup();
 
 	OpenALDevice = new RadioButtonLabel(AudioDeviceGroup, this);
 	NullAudioDevice = new RadioButtonLabel(AudioDeviceGroup, this);
 
-    UseFilter = new CheckboxLabel(this);
-    UseSurround = new CheckboxLabel(this);
-    UseStereo = new CheckboxLabel(this);
-    UseSpatial = new CheckboxLabel(this);
-    UseReverb = new CheckboxLabel(this);
-    Use3DHardware = new CheckboxLabel(this);
-    ReverseStereo = new CheckboxLabel(this);
+	UseFilter = new CheckboxLabel(this);
+	UseSurround = new CheckboxLabel(this);
+	UseStereo = new CheckboxLabel(this);
+	UseSpatial = new CheckboxLabel(this);
+	UseReverb = new CheckboxLabel(this);
+	Use3DHardware = new CheckboxLabel(this);
+	ReverseStereo = new CheckboxLabel(this);
 
 	OutputRateLabel = new TextLabel(this);
-    OutputRate = new Dropdown(this);
+	OutputRate = new Dropdown(this);
 
-    ResetButton = new PushButton(this);
+	ResetButton = new PushButton(this);
 
 	auto audioDeviceLabel = new TextLabel(this);
 
@@ -40,36 +42,36 @@ AudioSettingsPage::AudioSettingsPage(Widget* parent)
 	auto settingsLabel = new TextLabel(this);
 	settingsLabel->SetText("Audio Settings:");
 
-    UseFilter->SetText("Use Filter");
-    UseSurround->SetText("Use Surround");
-    UseStereo->SetText("Use Stereo");
-    UseSpatial->SetText("Use Spatial");
-    UseReverb->SetText("Use Reverb");
-    Use3DHardware->SetText("Use 3D Hardware");
-    ReverseStereo->SetText("Reverse Stereo");
+	UseFilter->SetText("Use Filter");
+	UseSurround->SetText("Use Surround");
+	UseStereo->SetText("Use Stereo");
+	UseSpatial->SetText("Use Spatial");
+	UseReverb->SetText("Use Reverb");
+	Use3DHardware->SetText("Use 3D Hardware");
+	ReverseStereo->SetText("Reverse Stereo");
 
 	OutputRateLabel->SetText("Output Rate:");
 	OutputRate->AddItem("11025Hz");
-    OutputRate->AddItem("22050Hz");
-    OutputRate->AddItem("44100Hz");
+	OutputRate->AddItem("22050Hz");
+	OutputRate->AddItem("44100Hz");
 	OutputRate->AddItem("48000Hz");
 
-    ResetButton->SetText("Reset to defaults");
+	ResetButton->SetText("Reset to defaults");
 
-    ResetButton->OnClick = [this] () { OnResetButtonClicked(); };
+	ResetButton->OnClick = [this] () { OnResetButtonClicked(); };
 
-    const auto& settings = LauncherSettings::Get();
+	const auto& settings = LauncherSettings::Get();
 
 	OpenALDevice->SetChecked(settings.AudioDevice.Type == AudioDeviceType::OpenAL);
 	NullAudioDevice->SetChecked(settings.AudioDevice.Type == AudioDeviceType::NullAudio);
 
-    UseFilter->SetChecked(settings.AudioDevice.UseFilter);
-    UseSurround->SetChecked(settings.AudioDevice.UseSurround);
-    UseStereo->SetChecked(settings.AudioDevice.UseStereo);
-    UseSpatial->SetChecked(settings.AudioDevice.UseSpatial);
-    UseReverb->SetChecked(settings.AudioDevice.UseReverb);
-    Use3DHardware->SetChecked(settings.AudioDevice.Use3DHardware);
-    ReverseStereo->SetChecked(settings.AudioDevice.ReverseStereo);
+	UseFilter->SetChecked(settings.AudioDevice.UseFilter);
+	UseSurround->SetChecked(settings.AudioDevice.UseSurround);
+	UseStereo->SetChecked(settings.AudioDevice.UseStereo);
+	UseSpatial->SetChecked(settings.AudioDevice.UseSpatial);
+	UseReverb->SetChecked(settings.AudioDevice.UseReverb);
+	Use3DHardware->SetChecked(settings.AudioDevice.Use3DHardware);
+	ReverseStereo->SetChecked(settings.AudioDevice.ReverseStereo);
 
 	switch (settings.AudioDevice.OutputRate)
 	{
@@ -123,20 +125,20 @@ AudioSettingsPage::AudioSettingsPage(Widget* parent)
 
 void AudioSettingsPage::Save() const
 {
-    auto& settings = LauncherSettings::Get();
+	auto& settings = LauncherSettings::Get();
 
 	if (OpenALDevice->GetChecked())
 		settings.AudioDevice.Type = AudioDeviceType::OpenAL;
 	if (NullAudioDevice->GetChecked())
 		settings.AudioDevice.Type = AudioDeviceType::NullAudio;
 
-    settings.AudioDevice.UseFilter     = UseFilter->GetChecked();
-    settings.AudioDevice.UseSurround   = UseSurround->GetChecked();
-    settings.AudioDevice.UseStereo     = UseStereo->GetChecked();
-    settings.AudioDevice.UseSpatial    = UseSpatial->GetChecked();
-    settings.AudioDevice.UseReverb     = UseReverb->GetChecked();
-    settings.AudioDevice.Use3DHardware = Use3DHardware->GetChecked();
-    settings.AudioDevice.ReverseStereo = ReverseStereo->GetChecked();
+	settings.AudioDevice.UseFilter     = UseFilter->GetChecked();
+	settings.AudioDevice.UseSurround   = UseSurround->GetChecked();
+	settings.AudioDevice.UseStereo     = UseStereo->GetChecked();
+	settings.AudioDevice.UseSpatial    = UseSpatial->GetChecked();
+	settings.AudioDevice.UseReverb     = UseReverb->GetChecked();
+	settings.AudioDevice.Use3DHardware = Use3DHardware->GetChecked();
+	settings.AudioDevice.ReverseStereo = ReverseStereo->GetChecked();
 
 	switch (OutputRate->GetSelectedItem())
 	{
@@ -157,12 +159,12 @@ void AudioSettingsPage::Save() const
 
 void AudioSettingsPage::OnResetButtonClicked()
 {
-    UseFilter->SetChecked(true);
-    UseSurround->SetChecked(true);
-    UseStereo->SetChecked(true);
-    UseSpatial->SetChecked(true);
-    UseReverb->SetChecked(true);
-    Use3DHardware->SetChecked(true);
-    ReverseStereo->SetChecked(false);
-    OutputRate->SetSelectedItem(3); // Selects 44100Hz
+	UseFilter->SetChecked(true);
+	UseSurround->SetChecked(true);
+	UseStereo->SetChecked(true);
+	UseSpatial->SetChecked(true);
+	UseReverb->SetChecked(true);
+	Use3DHardware->SetChecked(true);
+	ReverseStereo->SetChecked(false);
+	OutputRate->SetSelectedItem(3); // Selects 44100Hz
 }
