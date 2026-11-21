@@ -24,6 +24,7 @@ public:
 	void SetSoundVolume(float volume) override;
 	void Update() override;
 
+private:
 	int mixing_frequency = 48000;
 
 	std::vector<std::unique_ptr<AudioSound>> sounds;
@@ -42,4 +43,6 @@ public:
 
 	std::mutex mutex;
 	int nextid = 1;
+
+	friend class AudioMixerSource;
 };

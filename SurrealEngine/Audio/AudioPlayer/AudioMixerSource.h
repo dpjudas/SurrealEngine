@@ -22,6 +22,7 @@ public:
 
 	void GetVolume(const ActiveSound& sound, float& leftVolume, float& rightVolume);
 
+private:
 	AudioMixerImpl* mixer = nullptr;
 	std::map<int, ActiveSound> sounds;
 	std::vector<int> stoppedsounds;
