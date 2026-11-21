@@ -12,7 +12,7 @@ std::unique_ptr<AudioPlayer> AudioPlayer::Create(std::unique_ptr<AudioSource> so
 	return std::make_unique<WindowsAudioPlayer>(std::move(source));
 }
 
-#elif defined(__APPLE_)
+#elif defined(__APPLE__)
 
 #include <stdexcept>
 
