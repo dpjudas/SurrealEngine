@@ -164,6 +164,10 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/Audio/AudioDevice.h
 	SurrealEngine/Audio/AudioSource.cpp
 	SurrealEngine/Audio/AudioSource.h
+	SurrealEngine/Audio/NullAudio/NullAudioDevice.cpp
+	SurrealEngine/Audio/NullAudio/NullAudioDevice.h
+	SurrealEngine/Audio/NullAudio/NullAudioSource.cpp
+	SurrealEngine/Audio/NullAudio/NullAudioSource.h
 	SurrealEngine/Audio/OpenAL/OpenALAudioDevice.cpp
 	SurrealEngine/Audio/OpenAL/OpenALAudioDevice.h
 	SurrealEngine/Audio/OpenAL/ALSoundSource.cpp
@@ -799,6 +803,8 @@ set(SURREALCOMMON_SOURCES
 	SurrealEngine/UI/Editor/Editor2DViewport.h
 	SurrealEngine/UI/Editor/Editor3DViewport.cpp
 	SurrealEngine/UI/Editor/Editor3DViewport.h
+	SurrealEngine/UI/Launcher/AudioSettingsPage.cpp
+	SurrealEngine/UI/Launcher/AudioSettingsPage.h
 	SurrealEngine/UI/Launcher/LauncherBanner.cpp
 	SurrealEngine/UI/Launcher/LauncherBanner.h
 	SurrealEngine/UI/Launcher/LauncherButtonbar.cpp
