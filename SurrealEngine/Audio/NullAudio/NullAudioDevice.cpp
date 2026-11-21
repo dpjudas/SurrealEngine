@@ -3,43 +3,37 @@
 #include "NullAudioDevice.h"
 #include "Utils/Exception.h"
 #include "Utils/Logger.h"
+#include "Packages/Engine/Resources/USound.h"
+#include <chrono>
 
 NullAudioDevice::NullAudioDevice()
 {
-	sources.resize(32);
+	channels.resize(32);
+	using namespace std::chrono;
+	currentTime = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
 }
 
 int NullAudioDevice::GetTotalChannels()
 {
-	return sources.size();
+	return (int)channels.size();
 }
 
 void NullAudioDevice::AddSound(USound* sound)
 {
-	sounds.push_back(sound);
+	sound->handle = new NullSound(sound);
 }
 
 void NullAudioDevice::RemoveSound(USound* sound)
 {
-	auto it = sounds.begin();
-
-	while (it != sounds.end())
-	{
-		if (*it == sound)
-		{
-			sounds.erase(it);
-			return;
-		}
-		it++;
-	}
+	delete static_cast<NullSound*>(sound->handle);
 }
 
 bool NullAudioDevice::IsPlaying(int channel)
 {
-	if (channel < 0 || channel >= sources.size())
+	if (channel < 0 || channel >= channels.size())
 		return false;
 
-	return sources[channel].isPlaying();
+	return channels[channel].IsPlaying(currentTime);
 }
 
 void NullAudioDevice::PlayMusic(std::unique_ptr<AudioSource> source)
@@ -49,23 +43,23 @@ void NullAudioDevice::PlayMusic(std::unique_ptr<AudioSource> source)
 
 void NullAudioDevice::PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch)
 {
-	if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= sources.size())
+	if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= channels.size())
 		Exception::Throw("Invalid PlaySound arguments");
 
-	auto source = sources[channel];
+	auto& source = channels[channel];
 
-	if (source.isPlaying())
+	if (source.IsPlaying(currentTime))
 	{
 		LogMessage("Attempted to play sound on active channel " + std::to_string(channel));
 		return;
 	}
 
-	source.Play();
+	source.Play(static_cast<NullSound*>(sound->handle), currentTime);
 }
 
 void NullAudioDevice::UpdateSound(int channel, vec3& location, float volume, float radius, float pitch)
 {
-	if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= sources.size())
+	if (!std::isfinite(volume) || volume < 0.0f || !std::isfinite(pitch) || channel >= channels.size())
 		Exception::Throw("Invalid PlaySound arguments");
 
 	// Do nothing
@@ -73,10 +67,10 @@ void NullAudioDevice::UpdateSound(int channel, vec3& location, float volume, flo
 
 void NullAudioDevice::StopSound(int channel)
 {
-	if (channel >= sources.size())
+	if (channel >= channels.size())
 		Exception::Throw("Invalid StopSound arguments");
 
-	sources[channel].Stop();
+	channels[channel].Stop();
 }
 
 void NullAudioDevice::SetMusicVolume(float volume)
@@ -86,5 +80,6 @@ void NullAudioDevice::SetMusicVolume(float volume)
 
 void NullAudioDevice::Update()
 {
-	// No-op
+	using namespace std::chrono;
+	currentTime = duration_cast<milliseconds>(steady_clock::now().time_since_epoch()).count();
 }

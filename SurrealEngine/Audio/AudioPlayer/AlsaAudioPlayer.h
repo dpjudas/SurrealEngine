@@ -1,6 +1,8 @@
 #pragma once
 
 #include "AudioPlayer.h"
+#include <thread>
+#include <mutex>
 #include <alsa/asoundlib.h>
 
 class AlsaAudioPlayer : public AudioPlayer

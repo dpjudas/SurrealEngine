@@ -21,6 +21,6 @@ public:
 	void Update() override;
 
 private:
-	Array<USound*> sounds;
-	Array<NullAudioSource> sources;
+	Array<NullAudioSource> channels;
+	uint64_t currentTime = 0;
 };

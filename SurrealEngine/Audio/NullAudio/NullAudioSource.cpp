@@ -1,18 +1,31 @@
 
 #include "Precomp.h"
 #include "NullAudioSource.h"
+#include "Packages/Engine/Resources/USound.h"
 
-void NullAudioSource::Play()
+void NullAudioSource::Play(NullSound* newSound, uint64_t currentTime)
 {
-	m_isPlaying = true;
+	sound = newSound;
+	startTime = currentTime;
 }
 
 void NullAudioSource::Stop()
 {
-	m_isPlaying = false;
+	sound = nullptr;
 }
 
-bool NullAudioSource::isPlaying() const
+bool NullAudioSource::IsPlaying(uint64_t currentTime) const
 {
-	return m_isPlaying;
+	if (sound)
+		return (sound->looping || currentTime - startTime < sound->length);
+	else
+		return false;
+}
+
+/////////////////////////////////////////////////////////////////////////////
+
+NullSound::NullSound(USound* sound)
+{
+	length = sound->samples.size() * 1000 / sound->channels / sound->frequency;
+	looping = sound->loopInfo.Looped;
 }
