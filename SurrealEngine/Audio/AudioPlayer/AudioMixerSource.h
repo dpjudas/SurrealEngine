@@ -16,13 +16,14 @@ public:
 	void SeekToSample(uint64_t position) override {}
 	size_t ReadSamples(float* output, size_t samples) override;
 
+private:
 	void TransferFromClient();
 	void CopyMusic(float* output, size_t samples);
 	void MixSounds(float* output, size_t samples);
+	void HardLimit(float* output, size_t samples);
 
 	void GetVolume(const ActiveSound& sound, float& leftVolume, float& rightVolume);
 
-private:
 	AudioMixerImpl* mixer = nullptr;
 	std::map<int, ActiveSound> sounds;
 	std::vector<int> stoppedsounds;

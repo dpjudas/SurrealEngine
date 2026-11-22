@@ -94,18 +94,20 @@ void AudioPlayerDevice::Update()
 
 float AudioPlayerDevice::EffectiveVolume(int channel) const
 {
-	if (channels[channel].radius > 0.0f)
-	{
-		vec3 L = channels[channel].location - viewport.location;
-		float distsqr = dot(L, L);
-		float radiussqr = channels[channel].radius * channels[channel].radius;
-		float attenuation = std::max(1.0f - distsqr / radiussqr, 0.0f);
-		return channels[channel].volume * attenuation;
-	}
-	else
-	{
-		return channels[channel].volume;
-	}
+	float maxDistance = channels[channel].radius;
+	float referenceDistance = 0.1f * channels[channel].radius;
+	float rolloffFactor = 1.1f;
+	float sourceGain = channels[channel].volume;
+	float maxGain = channels[channel].volume;
+	float minGain = 0.0f;
+
+	float distance = length(channels[channel].location - viewport.location);
+
+	// Inverse distance clamped model
+	distance = std::max(distance, referenceDistance);
+	distance = std::min(distance, maxDistance);
+	float distanceGain = distance > 0.0f ? referenceDistance / (referenceDistance + rolloffFactor * (distance - referenceDistance)) : 0.0f;
+	return std::min(std::max(distanceGain * sourceGain, minGain), maxGain);
 }
 
 float AudioPlayerDevice::EffectivePan(int channel) const

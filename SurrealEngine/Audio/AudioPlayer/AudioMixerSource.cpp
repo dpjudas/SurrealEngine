@@ -18,7 +18,27 @@ size_t AudioMixerSource::ReadSamples(float* output, size_t samples)
 	TransferFromClient();
 	CopyMusic(output, samples);
 	MixSounds(output, samples);
+	HardLimit(output, samples);
 	return samples;
+}
+
+void AudioMixerSource::HardLimit(float* output, size_t samples)
+{
+	float maxvalue = 0.0f;
+	for (size_t i = 0; i < samples; i++)
+	{
+		float absvalue = output[i] >= 0.0f ? output[i] : -output[i];
+		if (absvalue > maxvalue)
+			maxvalue = absvalue;
+	}
+	if (maxvalue > 1.0f)
+	{
+		float rcpmax = 1.0f / maxvalue;
+		for (size_t i = 0; i < samples; i++)
+		{
+			output[i] *= rcpmax;
+		}
+	}
 }
 
 void AudioMixerSource::TransferFromClient()
@@ -133,7 +153,7 @@ void AudioMixerSource::MixSounds(float* output, size_t samples)
 				pos = std::min(pos, srcmax);
 				pos2 = std::min(pos2, srcmax);
 
-				float value = (src[pos] * t + src[pos2] * (1.0f - t));
+				float value = (src[pos2] * t + src[pos] * (1.0f - t));
 				output[i << 1] += value * leftVolume;
 				output[(i << 1) + 1] += value * rightVolume;
 
