@@ -41,10 +41,12 @@ int AudioPlayerDevice::GetTotalChannels()
 
 void AudioPlayerDevice::PlaySound(int channel, USound* sound, vec3& location, float volume, float radius, float pitch)
 {
-	// To do: handle location
-	float pan = 0.0f;
-	channels[channel] = static_cast<AudioSound*>(sound->handle);
-	mixer->PlaySound(channel, channels[channel], volume, pan, pitch);
+	channels[channel].sound = static_cast<AudioSound*>(sound->handle);
+	channels[channel].location = location;
+	channels[channel].volume = volume;
+	channels[channel].radius = radius;
+	channels[channel].pitch = pitch;
+	mixer->PlaySound(channel, channels[channel].sound, EffectiveVolume(channel), EffectivePan(channel), EffectivePitch(channel));
 }
 
 void AudioPlayerDevice::PlayMusic(std::unique_ptr<AudioSource> source)
@@ -54,9 +56,11 @@ void AudioPlayerDevice::PlayMusic(std::unique_ptr<AudioSource> source)
 
 void AudioPlayerDevice::UpdateSound(int channel, vec3& location, float volume, float radius, float pitch)
 {
-	// To do: handle location
-	float pan = 0.0f;
-	mixer->UpdateSound(channel, channels[channel], volume, pan, pitch);
+	channels[channel].location = location;
+	channels[channel].volume = volume;
+	channels[channel].radius = radius;
+	channels[channel].pitch = pitch;
+	mixer->UpdateSound(channel, channels[channel].sound, EffectiveVolume(channel), EffectivePan(channel), EffectivePitch(channel));
 }
 
 void AudioPlayerDevice::StopSound(int channel)
@@ -74,22 +78,65 @@ void AudioPlayerDevice::Update()
 	UActor* listener = engine->CameraActor;
 	if (listener)
 	{
-		// Update listener properties
-		vec3& location = listener->Location();
-		vec3& velocity = listener->Velocity();
+		viewport.location = listener->Location();
+		viewport.velocity = listener->Velocity();
+		Coords::Rotation(listener->Rotation()).GetAxes(viewport.at, viewport.left, viewport.up);
+	}
 
-		vec3 at, left, up;
-		Coords::Rotation(listener->Rotation()).GetAxes(at, left, up);
-
-		//ALfloat listenerOri[6] = { up.x, up.y, -up.z, -at.x, -at.y, at.z };
-		//alListener3f(AL_POSITION, location.x, location.y, -location.z);
-		//alListener3f(AL_VELOCITY, velocity.x, velocity.y, -velocity.z);
-		//alListenerfv(AL_ORIENTATION, listenerOri);
-
-		// To do: handle location
+	for (int channel = 0, count = (int)channels.size(); channel < count; channel++)
+	{
+		if (channels[channel].sound)
+			mixer->UpdateSound(channel, channels[channel].sound, EffectiveVolume(channel), EffectivePan(channel), EffectivePitch(channel));
 	}
 
 	mixer->Update();
+}
+
+float AudioPlayerDevice::EffectiveVolume(int channel) const
+{
+	if (channels[channel].radius > 0.0f)
+	{
+		vec3 L = channels[channel].location - viewport.location;
+		float distsqr = dot(L, L);
+		float radiussqr = channels[channel].radius * channels[channel].radius;
+		float attenuation = std::max(1.0f - distsqr / radiussqr, 0.0f);
+		return channels[channel].volume * attenuation;
+	}
+	else
+	{
+		return channels[channel].volume;
+	}
+}
+
+float AudioPlayerDevice::EffectivePan(int channel) const
+{
+	if (channels[channel].radius > 0.0f)
+	{
+		vec3 L = normalize(channels[channel].location - viewport.location);
+		return std::max(std::min(dot(L, viewport.left), 1.0f), -1.0f);
+	}
+	else
+	{
+		return 0.0f;
+	}
+}
+
+float AudioPlayerDevice::EffectivePitch(int channel) const
+{
+	if (channels[channel].radius > 0.0f)
+	{
+		float speed = dot(normalize(channels[channel].location - viewport.location), viewport.velocity);
+		speed *= 0.00005f;
+		if (speed >= 0.0f)
+			speed = std::min(1.0f + speed, 2.0f);
+		else
+			speed = 1.0f / std::min(1.0f - speed, 2.0f);
+		return channels[channel].pitch * speed;
+	}
+	else
+	{
+		return channels[channel].pitch;
+	}
 }
 
 /////////////////////////////////////////////////////////////////////////////

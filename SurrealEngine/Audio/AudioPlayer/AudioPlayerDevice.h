@@ -24,8 +24,29 @@ public:
 	void Update() override;
 
 private:
+	float EffectiveVolume(int channel) const;
+	float EffectivePan(int channel) const;
+	float EffectivePitch(int channel) const;
+
+	struct ChannelInfo
+	{
+		AudioSound* sound = nullptr;
+		vec3 location = vec3(0.0f);
+		float volume = 1.0f;
+		float radius = 0.0f;
+		float pitch = 1.0f;
+	};
+
 	std::unique_ptr<AudioMixer> mixer;
-	std::vector<AudioSound*> channels;
+	std::vector<ChannelInfo> channels;
+	struct
+	{
+		vec3 location = vec3(0.0f);
+		vec3 velocity = vec3(0.0f);
+		vec3 at = vec3(1.0f, 0.0f, 0.0f);
+		vec3 left = vec3(0.0f, -1.0f, 0.0f);
+		vec3 up = vec3(0.0f, 0.0f, 1.0f);
+	} viewport;
 };
 
 class RawAudioSource : public AudioSource
