@@ -186,7 +186,7 @@ mat4 mat4::mirror(vec3 normal)
 	m.matrix[0 + 0 * 4] = 1.0f - 2.0f * normal.x * normal.x;
 	m.matrix[0 + 1 * 4] = -2.0f * normal.x * normal.y;
 	m.matrix[0 + 2 * 4] = -2.0f * normal.x * normal.z;
-	m.matrix[1 + 0 * 4] = -2.0f * normal.x * normal.x;
+	m.matrix[1 + 0 * 4] = -2.0f * normal.x * normal.y;
 	m.matrix[1 + 1 * 4] = 1.0f - 2.0f * normal.y * normal.y;
 	m.matrix[1 + 2 * 4] = -2.0f * normal.y * normal.z;
 	m.matrix[2 + 0 * 4] = -2.0f * normal.x * normal.z;
