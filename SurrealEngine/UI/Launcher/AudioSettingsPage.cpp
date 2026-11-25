@@ -38,7 +38,7 @@ AudioSettingsPage::AudioSettingsPage(Widget* parent)
 	audioDeviceLabel->SetText("Audio Driver:");
 
 	OpenALDevice->SetText("OpenAL");
-	AudioPlayerDevice->SetText("Audio Player");
+	AudioPlayerDevice->SetText("Surreal Audio");
 	NullAudioDevice->SetText("Disable Audio");
 
 	auto settingsLabel = new TextLabel(this);
