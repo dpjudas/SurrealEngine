@@ -47,7 +47,7 @@ void RenderPassManager::CreateBloomPipelineLayout()
 		.Create(renderer->Device.get());
 }
 
-PipelineState* RenderPassManager::GetPipeline(uint32_t PolyFlags)
+PipelineState* RenderPassManager::GetPipeline(uint32_t PolyFlags, bool tile)
 {
 	int index;
 	if (PolyFlags & PF_Translucent)
@@ -85,12 +85,12 @@ PipelineState* RenderPassManager::GetPipeline(uint32_t PolyFlags)
 		index = 32;
 	}
 
-	return &Scene.Pipeline[index];
+	return tile ? &Scene.TilePipeline[index] : &Scene.Pipeline[index];
 }
 
 PipelineState* RenderPassManager::GetEndFlashPipeline()
 {
-	return &Scene.Pipeline[2];
+	return &Scene.TilePipeline[2];
 }
 
 void RenderPassManager::CreatePipelines()
@@ -122,9 +122,6 @@ void RenderPassManager::CreatePipelines()
 		builder.AddDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS);
 		builder.Layout(layout);
 		builder.RenderPass(Scene.RenderPass.get());
-
-		if (i > 1)
-			builder.DepthBias(true, 128.0f, 0.0f, 1.0f);
 
 		// Avoid clipping the weapon. The UE1 engine clips the geometry anyway.
 		if (renderer->Device.get()->EnabledFeatures.Features.depthClamp)
@@ -186,6 +183,12 @@ void RenderPassManager::CreatePipelines()
 		builder.RasterizationSamples(renderer->Textures->Scene->SceneSamples);
 		builder.DebugName(debugName);
 
+		Scene.TilePipeline[i].MinDepth = Scene.Pipeline[i].MinDepth;
+		Scene.TilePipeline[i].MaxDepth = Scene.Pipeline[i].MaxDepth;
+		Scene.TilePipeline[i].Pipeline = builder.Create(renderer->Device.get());
+
+		if (((i & 3) != 3) && i != 32)
+			builder.DepthBias(true, -128.0f, 0.0f, -1.0f);
 		Scene.Pipeline[i].Pipeline = builder.Create(renderer->Device.get());
 	}
 

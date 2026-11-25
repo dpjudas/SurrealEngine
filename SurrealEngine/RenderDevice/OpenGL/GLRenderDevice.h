@@ -155,6 +155,7 @@ public:
 		std::shared_ptr<GLProgram> ShaderProgramAlphaTest;
 		std::shared_ptr<GLSampler> Samplers[16];
 		ScenePipelineState Pipelines[33];
+		ScenePipelineState TilePipelines[33];
 		ScenePipelineState LinePipeline[2];
 		ScenePipelineState PointPipeline[2];
 		float LODBias = 0.0f;
@@ -267,7 +268,7 @@ private:
 	void ComputeBlurSamples(int sampleCount, float blurAmount, float* sampleWeights);
 
 	void SetPipeline(ScenePipelineState* pipeline);
-	void SetPipeline(uint32_t polyflags);
+	void SetPipeline(uint32_t polyflags, bool tile);
 	void SetDescriptorSet(uint32_t polyflags, GLCachedTexture* tex = nullptr, bool clamp = false);
 	void SetDescriptorSet(uint32_t polyflags, const ComplexSurfaceInfo& info);
 
@@ -308,7 +309,7 @@ private:
 
 	int GetSettingsMultisample();
 
-	ScenePipelineState* GetPipeline(uint32_t PolyFlags);
+	ScenePipelineState* GetPipeline(uint32_t PolyFlags, bool tile);
 
 	std::shared_ptr<GLBlendState> CreateBlendState(const GLBlendDesc& desc);
 	std::shared_ptr<GLRasterizerState> CreateRasterizerState(const GLRasterizerDesc& desc);
@@ -382,9 +383,9 @@ inline void GLRenderDevice::SetPipeline(ScenePipelineState* pipeline)
 	}
 }
 
-inline void GLRenderDevice::SetPipeline(uint32_t PolyFlags)
+inline void GLRenderDevice::SetPipeline(uint32_t PolyFlags, bool tile)
 {
-	auto pipeline = GetPipeline(PolyFlags);
+	auto pipeline = GetPipeline(PolyFlags, tile);
 	if (pipeline != Batch.Pipeline)
 	{
 		AddDrawBatch();

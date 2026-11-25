@@ -882,7 +882,9 @@ void D3D11RenderDevice::CreateScenePass()
 		else
 			ScenePass.Pipelines[i].PixelShader = ScenePass.PixelShader;
 
-		if (((i & 3) == 3) || i == 32)
+		ScenePass.Pipelines[i].PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+
+		if ((i & 3) == 3 || i == 32)
 		{
 			ScenePass.Pipelines[i].RasterizerState[0] = ScenePass.RasterizerState[0];
 			ScenePass.Pipelines[i].RasterizerState[1] = ScenePass.RasterizerState[1];
@@ -893,7 +895,9 @@ void D3D11RenderDevice::CreateScenePass()
 			ScenePass.Pipelines[i].RasterizerState[1] = ScenePass.RasterizerState[3];
 		}
 
-		ScenePass.Pipelines[i].PrimitiveTopology = D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST;
+		ScenePass.TilePipelines[i] = ScenePass.Pipelines[i];
+		ScenePass.TilePipelines[i].RasterizerState[0] = ScenePass.RasterizerState[0];
+		ScenePass.TilePipelines[i].RasterizerState[1] = ScenePass.RasterizerState[1];
 	}
 
 	// Line pipeline
@@ -1067,6 +1071,11 @@ void D3D11RenderDevice::ReleaseScenePass()
 		pipeline.BlendState.reset();
 		pipeline.DepthStencilState.reset();
 	}
+	for (auto& pipeline : ScenePass.TilePipelines)
+	{
+		pipeline.BlendState.reset();
+		pipeline.DepthStencilState.reset();
+	}
 	for (int i = 0; i < 2; i++)
 	{
 		ScenePass.LinePipeline[i].BlendState.reset();
@@ -1130,7 +1139,7 @@ void D3D11RenderDevice::ReleaseSceneBuffers()
 	}
 }
 
-D3D11RenderDevice::ScenePipelineState* D3D11RenderDevice::GetPipeline(uint32_t PolyFlags)
+D3D11RenderDevice::ScenePipelineState* D3D11RenderDevice::GetPipeline(uint32_t PolyFlags, bool tile)
 {
 	int index;
 	if (PolyFlags & PF_Translucent)
@@ -1168,7 +1177,7 @@ D3D11RenderDevice::ScenePipelineState* D3D11RenderDevice::GetPipeline(uint32_t P
 		index = 32;
 	}
 
-	return &ScenePass.Pipelines[index];
+	return tile ? &ScenePass.TilePipelines[index] : &ScenePass.Pipelines[index];
 }
 
 void D3D11RenderDevice::RunBloomPass()
@@ -1863,7 +1872,7 @@ void D3D11RenderDevice::DrawComplexSurface(SceneNode* Frame, SurfaceInfo& Surfac
 	if (info.fogmap != nulltex)
 		info.detailtex = info.fogmap;
 
-	SetPipeline(PolyFlags);
+	SetPipeline(PolyFlags, false);
 	SetDescriptorSet(PolyFlags, info);
 
 	DrawComplexSurfaceFaces(info);
@@ -1960,7 +1969,7 @@ void D3D11RenderDevice::DrawGouraudPolygon(SceneNode* Frame, TextureInfo& Info, 
 
 	D3D11CachedTexture* tex = Textures->GetTexture(&Info, !!(PolyFlags & PF_Masked));
 
-	SetPipeline(PolyFlags);
+	SetPipeline(PolyFlags, false);
 	SetDescriptorSet(PolyFlags, tex);
 
 	float UMult = tex->UMult;
@@ -2066,7 +2075,7 @@ void D3D11RenderDevice::DrawTile(SceneNode* Frame, TextureInfo& Info, float X, f
 	float v1 = (V + VL) * VMult;
 	bool clamp = (u0 >= 0.0f && u1 <= 1.00001f && v0 >= 0.0f && v1 <= 1.00001f);
 
-	SetPipeline(PolyFlags);
+	SetPipeline(PolyFlags, true);
 	SetDescriptorSet(PolyFlags, tex, clamp);
 
 	if (SceneBuffers.Multisample > 1)
@@ -2430,7 +2439,7 @@ void D3D11RenderDevice::EndFlash()
 		SceneConstants.NearClip = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 		Context->UpdateSubresource(ScenePass.ConstantBuffer, 0, nullptr, &SceneConstants, 0, 0);
 
-		SetPipeline(PF_Highlighted);
+		SetPipeline(PF_Highlighted, true);
 		SetDescriptorSet(0);
 
 		auto alloc = ReserveVertices(4, 6);

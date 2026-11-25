@@ -161,6 +161,7 @@ public:
 		ComPtr<ID3D11PixelShader> PixelShaderAlphaTest;
 		ComPtr<ID3D11SamplerState> Samplers[16];
 		ScenePipelineState Pipelines[33];
+		ScenePipelineState TilePipelines[33];
 		ScenePipelineState LinePipeline[2];
 		ScenePipelineState PointPipeline[2];
 		float LODBias = 0.0f;
@@ -271,7 +272,7 @@ private:
 	void ComputeBlurSamples(int sampleCount, float blurAmount, float* sampleWeights);
 
 	void SetPipeline(ScenePipelineState* pipeline);
-	void SetPipeline(uint32_t polyflags);
+	void SetPipeline(uint32_t polyflags, bool tile);
 	void SetDescriptorSet(uint32_t polyflags, D3D11CachedTexture* tex = nullptr, bool clamp = false);
 	void SetDescriptorSet(uint32_t polyflags, const ComplexSurfaceInfo& info);
 
@@ -316,7 +317,7 @@ private:
 
 	int GetSettingsMultisample();
 
-	ScenePipelineState* GetPipeline(uint32_t PolyFlags);
+	ScenePipelineState* GetPipeline(uint32_t PolyFlags, bool tile);
 
 	void CreateVertexShader(ComPtr<ID3D11VertexShader>& outShader, const std::string& shaderName, ComPtr<ID3D11InputLayout>& outInputLayout, const std::string& inputLayoutName, const std::vector<D3D11_INPUT_ELEMENT_DESC>& elements, const std::string& filename, const std::vector<std::string> defines = {});
 	void CreatePixelShader(ComPtr<ID3D11PixelShader>& outShader, const std::string& shaderName, const std::string& filename, const std::vector<std::string> defines = {});
@@ -382,9 +383,9 @@ inline void D3D11RenderDevice::SetPipeline(ScenePipelineState* pipeline)
 	}
 }
 
-inline void D3D11RenderDevice::SetPipeline(uint32_t PolyFlags)
+inline void D3D11RenderDevice::SetPipeline(uint32_t PolyFlags, bool tile)
 {
-	auto pipeline = GetPipeline(PolyFlags);
+	auto pipeline = GetPipeline(PolyFlags, tile);
 	if (pipeline != Batch.Pipeline)
 	{
 		AddDrawBatch();

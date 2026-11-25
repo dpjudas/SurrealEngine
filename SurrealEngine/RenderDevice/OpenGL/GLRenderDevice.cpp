@@ -383,7 +383,9 @@ void GLRenderDevice::CreateScenePass()
 		else
 			ScenePass.Pipelines[i].ShaderProgram = ScenePass.ShaderProgram.get();
 
-		if (((i & 3) == 3) || i == 32)
+		ScenePass.Pipelines[i].PrimitiveTopology = GL_TRIANGLES;
+
+		if ((i & 3) == 3 || i == 32)
 		{
 			ScenePass.Pipelines[i].RasterizerState[0] = ScenePass.RasterizerState[0].get();
 			ScenePass.Pipelines[i].RasterizerState[1] = ScenePass.RasterizerState[1].get();
@@ -394,7 +396,9 @@ void GLRenderDevice::CreateScenePass()
 			ScenePass.Pipelines[i].RasterizerState[1] = ScenePass.RasterizerState[3].get();
 		}
 
-		ScenePass.Pipelines[i].PrimitiveTopology = GL_TRIANGLES;
+		ScenePass.TilePipelines[i] = ScenePass.Pipelines[i];
+		ScenePass.TilePipelines[i].RasterizerState[0] = ScenePass.RasterizerState[0].get();
+		ScenePass.TilePipelines[i].RasterizerState[1] = ScenePass.RasterizerState[1].get();
 	}
 
 	// Line pipeline
@@ -507,7 +511,7 @@ void GLRenderDevice::CreateSceneSamplers()
 #else
 		glSamplerParameteri(sampler, GL_TEXTURE_MIN_FILTER, (i & 1) ? GL_NEAREST_MIPMAP_NEAREST : GL_LINEAR_MIPMAP_LINEAR);
 		glSamplerParameteri(sampler, GL_TEXTURE_MAG_FILTER, (i & 1) ? GL_NEAREST : GL_LINEAR);
-		if (i & 1)
+		if ((i & 1) == 0)
 			glSamplerParameterf(sampler, GL_TEXTURE_MAX_ANISOTROPY_EXT, 8.0f); // To do: we should check for this extension
 #endif
 		glSamplerParameteri(sampler, GL_TEXTURE_WRAP_S, addressmode);
@@ -555,6 +559,11 @@ void GLRenderDevice::ReleaseScenePass()
 	ScenePass.ShaderProgramAlphaTest.reset();
 	ReleaseSceneSamplers();
 	for (auto& pipeline : ScenePass.Pipelines)
+	{
+		pipeline.BlendState.reset();
+		pipeline.DepthStencilState.reset();
+	}
+	for (auto& pipeline : ScenePass.TilePipelines)
 	{
 		pipeline.BlendState.reset();
 		pipeline.DepthStencilState.reset();
@@ -616,7 +625,7 @@ void GLRenderDevice::ReleaseSceneBuffers()
 	}
 }
 
-GLRenderDevice::ScenePipelineState* GLRenderDevice::GetPipeline(uint32_t PolyFlags)
+GLRenderDevice::ScenePipelineState* GLRenderDevice::GetPipeline(uint32_t PolyFlags, bool tile)
 {
 	int index;
 	if (PolyFlags & PF_Translucent)
@@ -654,7 +663,7 @@ GLRenderDevice::ScenePipelineState* GLRenderDevice::GetPipeline(uint32_t PolyFla
 		index = 32;
 	}
 
-	return &ScenePass.Pipelines[index];
+	return tile ? &ScenePass.TilePipelines[index]  :&ScenePass.Pipelines[index];
 }
 
 void GLRenderDevice::RunBloomPass()
@@ -1323,7 +1332,7 @@ void GLRenderDevice::DrawComplexSurface(SceneNode* Frame, SurfaceInfo& Surface, 
 	if (info.fogmap != nulltex)
 		info.detailtex = info.fogmap;
 
-	SetPipeline(PolyFlags);
+	SetPipeline(PolyFlags, false);
 	SetDescriptorSet(PolyFlags, info);
 
 	DrawComplexSurfaceFaces(info);
@@ -1420,7 +1429,7 @@ void GLRenderDevice::DrawGouraudPolygon(SceneNode* Frame, TextureInfo& Info, con
 
 	GLCachedTexture* tex = Textures->GetTexture(&Info, !!(PolyFlags & PF_Masked));
 
-	SetPipeline(PolyFlags);
+	SetPipeline(PolyFlags, false);
 	SetDescriptorSet(PolyFlags, tex);
 
 	float UMult = tex->UMult;
@@ -1526,7 +1535,7 @@ void GLRenderDevice::DrawTile(SceneNode* Frame, TextureInfo& Info, float X, floa
 	float v1 = (V + VL) * VMult;
 	bool clamp = (u0 >= 0.0f && u1 <= 1.00001f && v0 >= 0.0f && v1 <= 1.00001f);
 
-	SetPipeline(PolyFlags);
+	SetPipeline(PolyFlags, true);
 	SetDescriptorSet(PolyFlags, tex, clamp);
 
 	if (SceneBuffers.Multisample > 1)
@@ -1897,7 +1906,7 @@ void GLRenderDevice::EndFlash()
 
 		SetBufferData(GL_UNIFORM_BUFFER, GL_STREAM_DRAW, ScenePass.ConstantBuffer.get(), &SceneConstants, sizeof(GLScenePushConstants));
 
-		SetPipeline(PF_Highlighted);
+		SetPipeline(PF_Highlighted, true);
 		SetDescriptorSet(0);
 
 		auto alloc = ReserveVertices(4, 6);

@@ -411,7 +411,7 @@ void VulkanRenderDevice::DrawComplexSurface(SceneNode* Frame, SurfaceInfo& Surfa
 		DetailVMult = GetVMult(*Surface.FogMap);
 	}
 
-	SetPipeline(RenderPasses->GetPipeline(PolyFlags));
+	SetPipeline(RenderPasses->GetPipeline(PolyFlags, false));
 
 	ivec4 textureBinds = GetTextureIndexes(PolyFlags, tex, lightmap, macrotex, detailtex);
 	vec4 color(1.0f);
@@ -469,7 +469,7 @@ void VulkanRenderDevice::DrawGouraudPolygon(SceneNode* Frame, TextureInfo& Info,
 
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 
-	SetPipeline(RenderPasses->GetPipeline(PolyFlags));
+	SetPipeline(RenderPasses->GetPipeline(PolyFlags, false));
 
 	CachedTexture* tex = Textures->GetTexture(&Info, !!(PolyFlags & PF_Masked));
 	ivec4 textureBinds = GetTextureIndexes(PolyFlags, tex);
@@ -578,7 +578,7 @@ void VulkanRenderDevice::DrawTile(SceneNode* Frame, TextureInfo& Info, float X, 
 	float v1 = (V + VL) * VMult;
 	bool clamp = (u0 >= 0.0f && u1 <= 1.00001f && v0 >= 0.0f && v1 <= 1.00001f);
 
-	SetPipeline(RenderPasses->GetPipeline(PolyFlags));
+	SetPipeline(RenderPasses->GetPipeline(PolyFlags, true));
 	ivec4 textureBinds = GetTextureIndexes(PolyFlags, tex, clamp);
 
 	float r, g, b, a;

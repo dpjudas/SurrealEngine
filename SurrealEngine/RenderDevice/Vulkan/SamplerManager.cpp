@@ -32,7 +32,6 @@ void SamplerManager::CreateSceneSamplers()
 	for (int i = 0; i < 4; i++)
 	{
 		SamplerBuilder builder;
-		builder.Anisotropy(8.0f);
 		builder.MipLodBias(renderer->LODBias);
 
 		if (i & 1)
@@ -43,6 +42,7 @@ void SamplerManager::CreateSceneSamplers()
 		}
 		else
 		{
+			builder.Anisotropy(8.0f);
 			builder.MinFilter(VK_FILTER_LINEAR);
 			builder.MagFilter(VK_FILTER_LINEAR);
 			builder.MipmapMode(VK_SAMPLER_MIPMAP_MODE_LINEAR);

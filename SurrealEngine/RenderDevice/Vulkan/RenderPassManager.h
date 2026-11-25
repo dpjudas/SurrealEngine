@@ -27,7 +27,7 @@ public:
 	void CreatePostprocessRenderPass();
 	void CreateBloomPipeline();
 
-	PipelineState* GetPipeline(uint32_t polyflags);
+	PipelineState* GetPipeline(uint32_t polyflags, bool tile);
 	PipelineState* GetEndFlashPipeline();
 	PipelineState* GetLinePipeline(bool occludeLines) { return &Scene.LinePipeline[occludeLines]; }
 	PipelineState* GetPointPipeline(bool occludeLines) { return &Scene.PointPipeline[occludeLines]; }
@@ -38,6 +38,7 @@ public:
 		std::unique_ptr<VulkanRenderPass> RenderPass;
 		std::unique_ptr<VulkanRenderPass> RenderPassContinue;
 		PipelineState Pipeline[33];
+		PipelineState TilePipeline[33];
 		PipelineState LinePipeline[2];
 		PipelineState PointPipeline[2];
 	} Scene;
