@@ -38,7 +38,13 @@ AudioSettingsPage::AudioSettingsPage(Widget* parent)
 	audioDeviceLabel->SetText("Audio Driver:");
 
 	OpenALDevice->SetText("OpenAL");
-	AudioPlayerDevice->SetText("Surreal Audio");
+#if defined(WIN32)
+	AudioPlayerDevice->SetText("Core Audio");
+#elif defined(__APPLE__)
+	AudioPlayerDevice->SetText("Audio Toolbox");
+#else
+	AudioPlayerDevice->SetText("ALSA");
+#endif
 	NullAudioDevice->SetText("Disable Audio");
 
 	auto settingsLabel = new TextLabel(this);
