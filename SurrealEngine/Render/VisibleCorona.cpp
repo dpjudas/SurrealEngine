@@ -51,7 +51,6 @@ void VisibleCorona::Draw(VisibleFrame* frame)
 			engine->render->UpdateTexture(texinfo.Texture);
 
 			frame->Device->DrawTile(
-				&frame->Frame,
 				texinfo, x - size * 0.5f,
 				y - size * 0.5f,
 				size,

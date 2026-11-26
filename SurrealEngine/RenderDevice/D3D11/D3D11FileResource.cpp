@@ -77,6 +77,9 @@ std::string D3D11FileResource::readAllText(const std::string& filename)
 			{
 				float4 outColor : SV_Target0;
 				uint outHitIndex : SV_Target1;
+				#if defined(DEPTHCLEAR)
+				float outDepth : SV_Depth;
+				#endif
 			};
 
 			SamplerState samplerTex;
@@ -139,6 +142,9 @@ std::string D3D11FileResource::readAllText(const std::string& filename)
 					output.outColor.rgb = fogcolor.rgb + output.outColor.rgb * (1.0 - fogcolor.a);
 				}
 
+				#if defined(DEPTHCLEAR)
+				output.outDepth = 1000000.0;
+				#endif
 				#if defined(ALPHATEST)
 				if (output.outColor.a < 0.5) discard;
 				#endif

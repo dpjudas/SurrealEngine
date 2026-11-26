@@ -42,7 +42,7 @@ void VisibleDecal::DrawDecals(VisibleFrame* frame, BspNode* node)
 				points[i].UV = leveldecal.UVs[i];
 			}
 
-			frame->Device->DrawGouraudPolygon(&frame->Frame, texinfo, points, count, PF_Modulated);
+			frame->Device->DrawGouraudPolygon(texinfo, points, count, PF_Modulated);
 		}
 	}
 }

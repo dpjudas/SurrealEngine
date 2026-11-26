@@ -231,7 +231,7 @@ bool VisibleMesh::DrawMesh(VisibleFrame* frame, UActor* actor, UActor* lightLoca
 
 		renderflags |= PF_RenderFog;
 
-		frame->Device->DrawGouraudPolygon(&frame->Frame, texinfo, vertices, 3, renderflags);
+		frame->Device->DrawGouraudPolygon(texinfo, vertices, 3, renderflags);
 	}
 	return needTranslucentPass;
 }
@@ -550,7 +550,7 @@ bool VisibleMesh::DrawLodMeshFace(VisibleFrame* frame, UActor* actor, UActor* li
 
 		renderflags |= PF_RenderFog;
 
-		frame->Device->DrawGouraudPolygon(&frame->Frame, texinfo, vertices, 3, renderflags);
+		frame->Device->DrawGouraudPolygon(texinfo, vertices, 3, renderflags);
 	}
 
 	return needTranslucentPass;
@@ -789,7 +789,7 @@ bool VisibleMesh::DrawMeshDX(VisibleFrame* frame, UActor* actor, UActor* lightLo
 
 		renderflags |= PF_RenderFog;
 
-		frame->Device->DrawGouraudPolygon(&frame->Frame, texinfo, vertices, 3, renderflags);
+		frame->Device->DrawGouraudPolygon(texinfo, vertices, 3, renderflags);
 	}
 	return needTranslucentPass;
 }
@@ -1060,7 +1060,7 @@ bool VisibleMesh::DrawLodMeshFaceDX(VisibleFrame* frame, UActor* actor, UActor* 
 
 		renderflags |= PF_RenderFog;
 
-		frame->Device->DrawGouraudPolygon(&frame->Frame, texinfo, vertices, 3, renderflags);
+		frame->Device->DrawGouraudPolygon(texinfo, vertices, 3, renderflags);
 	}
 
 	return needTranslucentPass;
@@ -1103,7 +1103,6 @@ void VisibleMesh::DrawDebugInfo(VisibleFrame* frame, UActor* actor)
 
 		bool visible = pawn->FastTrace(end, start);
 		engine->render->Device->Draw3DLine(
-			&frame->Frame,
 			visible ? vec4(1.0f, 1.0f, 1.0f, 1.0f) : vec4(1.0f, 0.0f, 0.0f, 1.0f),
 			0,
 			start,
@@ -1116,7 +1115,6 @@ void VisibleMesh::DrawDebugInfo(VisibleFrame* frame, UActor* actor)
 		start.z += pawn->BaseEyeHeight() * 0.5f;
 		vec3 end = start + (Coords::Rotation(pawn->DesiredRotation()).ToMatrix() * vec4(1.0f, 0.0f, 0.0f, 1.0f)).xyz() * 100.0f;
 		engine->render->Device->Draw3DLine(
-			&frame->Frame,
 			vec4(0.6f, 0.6f, 1.0f, 1.0f),
 			0,
 			start,
@@ -1124,7 +1122,6 @@ void VisibleMesh::DrawDebugInfo(VisibleFrame* frame, UActor* actor)
 
 		end = pawn->Focus();
 		engine->render->Device->Draw3DLine(
-			&frame->Frame,
 			vec4(0.6f, 1.0f, 0.6f, 1.0f),
 			0,
 			start,
@@ -1144,7 +1141,6 @@ void VisibleMesh::DrawDebugInfo(VisibleFrame* frame, UActor* actor)
 			vec3 end = p->Location();
 			end.z += pawn->BaseEyeHeight();
 			engine->render->Device->Draw3DLine(
-				&frame->Frame,
 				vec4(1.0f, 1.0f, 0.0f, 1.0f),
 				0,
 				start,

@@ -94,6 +94,13 @@ public:
 	void Log(const std::string& text) { }
 };
 
+enum class StencilPolygonType
+{
+	Increment,
+	Decrement,
+	DepthClear,
+};
+
 class RenderDevice
 {
 public:
@@ -106,12 +113,14 @@ public:
 	virtual bool Exec(std::string Cmd, OutputDevice& Ar) { return false; }
 	virtual void Lock(vec4 FlashScale, vec4 FlashFog, vec4 ScreenClear, uint8_t* HitData, int* HitSize) = 0;
 	virtual void Unlock(bool Blit) = 0;
-	virtual void DrawComplexSurface(SceneNode* Frame, SurfaceInfo& Surface, SurfaceFacet& Facet) = 0;
-	virtual void DrawGouraudPolygon(SceneNode* Frame, TextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) = 0;
-	virtual void DrawTile(SceneNode* Frame, TextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) = 0;
-	virtual void Draw3DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) = 0;
-	virtual void Draw2DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) = 0;
-	virtual void Draw2DPoint(SceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z) = 0;
+	virtual void DrawComplexSurface(SurfaceInfo& Surface, SurfaceFacet& Facet) = 0;
+	virtual void DrawGouraudPolygon(TextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) = 0;
+	virtual void DrawStencilPolygon(StencilPolygonType type, const vec3* Pts, int NumPts) = 0;
+	virtual void DrawTile(TextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) = 0;
+	virtual void Draw3DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) = 0;
+	virtual void Draw2DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) = 0;
+	virtual void Draw2DPoint(vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z) = 0;
+	virtual void SetStencilRef(int reference) = 0;
 	virtual void ClearZ() = 0;
 	virtual void PushHit(const uint8_t* Data, int Count) = 0;
 	virtual void PopHit(int Count, bool bForce) = 0;

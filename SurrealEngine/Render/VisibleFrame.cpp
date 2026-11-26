@@ -381,10 +381,18 @@ void VisibleFrame::DrawTranslucent()
 
 void VisibleFrame::DrawPortals()
 {
+	Device->SetSceneNode(&Frame);
+
+	// Draw the portals
 	for (VisiblePortal& portal : Portals)
 	{
+		// Draw the visible part of the portal surface into the stencil buffer and clear the depth values for it
+		portal.DrawStencil(this, StencilPolygonType::Increment);
+		Device->SetStencilRef(PortalDepth + 1);
+		portal.DrawStencil(this, StencilPolygonType::DepthClear);
+
 		// BspClipper requires the visible spans list to be sorted
-		std::sort(portal.Spans.begin(), portal.Spans.end(), [](const PortalSpan& a, const PortalSpan& b) { return a.y != b.y ? a.y < b.y: a.x0 < b.x0; });
+		std::sort(portal.Spans.begin(), portal.Spans.end(), [](const PortalSpan& a, const PortalSpan& b) { return a.y != b.y ? a.y < b.y : a.x0 < b.x0; });
 
 		if (portal.SkyZone)
 		{
@@ -398,7 +406,6 @@ void VisibleFrame::DrawPortals()
 			skyframe.Process(portal.SkyZone->Location(), skyToView, ViewRotation * Coords::Rotation(portal.SkyZone->Rotation()), MirrorFlag, PortalDepth + 1, portal.Spans);
 			Device->SetSceneNode(&skyframe.Frame);
 			skyframe.Draw();
-			Device->ClearZ();
 		}
 		else if (portal.WarpZone)
 		{
@@ -421,7 +428,6 @@ void VisibleFrame::DrawPortals()
 			portalframe.Process(newLocation, worldToView, rotation, MirrorFlag, PortalDepth + 1, portal.Spans, portalPlane);
 			Device->SetSceneNode(&portalframe.Frame);
 			portalframe.Draw();
-			Device->ClearZ();
 		}
 		else // Mirror
 		{
@@ -431,26 +437,25 @@ void VisibleFrame::DrawPortals()
 			vec3 n = model->Vectors[surface.vNormal];
 			mat4 mirrorRotation = mat4::mirror(n);
 			mat4 mirrorToView = Frame.WorldToView * mat4::translate(v) * mirrorRotation * mat4::translate(-v);
+			vec4 portalPlane(n, -dot(v, n));
 
 			VisibleFrame mirrorframe;
-			mirrorframe.Process(ViewLocation.xyz(), mirrorToView, ViewRotation * Coords::FromMatrix(mirrorRotation).Inverse(), !MirrorFlag, PortalDepth + 1, portal.Spans);
+			mirrorframe.Process(ViewLocation.xyz(), mirrorToView, ViewRotation * Coords::FromMatrix(mirrorRotation).Inverse(), !MirrorFlag, PortalDepth + 1, portal.Spans, portalPlane);
 			Device->SetSceneNode(&mirrorframe.Frame);
 			mirrorframe.Draw();
-			Device->ClearZ();
 		}
+
+		// Seal the portal with depth values and remove it from the stencil buffer
+		Device->SetSceneNode(&Frame);
+		portal.DrawStencil(this, StencilPolygonType::Decrement);
+		Device->SetStencilRef(PortalDepth);
 	}
 
-	// Seal the portals
-	Device->SetSceneNode(&Frame);
+	// Draw any portal surface textures on top
 	for (VisiblePortal& portal : Portals)
 	{
 		for (const auto& info : portal.Nodes)
 		{
-			VisibleNode visnode(info);
-			visnode.PolyFlags |= PF_Occlude | PF_Invisible;
-			visnode.Front = true;
-			visnode.Draw(this);
-
 			if (info.PolyFlags & PF_NoOcclude)
 			{
 				if ((info.PolyFlags & (PF_Translucent | PF_Modulated)) == 0)

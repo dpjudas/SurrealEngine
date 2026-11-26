@@ -401,6 +401,12 @@ void GLRenderDevice::CreateScenePass()
 		ScenePass.TilePipelines[i].RasterizerState[1] = ScenePass.RasterizerState[1].get();
 	}
 
+	// Stencil pipelines
+	for (int i = 0; i < 3; i++)
+	{
+		// To do: fill out ScenePass.StencilPipelines[i]
+	}
+
 	// Line pipeline
 	for (int i = 0; i < 2; i++)
 	{
@@ -1313,7 +1319,7 @@ void GLRenderDevice::SetHitLocation()
 	SetBufferData(GL_UNIFORM_BUFFER, GL_STREAM_DRAW, ScenePass.ConstantBuffer.get(), &SceneConstants, sizeof(GLScenePushConstants));
 }
 
-void GLRenderDevice::DrawComplexSurface(SceneNode* Frame, SurfaceInfo& Surface, SurfaceFacet& Facet)
+void GLRenderDevice::DrawComplexSurface(SurfaceInfo& Surface, SurfaceFacet& Facet)
 {
 	uint32_t PolyFlags = ApplyPrecedenceRules(Surface.PolyFlags);
 
@@ -1421,9 +1427,63 @@ void GLRenderDevice::DrawComplexSurfaceFaces(const ComplexSurfaceInfo& info)
 	}
 }
 
-void GLRenderDevice::DrawGouraudPolygon(SceneNode* Frame, TextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
+void GLRenderDevice::DrawStencilPolygon(StencilPolygonType type, const vec3* Pts, int NumPts)
 {
-	if (NumPts < 3) return; // This can apparently happen!!
+#if 0
+	if (NumPts < 3) return;
+
+	SetPipeline(&ScenePass.StencilPipelines[(int)type]);
+	SetDescriptorSet(0);
+
+	auto alloc = ReserveVertices(NumPts, (NumPts - 2) * 3);
+	if (alloc.vptr)
+	{
+		GLSceneVertex* vptr = alloc.vptr;
+		uint32_t* iptr = alloc.iptr;
+		uint32_t vpos = alloc.vpos;
+
+		GLSceneVertex* vertex = vptr;
+		for (int i = 0; i < NumPts; i++)
+		{
+			const GouraudVertex* P = Pts + i;
+			vertex->Flags = 0;
+			vertex->Position.x = P->Point.x;
+			vertex->Position.y = P->Point.y;
+			vertex->Position.z = P->Point.z;
+			vertex->TexCoord.s = 0.0f;
+			vertex->TexCoord.t = 0.0f;
+			vertex->TexCoord2.s = 0.0f;
+			vertex->TexCoord2.t = 0.0f;
+			vertex->TexCoord3.s = 0.0f;
+			vertex->TexCoord3.t = 0.0f;
+			vertex->TexCoord4.s = 0.0f;
+			vertex->TexCoord4.t = 0.0f;
+			vertex->Color.r = 1.0f;
+			vertex->Color.g = 1.0f;
+			vertex->Color.b = 1.0f;
+			vertex->Color.a = 1.0f;
+			vertex++;
+		}
+
+		uint32_t vstart = vpos;
+		uint32_t vcount = NumPts;
+		for (uint32_t i = vstart + 2; i < vstart + vcount; i++)
+		{
+			*(iptr++) = vstart;
+			*(iptr++) = i - 1;
+			*(iptr++) = i;
+		}
+
+		UseVertices(NumPts, (NumPts - 2) * 3);
+	}
+
+	Stats.StencilPolygons++;
+#endif
+}
+
+void GLRenderDevice::DrawGouraudPolygon(TextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
+{
+	if (NumPts < 3) return;
 
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 
@@ -1512,7 +1572,7 @@ void GLRenderDevice::DrawGouraudPolygon(SceneNode* Frame, TextureInfo& Info, con
 	Stats.GouraudPolygons++;
 }
 
-void GLRenderDevice::DrawTile(SceneNode* Frame, TextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
+void GLRenderDevice::DrawTile(TextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
 {
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 
@@ -1572,8 +1632,8 @@ void GLRenderDevice::DrawTile(SceneNode* Frame, TextureInfo& Info, float X, floa
 
 		float rfx2z = RFX2 * Z;
 		float rfy2z = RFY2 * Z;
-		X -= Frame->FX2;
-		Y -= Frame->FY2;
+		X -= CurrentFrame->FX2;
+		Y -= CurrentFrame->FY2;
 		XL += X;
 		YL += Y;
 		U *= UMult;
@@ -1673,12 +1733,11 @@ vec4 GLRenderDevice::ApplyInverseGamma(vec4 color)
 	return vec4(pow(color.r, gammaRed), pow(color.g, gammaGreen), pow(color.b, gammaBlue), color.a);
 }
 
-void GLRenderDevice::Draw3DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
+void GLRenderDevice::Draw3DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
 {
-	// P1 = P1.TransformPointBy(Frame->Coords);
-	// P2 = P2.TransformPointBy(Frame->Coords);
 	if (IsOrtho)
 	{
+		auto Frame = CurrentFrame;
 		P1.x = (P1.x) / Frame->Zoom + Frame->FX2;
 		P1.y = (P1.y) / Frame->Zoom + Frame->FY2;
 		P1.z = 1;
@@ -1688,11 +1747,11 @@ void GLRenderDevice::Draw3DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags
 
 		if (std::abs(P2.x - P1.x) + std::abs(P2.y - P1.y) >= 0.2)
 		{
-			Draw2DLine(Frame, Color, LineFlags, P1, P2);
+			Draw2DLine(Color, LineFlags, P1, P2);
 		}
 		else if (IsOrthoLowDetail)
 		{
-			Draw2DPoint(Frame, Color, LINE_None, P1.x - 1, P1.y - 1, P1.x + 1, P1.y + 1, P1.z);
+			Draw2DPoint(Color, LINE_None, P1.x - 1, P1.y - 1, P1.x + 1, P1.y + 1, P1.z);
 		}
 	}
 	else
@@ -1720,7 +1779,7 @@ void GLRenderDevice::Draw3DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags
 	}
 }
 
-void GLRenderDevice::Draw2DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
+void GLRenderDevice::Draw2DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
 {
 	bool occlude = !!(LineFlags & LINE_DepthCued);
 	SetPipeline(&ScenePass.LinePipeline[occlude]);
@@ -1734,6 +1793,7 @@ void GLRenderDevice::Draw2DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags
 		uint32_t* iptr = alloc.iptr;
 		uint32_t vpos = alloc.vpos;
 
+		auto Frame = CurrentFrame;
 		vptr[0] = { 0, vec3(RFX2 * P1.z * (P1.x - Frame->FX2), RFY2 * P1.z * (P1.y - Frame->FY2), P1.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
 		vptr[1] = { 0, vec3(RFX2 * P2.z * (P2.x - Frame->FX2), RFY2 * P2.z * (P2.y - Frame->FY2), P2.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
 
@@ -1744,7 +1804,7 @@ void GLRenderDevice::Draw2DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags
 	}
 }
 
-void GLRenderDevice::Draw2DPoint(SceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z)
+void GLRenderDevice::Draw2DPoint(vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z)
 {
 	bool occlude = !!(LineFlags & LINE_DepthCued);
 	SetPipeline(&ScenePass.PointPipeline[occlude]);
@@ -1758,6 +1818,7 @@ void GLRenderDevice::Draw2DPoint(SceneNode* Frame, vec4 Color, uint32_t LineFlag
 		uint32_t* iptr = alloc.iptr;
 		uint32_t vpos = alloc.vpos;
 
+		auto Frame = CurrentFrame;
 		vptr[0] = { 0, vec3(RFX2 * Z * (X1 - Frame->FX2 - 0.5f), RFY2 * Z * (Y1 - Frame->FY2 - 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
 		vptr[1] = { 0, vec3(RFX2 * Z * (X2 - Frame->FX2 + 0.5f), RFY2 * Z * (Y1 - Frame->FY2 - 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
 		vptr[2] = { 0, vec3(RFX2 * Z * (X2 - Frame->FX2 + 0.5f), RFY2 * Z * (Y2 - Frame->FY2 + 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color };
@@ -1772,6 +1833,10 @@ void GLRenderDevice::Draw2DPoint(SceneNode* Frame, vec4 Color, uint32_t LineFlag
 
 		UseVertices(4, 6);
 	}
+}
+
+void GLRenderDevice::SetStencilRef(int reference)
+{
 }
 
 void GLRenderDevice::ClearZ()

@@ -26,12 +26,14 @@ public:
 	void Flush(bool AllowPrecache) override;
 	void Lock(vec4 FlashScale, vec4 FlashFog, vec4 ScreenClear, uint8_t* HitData, int* HitSize) override;
 	void Unlock(bool Blit) override;
-	void DrawComplexSurface(SceneNode* Frame, SurfaceInfo& Surface, SurfaceFacet& Facet) override;
-	void DrawGouraudPolygon(SceneNode* Frame, TextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) override;
-	void DrawTile(SceneNode* Frame, TextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) override;
-	void Draw3DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 OrigP, vec3 OrigQ) override;
-	void Draw2DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) override;
-	void Draw2DPoint(SceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z) override;
+	void DrawComplexSurface(SurfaceInfo& Surface, SurfaceFacet& Facet) override;
+	void DrawGouraudPolygon(TextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags) override;
+	void DrawStencilPolygon(StencilPolygonType type, const vec3* Pts, int NumPts) override;
+	void DrawTile(TextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags) override;
+	void Draw3DLine(vec4 Color, uint32_t LineFlags, vec3 OrigP, vec3 OrigQ) override;
+	void Draw2DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2) override;
+	void Draw2DPoint(vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z) override;
+	void SetStencilRef(int reference) override;
 	void ClearZ() override;
 	void PushHit(const uint8_t* Data, int Count) override;
 	void PopHit(int Count, bool bForce) override;
@@ -73,6 +75,7 @@ public:
 	{
 		int ComplexSurfaces = 0;
 		int GouraudPolygons = 0;
+		int StencilPolygons = 0;
 		int Tiles = 0;
 		int DrawCalls = 0;
 		int Uploads = 0;

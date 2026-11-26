@@ -359,7 +359,7 @@ void VulkanRenderDevice::DrawBatch(VulkanCommandBuffer* cmdbuffer)
 	}
 }
 
-void VulkanRenderDevice::DrawComplexSurface(SceneNode* Frame, SurfaceInfo& Surface, SurfaceFacet& Facet)
+void VulkanRenderDevice::DrawComplexSurface(SurfaceInfo& Surface, SurfaceFacet& Facet)
 {
 	if (Facet.VertexCount < 3)
 		return;
@@ -463,9 +463,64 @@ void VulkanRenderDevice::DrawComplexSurface(SceneNode* Frame, SurfaceInfo& Surfa
 	Stats.ComplexSurfaces++;
 }
 
-void VulkanRenderDevice::DrawGouraudPolygon(SceneNode* Frame, TextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
+void VulkanRenderDevice::DrawStencilPolygon(StencilPolygonType type, const vec3* Pts, int NumPts)
 {
-	if (NumPts < 3) return; // This can apparently happen!!
+#if 0
+	if (NumPts < 3) return;
+
+	SetPipeline(RenderPasses->GetStencilPipeline(type));
+	ivec4 textureBinds = GetTextureIndexes(0, nullptr);
+
+	auto alloc = ReserveVertices(NumPts, (NumPts - 2) * 3);
+	if (alloc.vptr)
+	{
+		SceneVertex* vptr = alloc.vptr;
+		uint32_t* iptr = alloc.iptr;
+		uint32_t vpos = alloc.vpos;
+
+		SceneVertex* vertex = vptr;
+		for (int i = 0; i < NumPts; i++)
+		{
+			const GouraudVertex* P = &Pts[i];
+			vertex->Flags = 0;
+			vertex->Position.x = P->Point.x;
+			vertex->Position.y = P->Point.y;
+			vertex->Position.z = P->Point.z;
+			vertex->TexCoord.s = 0.0f;
+			vertex->TexCoord.t = 0.0f;
+			vertex->TexCoord2.s = 0.0f;
+			vertex->TexCoord2.t = 0.0f;
+			vertex->TexCoord3.s = 0.0f;
+			vertex->TexCoord3.t = 0.0f;
+			vertex->TexCoord4.s = 0.0f;
+			vertex->TexCoord4.t = 0.0f;
+			vertex->Color.r = 1.0f;
+			vertex->Color.g = 1.0f;
+			vertex->Color.b = 1.0f;
+			vertex->Color.a = 1.0f;
+			vertex->TextureBinds = textureBinds;
+			vertex++;
+		}
+
+		uint32_t vstart = vpos;
+		uint32_t vcount = NumPts;
+		for (uint32_t i = vstart + 2; i < vstart + vcount; i++)
+		{
+			*(iptr++) = vstart;
+			*(iptr++) = i - 1;
+			*(iptr++) = i;
+		}
+
+		UseVertices(NumPts, (NumPts - 2) * 3);
+	}
+
+	Stats.StencilPolygons++;
+#endif
+}
+
+void VulkanRenderDevice::DrawGouraudPolygon(TextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
+{
+	if (NumPts < 3) return;
 
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 
@@ -555,7 +610,7 @@ void VulkanRenderDevice::DrawGouraudPolygon(SceneNode* Frame, TextureInfo& Info,
 	Stats.GouraudPolygons++;
 }
 
-void VulkanRenderDevice::DrawTile(SceneNode* Frame, TextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
+void VulkanRenderDevice::DrawTile(TextureInfo& Info, float X, float Y, float XL, float YL, float U, float V, float UL, float VL, float Z, vec4 Color, vec4 Fog, uint32_t PolyFlags)
 {
 	PolyFlags = ApplyPrecedenceRules(PolyFlags);
 
@@ -613,6 +668,7 @@ void VulkanRenderDevice::DrawTile(SceneNode* Frame, TextureInfo& Info, float X, 
 		uint32_t* iptr = alloc.iptr;
 		uint32_t vpos = alloc.vpos;
 
+		auto Frame = CurrentFrame;
 		vptr[0] = { 0, vec3(RFX2 * Z * (X - Frame->FX2),      RFY2 * Z * (Y - Frame->FY2),      Z), vec2(u0, v0), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), textureBinds };
 		vptr[1] = { 0, vec3(RFX2 * Z * (X + XL - Frame->FX2), RFY2 * Z * (Y - Frame->FY2),      Z), vec2(u1, v0), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), textureBinds };
 		vptr[2] = { 0, vec3(RFX2 * Z * (X + XL - Frame->FX2), RFY2 * Z * (Y + YL - Frame->FY2), Z), vec2(u1, v1), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec2(0.0f, 0.0f), vec4(r, g, b, a), textureBinds };
@@ -642,10 +698,11 @@ vec4 VulkanRenderDevice::ApplyInverseGamma(vec4 color)
 	return vec4(pow(color.r, gammaRed), pow(color.g, gammaGreen), pow(color.b, gammaBlue), color.a);
 }
 
-void VulkanRenderDevice::Draw3DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
+void VulkanRenderDevice::Draw3DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
 {
 	if (IsOrtho)
 	{
+		auto Frame = CurrentFrame;
 		P1.x = (P1.x) / Frame->Zoom + Frame->FX2;
 		P1.y = (P1.y) / Frame->Zoom + Frame->FY2;
 		P1.z = 1;
@@ -655,11 +712,11 @@ void VulkanRenderDevice::Draw3DLine(SceneNode* Frame, vec4 Color, uint32_t LineF
 
 		if (std::abs(P2.x - P1.x) + std::abs(P2.y - P1.y) >= 0.2f)
 		{
-			Draw2DLine(Frame, Color, LineFlags, P1, P2);
+			Draw2DLine(Color, LineFlags, P1, P2);
 		}
 		else if (IsOrthoLowDetail)
 		{
-			Draw2DPoint(Frame, Color, LINE_None, P1.x - 1, P1.y - 1, P1.x + 1, P1.y + 1, P1.z);
+			Draw2DPoint(Color, LINE_None, P1.x - 1, P1.y - 1, P1.x + 1, P1.y + 1, P1.z);
 		}
 	}
 	else
@@ -687,7 +744,7 @@ void VulkanRenderDevice::Draw3DLine(SceneNode* Frame, vec4 Color, uint32_t LineF
 	}
 }
 
-void VulkanRenderDevice::Draw2DLine(SceneNode* Frame, vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
+void VulkanRenderDevice::Draw2DLine(vec4 Color, uint32_t LineFlags, vec3 P1, vec3 P2)
 {
 	bool occlude = !!(LineFlags & LINE_DepthCued);
 	SetPipeline(RenderPasses->GetLinePipeline(occlude));
@@ -701,6 +758,7 @@ void VulkanRenderDevice::Draw2DLine(SceneNode* Frame, vec4 Color, uint32_t LineF
 		uint32_t* iptr = alloc.iptr;
 		uint32_t vpos = alloc.vpos;
 
+		auto Frame = CurrentFrame;
 		vptr[0] = { 0, vec3(RFX2 * P1.z * (P1.x - Frame->FX2), RFY2 * P1.z * (P1.y - Frame->FY2), P1.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color, textureBinds };
 		vptr[1] = { 0, vec3(RFX2 * P2.z * (P2.x - Frame->FX2), RFY2 * P2.z * (P2.y - Frame->FY2), P2.z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color, textureBinds };
 
@@ -711,7 +769,7 @@ void VulkanRenderDevice::Draw2DLine(SceneNode* Frame, vec4 Color, uint32_t LineF
 	}
 }
 
-void VulkanRenderDevice::Draw2DPoint(SceneNode* Frame, vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z)
+void VulkanRenderDevice::Draw2DPoint(vec4 Color, uint32_t LineFlags, float X1, float Y1, float X2, float Y2, float Z)
 {
 	bool occlude = !!(LineFlags & LINE_DepthCued);
 	SetPipeline(RenderPasses->GetPointPipeline(occlude));
@@ -725,6 +783,7 @@ void VulkanRenderDevice::Draw2DPoint(SceneNode* Frame, vec4 Color, uint32_t Line
 		uint32_t* iptr = alloc.iptr;
 		uint32_t vpos = alloc.vpos;
 
+		auto Frame = CurrentFrame;
 		vptr[0] = { 0, vec3(RFX2 * Z * (X1 - Frame->FX2 - 0.5f), RFY2 * Z * (Y1 - Frame->FY2 - 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color, textureBinds };
 		vptr[1] = { 0, vec3(RFX2 * Z * (X2 - Frame->FX2 + 0.5f), RFY2 * Z * (Y1 - Frame->FY2 - 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color, textureBinds };
 		vptr[2] = { 0, vec3(RFX2 * Z * (X2 - Frame->FX2 + 0.5f), RFY2 * Z * (Y2 - Frame->FY2 + 0.5f), Z), vec2(0.0f), vec2(0.0f), vec2(0.0f), vec2(0.0f), color, textureBinds };
@@ -739,6 +798,10 @@ void VulkanRenderDevice::Draw2DPoint(SceneNode* Frame, vec4 Color, uint32_t Line
 
 		UseVertices(4, 6);
 	}
+}
+
+void VulkanRenderDevice::SetStencilRef(int reference)
+{
 }
 
 void VulkanRenderDevice::ClearZ()

@@ -119,6 +119,6 @@ bool VisibleBrush::DrawBrushPoly(VisibleFrame* frame, UModel* model, const Poly&
 	surfaceinfo.LightMap = lightmap.NumMips != 0 ? &lightmap : nullptr;
 	surfaceinfo.FogMap = fogmap.NumMips != 0 ? &fogmap : nullptr;
 
-	frame->Device->DrawComplexSurface(&frame->Frame, surfaceinfo, facet);
+	frame->Device->DrawComplexSurface(surfaceinfo, facet);
 	return false;
 }
