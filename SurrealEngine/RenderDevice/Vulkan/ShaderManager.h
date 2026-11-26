@@ -51,6 +51,7 @@ public:
 		std::vector<uint32_t> VertexShader;
 		std::vector<uint32_t> FragmentShader;
 		std::vector<uint32_t> FragmentShaderAlphaTest;
+		std::vector<uint32_t> FragmentShaderDepthClear;
 	} Scene;
 
 	struct

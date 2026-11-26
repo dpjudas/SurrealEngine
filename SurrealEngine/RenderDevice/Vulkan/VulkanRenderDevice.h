@@ -130,8 +130,8 @@ private:
 	VkViewport viewportdesc = {};
 
 	bool UsePrecache = true;
-	vec4 FlashScale;
-	vec4 FlashFog;
+	vec4 FlashScale = vec4(0.0f);
+	vec4 FlashFog = vec4(0.0f);
 	SceneNode* CurrentFrame = nullptr;
 	float Aspect = 0.0f;
 	float RProjZ = 0.0f;
@@ -174,6 +174,8 @@ private:
 
 	int ForceHitIndex = -1;
 	HitQuery ForceHit;
+
+	int StencilRef = 0;
 };
 
 inline void VulkanRenderDevice::SetPipeline(PipelineState* pipeline)

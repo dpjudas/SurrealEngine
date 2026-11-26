@@ -141,7 +141,7 @@ void VulkanRenderDevice::Flush(bool AllowPrecache)
 		PipelineBarrier()
 			.AddImage(Textures->Scene->ColorBuffer.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, srcColorAccess, dstColorAccess)
 			.AddImage(Textures->Scene->HitBuffer.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, srcColorAccess, dstColorAccess)
-			.AddImage(Textures->Scene->DepthBuffer.get(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, srcDepthAccess, dstDepthAccess, VK_IMAGE_ASPECT_DEPTH_BIT)
+			.AddImage(Textures->Scene->DepthBuffer.get(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, srcDepthAccess, dstDepthAccess, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)
 			.Execute(cmdbuffer, srcStages, dstStages);
 
 		RenderPassBegin()
@@ -203,7 +203,7 @@ void VulkanRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenCle
 	PipelineBarrier()
 		.AddImage(Textures->Scene->ColorBuffer.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, srcColorAccess, dstColorAccess)
 		.AddImage(Textures->Scene->HitBuffer.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, srcColorAccess, dstColorAccess)
-		.AddImage(Textures->Scene->DepthBuffer.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, srcDepthAccess, dstDepthAccess, VK_IMAGE_ASPECT_DEPTH_BIT)
+		.AddImage(Textures->Scene->DepthBuffer.get(), VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, srcDepthAccess, dstDepthAccess, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)
 		.Execute(cmdbuffer, srcStages, dstStages);
 
 	RenderPassBegin()
@@ -241,7 +241,7 @@ void VulkanRenderDevice::FlushDrawBatchAndWait()
 	PipelineBarrier()
 		.AddImage(Textures->Scene->ColorBuffer.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, srcColorAccess, dstColorAccess)
 		.AddImage(Textures->Scene->HitBuffer.get(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL, srcColorAccess, dstColorAccess)
-		.AddImage(Textures->Scene->DepthBuffer.get(), VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL, srcDepthAccess, dstDepthAccess, VK_IMAGE_ASPECT_DEPTH_BIT)
+		.AddImage(Textures->Scene->DepthBuffer.get(), VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL, srcDepthAccess, dstDepthAccess, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)
 		.Execute(drawcommands, srcStages, dstStages);
 
 	RenderPassBegin()
@@ -353,6 +353,7 @@ void VulkanRenderDevice::DrawBatch(VulkanCommandBuffer* cmdbuffer)
 		cmdbuffer->bindDescriptorSet(VK_PIPELINE_BIND_POINT_GRAPHICS, layout, 0, DescriptorSets->GetBindlessSet());
 		cmdbuffer->pushConstants(layout, VK_SHADER_STAGE_VERTEX_BIT, 0, sizeof(ScenePushConstants), &pushconstants);
 		cmdbuffer->setBlendConstants(Batch.BlendConstants);
+		cmdbuffer->setStencilReference(VK_STENCIL_FACE_FRONT_AND_BACK, StencilRef);
 		cmdbuffer->drawIndexed((uint32_t)icount, 1, (uint32_t)Batch.SceneIndexStart, 0, 0);
 		Batch.SceneIndexStart = SceneIndexPos;
 		Stats.DrawCalls++;
@@ -465,7 +466,6 @@ void VulkanRenderDevice::DrawComplexSurface(SurfaceInfo& Surface, SurfaceFacet& 
 
 void VulkanRenderDevice::DrawStencilPolygon(StencilPolygonType type, const vec3* Pts, int NumPts)
 {
-#if 0
 	if (NumPts < 3) return;
 
 	SetPipeline(RenderPasses->GetStencilPipeline(type));
@@ -481,11 +481,11 @@ void VulkanRenderDevice::DrawStencilPolygon(StencilPolygonType type, const vec3*
 		SceneVertex* vertex = vptr;
 		for (int i = 0; i < NumPts; i++)
 		{
-			const GouraudVertex* P = &Pts[i];
+			const vec3* P = &Pts[i];
 			vertex->Flags = 0;
-			vertex->Position.x = P->Point.x;
-			vertex->Position.y = P->Point.y;
-			vertex->Position.z = P->Point.z;
+			vertex->Position.x = P->x;
+			vertex->Position.y = P->y;
+			vertex->Position.z = P->z;
 			vertex->TexCoord.s = 0.0f;
 			vertex->TexCoord.t = 0.0f;
 			vertex->TexCoord2.s = 0.0f;
@@ -515,7 +515,6 @@ void VulkanRenderDevice::DrawStencilPolygon(StencilPolygonType type, const vec3*
 	}
 
 	Stats.StencilPolygons++;
-#endif
 }
 
 void VulkanRenderDevice::DrawGouraudPolygon(TextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
@@ -802,6 +801,11 @@ void VulkanRenderDevice::Draw2DPoint(vec4 Color, uint32_t LineFlags, float X1, f
 
 void VulkanRenderDevice::SetStencilRef(int reference)
 {
+	if (StencilRef != reference)
+	{
+		DrawBatch(Commands->GetDrawCommands());
+		StencilRef = reference;
+	}
 }
 
 void VulkanRenderDevice::ClearZ()

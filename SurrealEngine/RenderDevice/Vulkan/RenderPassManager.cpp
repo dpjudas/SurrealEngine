@@ -98,6 +98,7 @@ void RenderPassManager::CreatePipelines()
 	const std::vector<uint32_t>& vertShader = renderer->Shaders->Scene.VertexShader;
 	const std::vector<uint32_t>& fragShader = renderer->Shaders->Scene.FragmentShader;
 	const std::vector<uint32_t>& fragShaderAlphaTest = renderer->Shaders->Scene.FragmentShaderAlphaTest;
+	const std::vector<uint32_t>& fragShaderDepthClear = renderer->Shaders->Scene.FragmentShaderDepthClear;
 	VulkanPipelineLayout* layout = Scene.BindlessPipelineLayout.get();
 	static const char* debugName = "ScenePipeline";
 
@@ -120,6 +121,7 @@ void RenderPassManager::CreatePipelines()
 		builder.AddVertexAttribute(7, 0, VK_FORMAT_R32G32B32A32_SINT, offsetof(SceneVertex, TextureBinds));
 		builder.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT);
 		builder.AddDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS);
+		builder.AddDynamicState(VK_DYNAMIC_STATE_STENCIL_REFERENCE);
 		builder.Layout(layout);
 		builder.RenderPass(Scene.RenderPass.get());
 
@@ -156,12 +158,14 @@ void RenderPassManager::CreatePipelines()
 
 			if (i & 8) // PF_Occlude
 			{
-				builder.DepthStencilEnable(true, true, false);
+				builder.DepthStencilEnable(true, true, true);
 			}
 			else
 			{
-				builder.DepthStencilEnable(true, false, false);
+				builder.DepthStencilEnable(true, false, true);
 			}
+
+			builder.Stencil(VK_STENCIL_OP_KEEP, VK_STENCIL_OP_KEEP, VK_STENCIL_OP_KEEP, VK_COMPARE_OP_EQUAL, 0xff, 0xff, 0);
 
 			if (i & 16) // PF_Masked
 				builder.AddFragmentShader(fragShaderAlphaTest);
@@ -190,6 +194,57 @@ void RenderPassManager::CreatePipelines()
 		if (((i & 3) != 3) && i != 32)
 			builder.DepthBias(true, -128.0f, 0.0f, -1.0f);
 		Scene.Pipeline[i].Pipeline = builder.Create(renderer->Device.get());
+	}
+
+	// Stencil pipelines
+	for (int i = 0; i < 3; i++)
+	{
+		GraphicsPipelineBuilder builder;
+		builder.AddVertexShader(vertShader);
+		builder.Viewport(0.0f, 0.0f, (float)renderer->Textures->Scene->Width, (float)renderer->Textures->Scene->Height);
+		builder.Scissor(0, 0, renderer->Textures->Scene->Width, renderer->Textures->Scene->Height);
+		builder.Topology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+		builder.Cull(VK_CULL_MODE_NONE, VK_FRONT_FACE_CLOCKWISE);
+		builder.AddVertexBufferBinding(0, sizeof(SceneVertex));
+		builder.AddVertexAttribute(0, 0, VK_FORMAT_R32_UINT, offsetof(SceneVertex, Flags));
+		builder.AddVertexAttribute(1, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(SceneVertex, Position));
+		builder.AddVertexAttribute(2, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(SceneVertex, TexCoord));
+		builder.AddVertexAttribute(3, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(SceneVertex, TexCoord2));
+		builder.AddVertexAttribute(4, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(SceneVertex, TexCoord3));
+		builder.AddVertexAttribute(5, 0, VK_FORMAT_R32G32_SFLOAT, offsetof(SceneVertex, TexCoord4));
+		builder.AddVertexAttribute(6, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(SceneVertex, Color));
+		builder.AddVertexAttribute(7, 0, VK_FORMAT_R32G32B32A32_SINT, offsetof(SceneVertex, TextureBinds));
+		builder.AddDynamicState(VK_DYNAMIC_STATE_VIEWPORT);
+		builder.AddDynamicState(VK_DYNAMIC_STATE_BLEND_CONSTANTS);
+		builder.AddDynamicState(VK_DYNAMIC_STATE_STENCIL_REFERENCE);
+		builder.Layout(layout);
+		builder.RenderPass(Scene.RenderPass.get());
+
+		// Avoid clipping the weapon. The UE1 engine clips the geometry anyway.
+		if (renderer->Device.get()->EnabledFeatures.Features.depthClamp)
+			builder.DepthClampEnable(true);
+
+		ColorBlendAttachmentBuilder colorblend;
+		colorblend.ColorWriteMask(0);
+
+		builder.DepthStencilEnable(true, i != 0, true);
+		builder.DepthFunc((i == 0) ? VK_COMPARE_OP_LESS_OR_EQUAL : VK_COMPARE_OP_ALWAYS);
+
+		static const VkStencilOp stencilOps[] = { VK_STENCIL_OP_INCREMENT_AND_CLAMP, VK_STENCIL_OP_DECREMENT_AND_CLAMP, VK_STENCIL_OP_KEEP };
+		builder.Stencil(VK_STENCIL_OP_KEEP, stencilOps[i], VK_STENCIL_OP_KEEP, VK_COMPARE_OP_EQUAL, 0xff, 0xff, 0);
+
+		if (i < 2)
+			builder.AddFragmentShader(fragShader);
+		else
+			builder.AddFragmentShader(fragShaderDepthClear);
+
+		builder.AddColorBlendAttachment(colorblend.Create());
+		builder.AddColorBlendAttachment(ColorBlendAttachmentBuilder().Create());
+
+		builder.RasterizationSamples(renderer->Textures->Scene->SceneSamples);
+		builder.DebugName(debugName);
+
+		Scene.StencilPipeline[i].Pipeline = builder.Create(renderer->Device.get());
 	}
 
 	// Line pipeline
@@ -292,12 +347,12 @@ void RenderPassManager::CreateRenderPass()
 			VK_IMAGE_LAYOUT_UNDEFINED,
 			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
 		.AddDepthStencilAttachment(
-			VK_FORMAT_D32_SFLOAT,
+			VK_FORMAT_D32_SFLOAT_S8_UINT,
 			renderer->Textures->Scene->SceneSamples,
 			VK_ATTACHMENT_LOAD_OP_CLEAR,
 			VK_ATTACHMENT_STORE_OP_STORE,
-			VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-			VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			VK_ATTACHMENT_LOAD_OP_CLEAR,
+			VK_ATTACHMENT_STORE_OP_STORE,
 			VK_IMAGE_LAYOUT_UNDEFINED,
 			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 		.AddSubpass()
@@ -323,12 +378,12 @@ void RenderPassManager::CreateRenderPass()
 			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
 			VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL)
 		.AddDepthStencilAttachment(
-			VK_FORMAT_D32_SFLOAT,
+			VK_FORMAT_D32_SFLOAT_S8_UINT,
 			renderer->Textures->Scene->SceneSamples,
 			VK_ATTACHMENT_LOAD_OP_LOAD,
 			VK_ATTACHMENT_STORE_OP_STORE,
-			VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-			VK_ATTACHMENT_STORE_OP_DONT_CARE,
+			VK_ATTACHMENT_LOAD_OP_LOAD,
+			VK_ATTACHMENT_STORE_OP_STORE,
 			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 			VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL)
 		.AddSubpass()

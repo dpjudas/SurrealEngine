@@ -1,5 +1,6 @@
 #pragma once
 
+#include "RenderDevice/RenderDevice.h"
 #include <surrealgpu/vulkanobjects.h>
 
 class VulkanRenderDevice;
@@ -31,6 +32,7 @@ public:
 	PipelineState* GetEndFlashPipeline();
 	PipelineState* GetLinePipeline(bool occludeLines) { return &Scene.LinePipeline[occludeLines]; }
 	PipelineState* GetPointPipeline(bool occludeLines) { return &Scene.PointPipeline[occludeLines]; }
+	PipelineState* GetStencilPipeline(StencilPolygonType type) { return &Scene.StencilPipeline[(int)type]; }
 
 	struct
 	{
@@ -41,6 +43,7 @@ public:
 		PipelineState TilePipeline[33];
 		PipelineState LinePipeline[2];
 		PipelineState PointPipeline[2];
+		PipelineState StencilPipeline[3];
 	} Scene;
 
 	struct

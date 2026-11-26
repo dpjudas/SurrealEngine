@@ -24,6 +24,11 @@ ShaderManager::ShaderManager(VulkanRenderDevice* renderer) : renderer(renderer)
 		.AddSource("shaders/Scene.frag", LoadShaderCode("shaders/Scene.frag", "#extension GL_EXT_nonuniform_qualifier : enable\r\n#define ALPHATEST"))
 		.Compile(renderer->Device.get());
 
+	Scene.FragmentShaderDepthClear = GLSLCompiler()
+		.Type(ShaderType::Fragment)
+		.AddSource("shaders/Scene.frag", LoadShaderCode("shaders/Scene.frag", "#extension GL_EXT_nonuniform_qualifier : enable\r\n#define DEPTHCLEAR"))
+		.Compile(renderer->Device.get());
+
 	Postprocess.VertexShader = GLSLCompiler()
 		.Type(ShaderType::Vertex)
 		.AddSource("shaders/PPStep.vert", LoadShaderCode("shaders/PPStep.vert"))

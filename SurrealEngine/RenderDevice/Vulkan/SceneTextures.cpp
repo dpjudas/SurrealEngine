@@ -37,13 +37,13 @@ SceneTextures::SceneTextures(VulkanRenderDevice* renderer, int width, int height
 	DepthBuffer = ImageBuilder()
 		.Size(width, height)
 		.Samples(SceneSamples)
-		.Format(VK_FORMAT_D32_SFLOAT)
+		.Format(VK_FORMAT_D32_SFLOAT_S8_UINT)
 		.Usage(VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT)
 		.DebugName("depthBuffer")
 		.Create(renderer->Device.get());
 
 	DepthBufferView = ImageViewBuilder()
-		.Image(DepthBuffer.get(), VK_FORMAT_D32_SFLOAT, VK_IMAGE_ASPECT_DEPTH_BIT)
+		.Image(DepthBuffer.get(), VK_FORMAT_D32_SFLOAT_S8_UINT, VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT)
 		.DebugName("depthBufferView")
 		.Create(renderer->Device.get());
 
@@ -138,7 +138,7 @@ SceneTextures::SceneTextures(VulkanRenderDevice* renderer, int width, int height
 		VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
 		0,
 		VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
-		VK_IMAGE_ASPECT_DEPTH_BIT);
+		VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT);
 
 	for (int level = 0; level < NumBloomLevels; level++)
 	{
