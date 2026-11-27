@@ -2208,7 +2208,7 @@ void GLRenderDevice::SetSamplers(int start, int count, GLSampler** samplers)
 
 void GLRenderDevice::SetViewport(const GLViewport& viewport)
 {
-	glViewport((GLint)std::round(viewport.X), (GLint)std::round(viewport.Y), (GLsizei)std::round(viewport.Width), (GLsizei)std::round(viewport.Height));
+	glViewport((GLint)std::round(viewport.X), (GLint)std::round(CurrentSizeY - viewport.Y - viewport.Height), (GLsizei)std::round(viewport.Width), (GLsizei)std::round(viewport.Height));
 	glDepthRange((GLdouble)viewport.MinDepth, (GLdouble)viewport.MaxDepth);
 }
 
