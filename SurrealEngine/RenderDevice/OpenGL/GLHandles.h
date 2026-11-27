@@ -218,6 +218,12 @@ public:
 	bool DepthEnable;
 	GLenum DepthFunc;
 	bool DepthWriteMask;
+	bool StencilEnable;
+	GLuint StencilMask;
+	GLenum StencilFunc;
+	GLenum StencilPassOp;
+	GLenum StencilFailOp;
+	GLenum StencilDepthFailOp;
 };
 
 class GLDepthStencilState

@@ -196,7 +196,7 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 	{
 		glBindTexture(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.DepthBuffer->Handle);
 		SetDebugName(SceneBuffers.DepthBuffer, "SceneBuffers.DepthBuffer");
-		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.Multisample, GL_DEPTH_COMPONENT32F, SceneBuffers.Width, SceneBuffers.Height, GL_FALSE);
+		glTexImage2DMultisample(GL_TEXTURE_2D_MULTISAMPLE, SceneBuffers.Multisample, GL_DEPTH32F_STENCIL8, SceneBuffers.Width, SceneBuffers.Height, GL_FALSE);
 		glTexParameteri(GL_TEXTURE_2D_MULTISAMPLE, GL_TEXTURE_MAX_LEVEL, 0);
 		ThrowIfGLError("glTexStorage2DMultisample(SceneBuffers.DepthBuffer) failed");
 	}
@@ -204,7 +204,7 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 	{
 		glBindTexture(GL_TEXTURE_2D, SceneBuffers.DepthBuffer->Handle);
 		SetDebugName(SceneBuffers.DepthBuffer, "SceneBuffers.DepthBuffer");
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32F, SceneBuffers.Width, SceneBuffers.Height, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH32F_STENCIL8, SceneBuffers.Width, SceneBuffers.Height, 0, GL_DEPTH_STENCIL, GL_DEPTH32F_STENCIL8, nullptr);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 		ThrowIfGLError("glTexImage2D(SceneBuffers.DepthBuffer) failed");
 	}
@@ -224,7 +224,7 @@ void GLRenderDevice::ResizeSceneBuffers(int width, int height, int multisample)
 	SetDebugName(SceneBuffers.Framebuffer, "SceneBuffers.Framebuffer");
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, SceneBuffers.ColorBuffer->Handle, 0);
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT1, SceneBuffers.HitBuffer->Handle, 0);
-	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, SceneBuffers.DepthBuffer->Handle, 0);
+	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, SceneBuffers.DepthBuffer->Handle, 0);
 	ThrowIfGLError("Creating SceneBuffers.Framebuffer failed");
 
 	SceneBuffers.HitFramebuffer = std::make_shared<GLFramebuffer>();
@@ -291,8 +291,10 @@ void GLRenderDevice::CreateScenePass()
 	ScenePass.VertexShader = CreateVertexShader("ScenePass.VertexShader", "shaders/Scene.vert");
 	ScenePass.FragmentShader = CreateFragmentShader("ScenePass.PixelShader", "shaders/Scene.frag");
 	ScenePass.FragmentShaderAlphaTest = CreateFragmentShader("ScenePass.PixelShaderAlphaTest", "shaders/Scene.frag", { "ALPHATEST" });
+	ScenePass.FragmentShaderDepthClear = CreateFragmentShader("ScenePass.PixelShaderDepthClear", "shaders/Scene.frag", { "DEPTHCLEAR" });
 	ScenePass.ShaderProgram = CreateProgram("ScenePass.ShaderProgram", ScenePass.VertexShader, ScenePass.FragmentShader);
 	ScenePass.ShaderProgramAlphaTest = CreateProgram("ScenePass.ShaderProgramAlphaTest", ScenePass.VertexShader, ScenePass.FragmentShaderAlphaTest);
+	ScenePass.ShaderProgramDepthClear = CreateProgram("ScenePass.ShaderProgramDepthClear", ScenePass.VertexShader, ScenePass.FragmentShaderDepthClear);
 
 	CreateSceneSamplers();
 
@@ -376,6 +378,14 @@ void GLRenderDevice::CreateScenePass()
 			depthStencilDesc.DepthWriteMask = true;
 		else
 			depthStencilDesc.DepthWriteMask = false;
+
+		depthStencilDesc.StencilEnable = true;
+		depthStencilDesc.StencilMask = 0xff;
+		depthStencilDesc.StencilFunc = GL_EQUAL;
+		depthStencilDesc.StencilPassOp = GL_KEEP;
+		depthStencilDesc.StencilFailOp = GL_KEEP;
+		depthStencilDesc.StencilDepthFailOp = GL_KEEP;
+
 		ScenePass.Pipelines[i].DepthStencilState = CreateDepthStencilState(depthStencilDesc);
 
 		if ((i & 16) || i == 32) // PF_Masked or PF_SubpixelFont
@@ -404,7 +414,33 @@ void GLRenderDevice::CreateScenePass()
 	// Stencil pipelines
 	for (int i = 0; i < 3; i++)
 	{
-		// To do: fill out ScenePass.StencilPipelines[i]
+		GLBlendDesc blendDesc = {};
+		blendDesc.IndependentBlendEnable = true;
+		blendDesc.RenderTarget[0].BlendEnable = false;
+		blendDesc.RenderTarget[0].RenderTargetWriteMask = 0;
+		blendDesc.RenderTarget[1].BlendEnable = false;
+		blendDesc.RenderTarget[1].RenderTargetWriteMask = 0;
+		ScenePass.StencilPipelines[i].BlendState = CreateBlendState(blendDesc);
+
+		GLDepthStencilDesc depthStencilDesc = {};
+		depthStencilDesc.DepthEnable = true;
+		depthStencilDesc.DepthFunc = (i == 0) ? GL_LEQUAL : GL_ALWAYS;
+		depthStencilDesc.DepthWriteMask = (i != 0);
+
+		static const GLenum stencilOps[] = { GL_INCR, GL_DECR, GL_KEEP };
+		depthStencilDesc.StencilEnable = true;
+		depthStencilDesc.StencilMask = 0xff;
+		depthStencilDesc.StencilFunc = GL_EQUAL;
+		depthStencilDesc.StencilPassOp = stencilOps[i];
+		depthStencilDesc.StencilFailOp = GL_KEEP;
+		depthStencilDesc.StencilDepthFailOp = GL_KEEP;
+
+		ScenePass.StencilPipelines[i].DepthStencilState = CreateDepthStencilState(depthStencilDesc);
+
+		ScenePass.StencilPipelines[i].ShaderProgram = i < 2 ? ScenePass.ShaderProgram.get() : ScenePass.ShaderProgramDepthClear.get();
+		ScenePass.StencilPipelines[i].PrimitiveTopology = GL_TRIANGLES;
+		ScenePass.StencilPipelines[i].RasterizerState[0] = ScenePass.RasterizerState[0].get();
+		ScenePass.StencilPipelines[i].RasterizerState[1] = ScenePass.RasterizerState[1].get();
 	}
 
 	// Line pipeline
@@ -563,6 +599,7 @@ void GLRenderDevice::ReleaseScenePass()
 	ScenePass.RasterizerState[3].reset();
 	ScenePass.ShaderProgram.reset();
 	ScenePass.ShaderProgramAlphaTest.reset();
+	ScenePass.ShaderProgramDepthClear.reset();
 	ReleaseSceneSamplers();
 	for (auto& pipeline : ScenePass.Pipelines)
 	{
@@ -570,6 +607,11 @@ void GLRenderDevice::ReleaseScenePass()
 		pipeline.DepthStencilState.reset();
 	}
 	for (auto& pipeline : ScenePass.TilePipelines)
+	{
+		pipeline.BlendState.reset();
+		pipeline.DepthStencilState.reset();
+	}
+	for (auto& pipeline : ScenePass.StencilPipelines)
 	{
 		pipeline.BlendState.reset();
 		pipeline.DepthStencilState.reset();
@@ -686,7 +728,7 @@ void GLRenderDevice::RunBloomPass()
 	glBindVertexArray(PresentPass.PPStepLayout->Handle);
 	SetRasterizerState(PresentPass.RasterizerState.get());
 	SetUniformBuffers(0, 1, cbs);
-	SetDepthStencilState(PresentPass.DepthStencilState.get());
+	SetDepthStencilState(PresentPass.DepthStencilState.get(), 0);
 	SetBlendState(PresentPass.BlendState.get());
 
 	GLViewport viewport = {};
@@ -1026,11 +1068,12 @@ void GLRenderDevice::Lock(vec4 InFlashScale, vec4 InFlashFog, vec4 ScreenClear, 
 	glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 	glDepthMask(GL_TRUE);
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_STENCIL_TEST);
 
 	glClearColor(color[0], color[1], color[2], color[3]);
 	glClearDepth(1.0f);
-	//glClearStencil(0);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT /* | GL_STENCIL_BUFFER_BIT*/);
+	glClearStencil(0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ScenePass.IndexBuffer->Handle);
 	glBindVertexArray(ScenePass.InputLayout->Handle);
@@ -1159,7 +1202,7 @@ void GLRenderDevice::Unlock(bool Blit)
 		SetUniformBuffers(0, 1, cbs);
 		GLTexture2D* psResources[] = { SceneBuffers.PPImage[0].get(), PresentPass.DitherTexture.get() };
 		SetTextures(0, 2, psResources);
-		SetDepthStencilState(PresentPass.DepthStencilState.get());
+		SetDepthStencilState(PresentPass.DepthStencilState.get(), 0);
 		SetBlendState(PresentPass.BlendState.get());
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -1208,7 +1251,7 @@ void GLRenderDevice::Unlock(bool Blit)
 			SetRasterizerState(PresentPass.RasterizerState.get());
 			GLTexture2D* srvs[1] = { SceneBuffers.HitBuffer.get() };
 			SetTextures(0, 1, srvs);
-			SetDepthStencilState(PresentPass.DepthStencilState.get());
+			SetDepthStencilState(PresentPass.DepthStencilState.get(), 0);
 			SetBlendState(PresentPass.BlendState.get());
 
 			glDrawArrays(GL_TRIANGLES, 0, 6);
@@ -1429,7 +1472,6 @@ void GLRenderDevice::DrawComplexSurfaceFaces(const ComplexSurfaceInfo& info)
 
 void GLRenderDevice::DrawStencilPolygon(StencilPolygonType type, const vec3* Pts, int NumPts)
 {
-#if 0
 	if (NumPts < 3) return;
 
 	SetPipeline(&ScenePass.StencilPipelines[(int)type]);
@@ -1445,11 +1487,11 @@ void GLRenderDevice::DrawStencilPolygon(StencilPolygonType type, const vec3* Pts
 		GLSceneVertex* vertex = vptr;
 		for (int i = 0; i < NumPts; i++)
 		{
-			const GouraudVertex* P = Pts + i;
+			const vec3* P = Pts + i;
 			vertex->Flags = 0;
-			vertex->Position.x = P->Point.x;
-			vertex->Position.y = P->Point.y;
-			vertex->Position.z = P->Point.z;
+			vertex->Position.x = P->x;
+			vertex->Position.y = P->y;
+			vertex->Position.z = P->z;
 			vertex->TexCoord.s = 0.0f;
 			vertex->TexCoord.t = 0.0f;
 			vertex->TexCoord2.s = 0.0f;
@@ -1478,7 +1520,6 @@ void GLRenderDevice::DrawStencilPolygon(StencilPolygonType type, const vec3* Pts
 	}
 
 	Stats.StencilPolygons++;
-#endif
 }
 
 void GLRenderDevice::DrawGouraudPolygon(TextureInfo& Info, const GouraudVertex* Pts, int NumPts, uint32_t PolyFlags)
@@ -1837,6 +1878,11 @@ void GLRenderDevice::Draw2DPoint(vec4 Color, uint32_t LineFlags, float X1, float
 
 void GLRenderDevice::SetStencilRef(int reference)
 {
+	if (StencilRef != reference)
+	{
+		DrawBatches();
+		StencilRef = reference;
+	}
 }
 
 void GLRenderDevice::ClearZ()
@@ -1901,7 +1947,7 @@ void GLRenderDevice::ReadPixels(TextureColor* Pixels)
 		SetRasterizerState(PresentPass.RasterizerState.get());
 		SetUniformBuffers(0, 1, cbs);
 		SetTextures(0, 2, psResources);
-		SetDepthStencilState(PresentPass.DepthStencilState.get());
+		SetDepthStencilState(PresentPass.DepthStencilState.get(), 0);
 		SetBlendState(PresentPass.BlendState.get());
 		glDrawArrays(GL_TRIANGLES, 0, 6);
 
@@ -2082,7 +2128,7 @@ void GLRenderDevice::SetBlendState(GLBlendState* blendState, const float* blendC
 		glBlendColor(blendConstants[0], blendConstants[1], blendConstants[2], blendConstants[3]);
 }
 
-void GLRenderDevice::SetDepthStencilState(GLDepthStencilState* depthStencilState)
+void GLRenderDevice::SetDepthStencilState(GLDepthStencilState* depthStencilState, int stencilRef)
 {
 	if (depthStencilState->desc.DepthEnable)
 		glEnable(GL_DEPTH_TEST);
@@ -2091,6 +2137,17 @@ void GLRenderDevice::SetDepthStencilState(GLDepthStencilState* depthStencilState
 
 	glDepthFunc(depthStencilState->desc.DepthFunc);
 	glDepthMask(depthStencilState->desc.DepthWriteMask ? GL_TRUE : GL_FALSE);
+
+	if (depthStencilState->desc.StencilEnable)
+	{
+		glEnable(GL_STENCIL_TEST);
+		glStencilFunc(depthStencilState->desc.StencilFunc, stencilRef, depthStencilState->desc.StencilMask);
+		glStencilOp(depthStencilState->desc.StencilFailOp, depthStencilState->desc.StencilDepthFailOp, depthStencilState->desc.StencilPassOp);
+	}
+	else
+	{
+		glDisable(GL_STENCIL_TEST);
+	}
 }
 
 void GLRenderDevice::SetRasterizerState(GLRasterizerState* rasterizerState)
@@ -2236,7 +2293,7 @@ void GLRenderDevice::DrawEntry(const DrawBatchEntry& entry)
 	SetSamplers(0, 4, samplers);
 	SetTextures(0, 4, views);
 	SetBlendState(entry.Pipeline->BlendState.get(), entry.BlendConstants);
-	SetDepthStencilState(entry.Pipeline->DepthStencilState.get());
+	SetDepthStencilState(entry.Pipeline->DepthStencilState.get(), StencilRef);
 	SetRasterizerState(entry.Pipeline->RasterizerState[SceneBuffers.Multisample > 1]);
 
 	glDrawElements(entry.Pipeline->PrimitiveTopology, (GLsizei)icount, GL_UNSIGNED_INT, (void*)(entry.SceneIndexStart * sizeof(uint32_t)));

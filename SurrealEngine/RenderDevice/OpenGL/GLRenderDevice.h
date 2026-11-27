@@ -153,8 +153,10 @@ public:
 		std::shared_ptr<GLRasterizerState> RasterizerState[4];
 		std::shared_ptr<GLFragmentShader> FragmentShader;
 		std::shared_ptr<GLFragmentShader> FragmentShaderAlphaTest;
+		std::shared_ptr<GLFragmentShader> FragmentShaderDepthClear;
 		std::shared_ptr<GLProgram> ShaderProgram;
 		std::shared_ptr<GLProgram> ShaderProgramAlphaTest;
+		std::shared_ptr<GLProgram> ShaderProgramDepthClear;
 		std::shared_ptr<GLSampler> Samplers[16];
 		ScenePipelineState Pipelines[33];
 		ScenePipelineState TilePipelines[33];
@@ -337,7 +339,7 @@ private:
 	void SetViewport(const GLViewport& viewport);
 	void SetBufferData(GLenum target, GLenum usage, GLBuffer* buffer, const void* data, size_t size);
 	void SetBlendState(GLBlendState* blendState, const float* BlendConstants = nullptr);
-	void SetDepthStencilState(GLDepthStencilState* depthStencilState);
+	void SetDepthStencilState(GLDepthStencilState* depthStencilState, int stencilRef);
 	void SetRasterizerState(GLRasterizerState* rasterizerState);
 	void SetUniformBuffers(int start, int count, GLBuffer** buffers);
 	void SetTextures(int start, int count, GLTexture** textures);
@@ -376,6 +378,8 @@ private:
 	bool CurrentFullscreen = 0;
 	int CurrentSizeX = 0;
 	int CurrentSizeY = 0;
+
+	int StencilRef = 0;
 };
 
 inline void GLRenderDevice::SetPipeline(ScenePipelineState* pipeline)

@@ -116,6 +116,9 @@ std::string GLFileResource::readAllText(const std::string& filename)
 					outColor.rgb = fogcolor.rgb + outColor.rgb * (1.0 - fogcolor.a);
 				}
 
+				#if defined(DEPTHCLEAR)
+				gl_FragDepth = 1000000.0;
+				#endif
 				#if defined(ALPHATEST)
 				if (outColor.a < 0.5) discard;
 				#endif
