@@ -22,7 +22,7 @@ void BspClipper::Setup(const mat4& world_to_projection, const Array<PortalSpan>&
 	FrustumClip = FrustumPlanes(world_to_projection);
 	PortalPlane = portalPlane;
 
-	ClipSpan left = { (int16_t)0x8000, 0 };
+	ClipSpan left = { (int16_t)-0x8000, 0 };
 	ClipSpan right = { (int16_t)ViewportWidth, (int16_t)0x7fff };
 	for (auto& line : Viewport)
 	{
@@ -201,7 +201,8 @@ bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 
 	bool collect = CollectSpans;
 	bool visible = false;
-	for (size_t pos = 0; pos < line.size(); pos++)
+	size_t pos = 0;
+	while (pos + 1 < line.size())
 	{
 		ClipSpan& span = line[pos];
 		ClipSpan& nextspan = line[pos + 1];
@@ -229,29 +230,29 @@ bool BspClipper::DrawSpan(int16_t y, int16_t x0, int16_t x1, bool solid)
 			if (left == span.x1)
 			{
 				span.x1 = right;
-				if (span.x1 == nextspan.x0)
-				{
-					span.x1 = nextspan.x1;
-					line.erase(line.begin() + pos + 1);
-				}
+				if (span.x1 != nextspan.x0)
+					break;
+
+				span.x1 = nextspan.x1;
+				line.erase(line.begin() + pos + 1);
 			}
 			else if (right == nextspan.x0)
 			{
 				nextspan.x0 = left;
-				if (span.x1 == nextspan.x0)
-				{
-					span.x1 = nextspan.x1;
-					line.erase(line.begin() + pos + 1);
-				}
+				pos++;
 			}
 			else
 			{
-				pos++;
 				ClipSpan span;
 				span.x0 = left;
 				span.x1 = right;
-				line.insert(line.begin() + pos, span);
+				line.insert(line.begin() + pos + 1, span);
+				break;
 			}
+		}
+		else
+		{
+			pos++;
 		}
 	}
 	return visible;

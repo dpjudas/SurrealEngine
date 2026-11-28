@@ -33,9 +33,12 @@ public:
 
 	Array<PortalSpan> CheckPortal(const vec3* vertices, uint32_t count);
 
-	int numDrawSpans;
-	int numSurfs;
-	int numTris;
+	int numDrawSpans = 0;
+	int numSurfs = 0;
+	int numTris = 0;
+
+	static const int ViewportWidth = 2048;
+	static const int ViewportHeight = 1080;
 
 private:
 	bool IsVisible(int16_t y, int16_t x0, int16_t x1);
@@ -67,7 +70,4 @@ private:
 	enum { max_additional_vertices = 16 };
 	float weightsbuffer[max_additional_vertices * 3 * 2];
 	float* weights = nullptr;
-
-	const int ViewportWidth = 2048;
-	const int ViewportHeight = 1080;
 };

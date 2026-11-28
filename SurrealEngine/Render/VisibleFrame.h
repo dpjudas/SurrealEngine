@@ -44,6 +44,7 @@ private:
 	void DrawOpaqueActors();
 	void DrawTranslucent();
 	void DrawPortals();
+	void DrawPortalClipSpans();
 
 	int FindZoneAt(const vec3& location);
 	int FindZoneAt(const vec4& location, BspNode* node, BspNode* nodes);

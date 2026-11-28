@@ -345,6 +345,40 @@ void VisibleFrame::Draw()
 	DrawOpaqueActors();
 	SortTranslucent();
 	DrawTranslucent();
+	// DrawPortalClipSpans(); // For debugging where portals got clipped
+}
+
+void VisibleFrame::DrawPortalClipSpans()
+{
+	SceneNode frame;
+	frame.XB = 0;
+	frame.YB = 0;
+	frame.X = engine->viewport->ViewportWidth();
+	frame.Y = engine->viewport->ViewportHeight();
+	frame.FX = (float)engine->viewport->ViewportWidth();
+	frame.FY = (float)engine->viewport->ViewportHeight();
+	frame.FX2 = frame.FX * 0.5f;
+	frame.FY2 = frame.FY * 0.5f;
+	frame.ObjectToWorld = mat4::identity();
+	frame.WorldToView = mat4::identity();
+	frame.FovAngle = engine->CameraFovAngle;
+	float Aspect = frame.FY / frame.FX;
+	float RProjZ = (float)std::tan(radians(frame.FovAngle) * 0.5f);
+	float RFX2 = 2.0f * RProjZ / frame.FX;
+	float RFY2 = 2.0f * RProjZ * Aspect / frame.FY;
+	frame.Projection = mat4::frustum(-RProjZ, RProjZ, -Aspect * RProjZ, Aspect * RProjZ, 1.0f, 32768.0f, handedness::left, clipzrange::zero_positive_w);
+	float sx = BspClipper::ViewportWidth * 2.0f / frame.FX;
+	float sy = BspClipper::ViewportHeight * 4.0f / frame.FY * Aspect;
+	Device->SetSceneNode(&frame);
+	for (VisiblePortal& portal : Portals)
+	{
+		for (const PortalSpan& span : portal.Spans)
+		{
+			Device->Draw2DLine(vec4(1.0f), 0,
+				vec3(span.x0 * sx, frame.FY - span.y * sy, 1.0f),
+				vec3(span.x1 * sx, frame.FY - span.y * sy, 1.0f));
+		}
+	}
 }
 
 void VisibleFrame::DrawCoronas()
